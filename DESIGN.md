@@ -318,18 +318,56 @@ driver. This resolves OQ1: a registry can't trigger a build on a pull-miss, but 
 filed issue can be parsed and fed into the publish workflow. Pre-warm (D2 top-N)
 and these requests are two queues into the one builder.
 
-### D12 — Build infrastructure: hosted for sign/publish, orion for bulk (planned)
+### D12 — Build infrastructure: native runners per arch (no emulation)
 
 **Observation:** GitHub-hosted runners are slow for this workload — cold start,
-no conda/layer cache between runs (every run re-pulls the base and re-solves from
-scratch), and multi-arch (D9) doubles the install work. Heavy tools (e.g.
-metaphlan) take many minutes.
+no conda/layer cache between runs, and worst of all, **building the amd64 half of
+a multi-arch image on an arm64 runner runs under QEMU emulation** (metaphlan's
+emulated amd64 build took ~25 min before we cancelled it). Emulating an
+architecture to publish images whose purpose is to end emulation is both slow and
+self-contradictory.
 
-**Direction:** keep **hosted `ubuntu-24.04-arm`** for the canonical sign/publish
-path (reliable keyless OIDC, safe for a public repo), and add **orion** (the M4
-mac, native arm64, warm conda cache, no per-minute clock) as a **bulk build
-farm** for grinding the long tail. Not yet built; becomes worthwhile once the
-request queue (D11) grows.
+**Decision: build each arch on its OWN native hardware, then merge.** No `--platform`
+cross-build. The CI matrix (D13) splits noarch builds into an amd64 leg on a
+native amd64 runner and an arm64 leg on a native arm64 runner.
+
+**Local build farm (confirmed hardware, planned wiring):**
+- **orion.local** — Apple M4, native **arm64** (Colima/docker).
+- **janus.local** — native **Linux x86_64**, docker 29.2.1 (no colima needed).
+- Together they cover both arches natively for the bulk/long-tail builds — free,
+  cached, no per-minute clock, no emulation. Same `build-arch.sh`/`merge.sh`
+  primitives as CI; SSH-driven. Not yet wired.
+
+Hosted runners remain the canonical sign/publish path (reliable keyless OIDC,
+safe for a public repo).
+
+### D13 — Native multi-arch via matrix + manifest merge
+
+**Decision:** the publish workflow classifies each tool (cheap dry-run solve,
+`classify.sh`), then:
+- **arch-specific** → one job, native arm64, `build.sh` (build+tag+push) → sign → public.
+- **noarch** → a `build-leg` matrix with one job per (tool × arch) on the matching
+  native runner (`ubuntu-24.04` for amd64, `ubuntu-24.04-arm` for arm64); each
+  builds its arch with `build-arch.sh` and pushes **by digest** (no tag), saving
+  the digest as an artifact. A dependent `merge` job runs `merge.sh` to assemble
+  the manifest list under the `<version>--<build>` tag, then cosign-signs the
+  **manifest-list** digest (covers all arches) and sets the repo public.
+
+Push-by-digest avoids the two arch legs racing on the tag; the merge publishes
+the tag atomically.
+
+### D14 — Website (aarch.bio) and request automation (planned)
+
+- **Website:** a GitHub Pages site at **aarch.bio**, generated *from the registry*
+  (list published tools, link each to its quay page + a copy-paste `cosign verify`
+  command), plus the story and benchmark data. Purpose: **discovery** (the
+  silently-emulating cohort won't seek us out otherwise) and **trust UX** (an
+  unused signature is theater — the verify command must be one copy-paste away).
+- **Request automation:** an `on: issues` workflow parses `container-request`
+  forms (D11), validates via `classify.sh`, and dispatches `publish.yml` — gated
+  ("with checking"): the package must resolve in bioconda, and a new tool's first
+  version requires a maintainer `approved` label before building (guards against
+  typosquat/malicious package names). Closes the request→publish loop.
 
 ## Architecture
 

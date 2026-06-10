@@ -1,16 +1,16 @@
-# Build → push → keyless-sign → set-public, one job per tool.
+# Build → push → keyless-sign → set-public, with NATIVE multi-arch builds.
 #
-# This is the D3 "make it a bot" builder. For now it is manually dispatched with
-# an explicit tool list; the ranking driver (D2) that auto-generates that list is
-# a later addition. Each tool runs the existing builder/build.sh, then signs the
-# pushed image with cosign KEYLESS (D6: Sigstore OIDC -> Fulcio -> Rekor), then
-# flips the repo public via the quay API (D6a).
+# D3 "make it a bot" builder. Manually dispatched with a tool list (the D2 ranking
+# driver that auto-generates the list is a later addition).
 #
-# Runner: GitHub-hosted `ubuntu-24.04-arm` — native arm64, so docker builds the
-# arm64 images with NO emulation. Keyless cosign works out of the box here
-# (ambient OIDC), and it stays safe when the repo goes public. (orion remains
-# available for ad-hoc/bulk local builds via build.sh over SSH, but is not the
-# official signing path.)
+# Architecture (D9): each tool is classified by a cheap solve, then routed:
+#   - noarch (Python/Java)  -> multi-arch manifest. amd64 is built on a NATIVE
+#     amd64 runner and arm64 on a NATIVE arm64 runner (NO QEMU — emulating the
+#     other arch made metaphlan take ~25min), then merged into one manifest.
+#   - arch-specific (C/C++) -> arm64-only on a native arm64 runner (amd64 already
+#     exists upstream at quay.io/biocontainers).
+# Both paths then cosign KEYLESS-sign (D6, Sigstore/Rekor) and set the repo
+# public via the quay API (D6a). Failures auto-file arm64-gap issues (D10).
 
 name: publish
 
@@ -22,100 +22,187 @@ on:
         required: true
         type: string
 
-# Keyless signing needs an OIDC token; quay calls need the secrets.
 permissions:
   contents: read
-  id-token: write   # REQUIRED for cosign keyless (OIDC)
-  issues: write     # auto-file arm64-gap issues on build failure
+  id-token: write   # cosign keyless (OIDC)
+  issues: write     # auto-file arm64-gap issues
+
+env:
+  REGISTRY: quay.io/aarchbio
 
 jobs:
-  publish:
-    runs-on: ubuntu-24.04-arm   # GitHub-hosted native arm64
+  # ---------------------------------------------------------------------------
+  # 1. Classify each tool (cheap dry-run solve) -> two routing lists + a flat
+  #    "build leg" list for the multi-arch matrix (one entry per tool×platform).
+  # ---------------------------------------------------------------------------
+  classify:
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      arm64_only: ${{ steps.c.outputs.arm64_only }}   # JSON array of {tool,version,tag}
+      multiarch:  ${{ steps.c.outputs.multiarch }}     # JSON array of {tool,version,tag}
+      legs:       ${{ steps.c.outputs.legs }}          # JSON array of {tool,version,tag,platform,runner}
+      gaps:       ${{ steps.c.outputs.gaps }}          # JSON array of {tool,version}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v3
-
-      - name: Tooling preflight
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - id: c
         run: |
-          set -euo pipefail
-          for bin in docker cosign curl jq; do
-            command -v "$bin" >/dev/null || { echo "missing: $bin"; exit 1; }
-          done
-          cosign version 2>&1 | head -1
-
-      - name: Registry login (robot)
-        env:
-          QUAY_USER: ${{ secrets.QUAY_USER }}
-          QUAY_TOKEN: ${{ secrets.QUAY_TOKEN }}
-        run: echo "$QUAY_TOKEN" | docker login quay.io -u "$QUAY_USER" --password-stdin
-
-      - name: Build, push, sign, publish each tool
-        env:
-          REGISTRY: quay.io/aarchbio
-          PUSH: '1'
-          QUAY_OAUTH_TOKEN: ${{ secrets.QUAY_OAUTH_TOKEN }}
-          COSIGN_YES: 'true'          # non-interactive keyless
-          GH_TOKEN: ${{ github.token }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          set -uo pipefail   # NOT -e: one tool's failure must not abort the batch
-          fail=0
-
-          # File (or skip if already open) an arm64-gap issue for a tool that
-          # couldn't be built. The real fix for these is upstream in bioconda
-          # (add linux-aarch64 to the recipe's CI); we make the gap visible and
-          # actionable rather than compiling from source ourselves.
-          file_gap() {
-            local pkg="$1" ver="$2" log="$3"
-            local title="arm64-gap: ${pkg}=${ver}"
-            if gh issue list --repo "$GITHUB_REPOSITORY" --state open --label arm64-gap \
-                 --search "in:title ${title}" --json title --jq '.[].title' 2>/dev/null | grep -qxF "$title"; then
-              echo "  gap issue already open: $title"; return
-            fi
-            local err; err="$(tail -n 40 "$log" 2>/dev/null)"
-            gh issue create --repo "$GITHUB_REPOSITORY" \
-              --title "$title" --label arm64-gap \
-              --body "$(printf 'Automated: the arm64 build for \`%s=%s\` failed.\n\n**Likely cause:** a dependency has no \`linux-aarch64\` bioconda package (the "hard 15%%"). The fix usually belongs upstream in the bioconda recipe (enable linux-aarch64 in its CI), not here.\n\nBuild run: %s\n\n<details><summary>last 40 lines of build log</summary>\n\n```\n%s\n```\n</details>\n' "$pkg" "$ver" "$RUN_URL" "$err")" \
-              && echo "  filed gap issue: $title" || echo "  WARN: could not file gap issue"
-          }
-
+          set -uo pipefail
+          arm=(); multi=(); legs=(); gaps=()
           for pair in ${{ inputs.tools }}; do
             pkg="${pair%%=*}"; ver="${pair#*=}"
-            echo "::group::$pkg=$ver"
-            out="$(mktemp)"; log="$(mktemp)"
-
-            # 1) build + push. On failure -> file an arm64-gap issue, keep going.
-            if ! GITHUB_OUTPUT="$out" ./builder/build.sh "$pkg" "$ver" 2>&1 | tee "$log"; then
-              echo "  build FAILED for $pkg=$ver"; file_gap "$pkg" "$ver" "$log"; fail=1; echo '::endgroup::'; continue
+            out="$(mktemp)"
+            if ! GITHUB_OUTPUT="$out" ./builder/classify.sh "$pkg" "$ver"; then
+              gaps+=("{\"tool\":\"$pkg\",\"version\":\"$ver\"}"); continue
             fi
-            pinned="$(grep '^pinned=' "$out" | cut -d= -f2-)"
-            if [ -z "$pinned" ]; then echo "  no pinned digest (not pushed) for $pkg"; file_gap "$pkg" "$ver" "$log"; fail=1; echo '::endgroup::'; continue; fi
-
-            # 2) keyless sign the pushed digest (truthful CI provenance)
-            echo "signing $pinned"
-            cosign sign --yes "$pinned" || { echo "  sign FAILED"; fail=1; echo '::endgroup::'; continue; }
-
-            # 3) set the repo public (D6a — robot token can't; OAuth can)
-            code="$(curl -s -o /dev/null -w '%{http_code}' -X POST \
-              -H "Authorization: Bearer $QUAY_OAUTH_TOKEN" -H 'Content-Type: application/json' \
-              -d '{"visibility":"public"}' \
-              "https://quay.io/api/v1/repository/aarchbio/$pkg/changevisibility")"
-            [ "$code" = "200" ] && echo "  public ✓" || { echo "  changevisibility HTTP $code"; fail=1; }
-            echo '::endgroup::'
+            tag="$(grep '^tag=' "$out" | cut -d= -f2-)"
+            noarch="$(grep '^noarch=' "$out" | cut -d= -f2-)"
+            obj="{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\"}"
+            if [ "$noarch" = "1" ]; then
+              multi+=("$obj")
+              legs+=("{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\",\"platform\":\"linux/amd64\",\"runner\":\"ubuntu-24.04\"}")
+              legs+=("{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\",\"platform\":\"linux/arm64\",\"runner\":\"ubuntu-24.04-arm\"}")
+            else
+              arm+=("$obj")
+            fi
           done
-          exit $fail
+          join() { local IFS=,; echo "[$*]"; }
+          echo "arm64_only=$(join "${arm[@]}")"  >> "$GITHUB_OUTPUT"
+          echo "multiarch=$(join "${multi[@]}")" >> "$GITHUB_OUTPUT"
+          echo "legs=$(join "${legs[@]}")"       >> "$GITHUB_OUTPUT"
+          echo "gaps=$(join "${gaps[@]}")"       >> "$GITHUB_OUTPUT"
 
-      - name: Verify signatures (independent check)
+  # ---------------------------------------------------------------------------
+  # 2. arch-specific tools: single native arm64 build → push (tagged) → sign →
+  #    public. Uses the all-in-one build.sh.
+  # ---------------------------------------------------------------------------
+  arm64-only:
+    needs: classify
+    if: ${{ needs.classify.outputs.arm64_only != '[]' }}
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: ${{ fromJSON(needs.classify.outputs.arm64_only) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: sigstore/cosign-installer@v3
+      - name: Login
+        run: echo "${{ secrets.QUAY_TOKEN }}" | docker login quay.io -u "${{ secrets.QUAY_USER }}" --password-stdin
+      - name: Build, sign, publish (arm64-only)
+        env:
+          PUSH: '1'
+          COSIGN_YES: 'true'
+          QUAY_OAUTH_TOKEN: ${{ secrets.QUAY_OAUTH_TOKEN }}
         run: |
-          set -euo pipefail
-          for pair in ${{ inputs.tools }}; do
-            pkg="${pair%%=*}"
-            echo "verify $pkg:"
-            cosign tree "quay.io/aarchbio/$pkg" || true
+          set -uo pipefail
+          out="$(mktemp)"
+          GITHUB_OUTPUT="$out" ./builder/build.sh "${{ matrix.tool.tool }}" "${{ matrix.tool.version }}"
+          pinned="$(grep '^pinned=' "$out" | cut -d= -f2-)"
+          [ -n "$pinned" ] || { echo "no digest"; exit 1; }
+          cosign sign --yes "$pinned"
+          curl -s -X POST -H "Authorization: Bearer $QUAY_OAUTH_TOKEN" -H 'Content-Type: application/json' \
+            -d '{"visibility":"public"}' \
+            "https://quay.io/api/v1/repository/aarchbio/${{ matrix.tool.tool }}/changevisibility"
+
+  # ---------------------------------------------------------------------------
+  # 3a. noarch build legs: one job per (tool × arch), each on its NATIVE runner.
+  #     Builds that arch, pushes by digest, saves the digest as an artifact.
+  # ---------------------------------------------------------------------------
+  build-leg:
+    needs: classify
+    if: ${{ needs.classify.outputs.legs != '[]' }}
+    runs-on: ${{ matrix.leg.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        leg: ${{ fromJSON(needs.classify.outputs.legs) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Login
+        run: echo "${{ secrets.QUAY_TOKEN }}" | docker login quay.io -u "${{ secrets.QUAY_USER }}" --password-stdin
+      - name: Build one arch natively, push by digest
+        env:
+          PLATFORM: ${{ matrix.leg.platform }}
+        run: |
+          set -uo pipefail
+          out="$(mktemp)"
+          GITHUB_OUTPUT="$out" ./builder/build-arch.sh "${{ matrix.leg.tool }}" "${{ matrix.leg.version }}"
+          digest="$(grep '^arch_digest=' "$out" | cut -d= -f2-)"
+          [ -n "$digest" ] || { echo "no digest"; exit 1; }
+          # Save digest under a name keyed by tool + sanitized platform.
+          safe="$(echo "${{ matrix.leg.platform }}" | tr '/' '-')"
+          mkdir -p digests
+          echo "$digest" > "digests/${{ matrix.leg.tool }}__${safe}.digest"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.leg.tool }}-${{ strategy.job-index }}
+          path: digests/*.digest
+          retention-days: 1
+
+  # ---------------------------------------------------------------------------
+  # 3b. merge noarch legs into a multi-arch manifest → sign → public.
+  # ---------------------------------------------------------------------------
+  merge:
+    needs: [classify, build-leg]
+    if: ${{ needs.classify.outputs.multiarch != '[]' }}
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: ${{ fromJSON(needs.classify.outputs.multiarch) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: sigstore/cosign-installer@v3
+      - name: Login
+        run: echo "${{ secrets.QUAY_TOKEN }}" | docker login quay.io -u "${{ secrets.QUAY_USER }}" --password-stdin
+      - uses: actions/download-artifact@v4
+        with:
+          path: all-digests
+          pattern: digest-${{ matrix.tool.tool }}-*
+          merge-multiple: true
+      - name: Merge manifest, sign, publish
+        env:
+          COSIGN_YES: 'true'
+          QUAY_OAUTH_TOKEN: ${{ secrets.QUAY_OAUTH_TOKEN }}
+        run: |
+          set -uo pipefail
+          digests=( $(cat all-digests/${{ matrix.tool.tool }}__*.digest) )
+          [ "${#digests[@]}" -ge 2 ] || { echo "expected 2 arch digests, got ${#digests[@]}"; exit 1; }
+          out="$(mktemp)"
+          GITHUB_OUTPUT="$out" ./builder/merge.sh "${{ matrix.tool.tool }}" "${{ matrix.tool.tag }}" "${digests[@]}"
+          pinned="$(grep '^pinned=' "$out" | cut -d= -f2-)"
+          [ -n "$pinned" ] || { echo "no manifest digest"; exit 1; }
+          cosign sign --yes "$pinned"
+          curl -s -X POST -H "Authorization: Bearer $QUAY_OAUTH_TOKEN" -H 'Content-Type: application/json' \
+            -d '{"visibility":"public"}' \
+            "https://quay.io/api/v1/repository/aarchbio/${{ matrix.tool.tool }}/changevisibility"
+
+  # ---------------------------------------------------------------------------
+  # 4. File arm64-gap issues for tools that failed to classify (no arm64 solution).
+  # ---------------------------------------------------------------------------
+  gaps:
+    needs: classify
+    if: ${{ needs.classify.outputs.gaps != '[]' }}
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: File arm64-gap issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GAPS: ${{ needs.classify.outputs.gaps }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -uo pipefail
+          echo "$GAPS" | jq -c '.[]' | while read -r g; do
+            pkg="$(echo "$g" | jq -r .tool)"; ver="$(echo "$g" | jq -r .version)"
+            title="arm64-gap: ${pkg}=${ver}"
+            if gh issue list --repo "$GITHUB_REPOSITORY" --state open --label arm64-gap \
+                 --search "in:title $title" --json title --jq '.[].title' | grep -qxF "$title"; then
+              echo "already open: $title"; continue
+            fi
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --label arm64-gap \
+              --body "Automated: \`${pkg}=${ver}\` has no resolvable linux-aarch64 bioconda solution (the 'hard 15%'). Fix likely belongs upstream in the bioconda recipe (enable linux-aarch64 CI). Run: ${RUN_URL}"
           done
