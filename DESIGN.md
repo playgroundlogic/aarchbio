@@ -369,6 +369,27 @@ the tag atomically.
   version requires a maintainer `approved` label before building (guards against
   typosquat/malicious package names). Closes the request→publish loop.
 
+### D15 — Periodic version sweep / reconciler (`on: schedule`)
+
+**Decision:** a scheduled GitHub Actions workflow (`on: schedule`, cron — no
+external infra needed) keeps published tools current. It is a **reconciler**, not
+a "build newest": for each tracked tool it diffs *bioconda's available versions*
+(anaconda.org API) against *what we've published* (quay tags API, anonymous since
+repos are public) and dispatches `publish.yml` for the gap. Self-healing — a build
+that failed last week is retried next sweep.
+
+This is the third and final driver into the one pipeline, completing D3:
+- **pre-warm** (D2 top-N) — seeded
+- **request** (D11, `on: issues`) — user-driven
+- **sweep/reconciler** (D15, `on: schedule`) — keeps the published set current
+
+**Scoping (to settle when built):**
+- *Tracked set* = tools we've already published + the D2 top-N; a request (D11)
+  adds a tool to the set. Not all ~10k.
+- *Version policy* (per D4) = track latest + keep existing pinned versions current;
+  do **not** mirror every historical build (runaway guard). The sweep must respect
+  this or it will spawn dozens of builds per tool.
+
 ## Architecture
 
 ```
