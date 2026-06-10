@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Generalized the project thesis: the audience is all arm64 researchers — both
   Apple Silicon Macs and arm64/Graviton servers — and the core harm is *silent*
   QEMU emulation on Macs, not just the loud `exec format error` on servers.
+- Published the first 4 images to `quay.io/aarchbio` ({minimap2, bwa, samtools,
+  seqkit}); clean pull-by-digest + run verified. Currently **private/unsigned**.
+- D6 signing model decided: cosign **keyless from CI** (Sigstore/Rekor), not an
+  interim key-based phase. Publishing is gated on signing — repos stay private
+  until built+signed by the CI builder. D6a records quay publishing mechanics:
+  no "default public" org setting, so the builder must set visibility via the
+  REST API using a separate OAuth token (the robot token can't — 403/CSRF).
 - `benchmark/` — reproducible benchmark protocol to back the thesis with data:
   `METHODOLOGY.md` (honest-benchmark controls), `gen_data.sh` (deterministic
   seeded inputs), `run_mac.sh` (Apple Silicon amd64-emulated vs native-arm64,

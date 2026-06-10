@@ -160,6 +160,38 @@ borrows trust; verifiable provenance *earns* it. Promoting this from the former
 open question OQ3 to a first-class requirement reflects that the namespace is the
 weakest trust lever and attestation is the strongest.
 
+**Signing model (decided): keyless from CI.** Images are signed with cosign
+**keyless** (Sigstore: OIDC identity → Fulcio cert → Rekor transparency log)
+inside the GitHub Actions builder, where the ambient OIDC token makes it
+non-interactive. Rejected: key-based signing from local/orion builds — it would
+work headless today, but it adds a private key to guard and has no transparency
+log, and keyless-from-CI is the stronger end state. We do **not** do an interim
+key-based phase.
+
+**Consequence — publishing is gated on signing.** Because signing happens in CI
+and not in the current manual/SSH build, the first 4 images pushed to
+`quay.io/aarchbio` are **unsigned and must stay PRIVATE**. No repo goes public
+until it is built+signed by the CI pipeline. This couples "go public" to "CI
+builder exists" (D3): **build CI → keyless-sign there → then flip public.** The 4
+private unsigned images are the *correct* state until then, not a loose end.
+
+### D6a — Quay publishing mechanics (no "default public" setting)
+
+Quay's free/community tier has **no org setting to make new repositories public
+by default**, and a push creates the repo **private**. So "public-on-upload" must
+be done explicitly by the builder after each push, via the quay REST API
+(`POST /api/v1/repository/{ns}/{repo}/changevisibility {"visibility":"public"}`).
+
+That API does **not** accept the registry **robot token** (returns 403/CSRF —
+robot tokens are for `docker push/pull`, not management). It needs a separate
+**OAuth application token** (`repo:admin` scope). Therefore the CI builder carries
+**two quay credentials**:
+- **robot token** (`aarchbio+robot`) — for `docker push`,
+- **OAuth app token** — for `changevisibility` (and any repo admin).
+
+Per-tool CI flow becomes: **build → push (robot) → keyless-sign (D6) → set-public
+(OAuth)**.
+
 ### D7 — ECR Public deferred to optional accelerator mirror
 
 **Decision:** ECR Public is **not** part of v1. quay.io is the sole canonical
