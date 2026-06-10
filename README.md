@@ -156,4 +156,4 @@ modest. No results collected yet.
 
 ## License
 
-[Apache License 2.0](LICENSE) — Copyright 2026 Scott Friedman.
+[Apache License 2.0](LICENSE) — Copyright 2026 Playground Logic LLC.
