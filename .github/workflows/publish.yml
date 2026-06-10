@@ -26,6 +26,7 @@ on:
 permissions:
   contents: read
   id-token: write   # REQUIRED for cosign keyless (OIDC)
+  issues: write     # auto-file arm64-gap issues on build failure
 
 jobs:
   publish:
@@ -60,24 +61,47 @@ jobs:
           PUSH: '1'
           QUAY_OAUTH_TOKEN: ${{ secrets.QUAY_OAUTH_TOKEN }}
           COSIGN_YES: 'true'          # non-interactive keyless
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          set -euo pipefail
+          set -uo pipefail   # NOT -e: one tool's failure must not abort the batch
           fail=0
+
+          # File (or skip if already open) an arm64-gap issue for a tool that
+          # couldn't be built. The real fix for these is upstream in bioconda
+          # (add linux-aarch64 to the recipe's CI); we make the gap visible and
+          # actionable rather than compiling from source ourselves.
+          file_gap() {
+            local pkg="$1" ver="$2" log="$3"
+            local title="arm64-gap: ${pkg}=${ver}"
+            if gh issue list --repo "$GITHUB_REPOSITORY" --state open --label arm64-gap \
+                 --search "in:title ${title}" --json title --jq '.[].title' 2>/dev/null | grep -qxF "$title"; then
+              echo "  gap issue already open: $title"; return
+            fi
+            local err; err="$(tail -n 40 "$log" 2>/dev/null)"
+            gh issue create --repo "$GITHUB_REPOSITORY" \
+              --title "$title" --label arm64-gap \
+              --body "$(printf 'Automated: the arm64 build for \`%s=%s\` failed.\n\n**Likely cause:** a dependency has no \`linux-aarch64\` bioconda package (the "hard 15%%"). The fix usually belongs upstream in the bioconda recipe (enable linux-aarch64 in its CI), not here.\n\nBuild run: %s\n\n<details><summary>last 40 lines of build log</summary>\n\n```\n%s\n```\n</details>\n' "$pkg" "$ver" "$RUN_URL" "$err")" \
+              && echo "  filed gap issue: $title" || echo "  WARN: could not file gap issue"
+          }
+
           for pair in ${{ inputs.tools }}; do
             pkg="${pair%%=*}"; ver="${pair#*=}"
             echo "::group::$pkg=$ver"
-            # 1) build + push (build.sh writes outputs incl. the pushed digest)
-            out="$(mktemp)"
-            GITHUB_OUTPUT="$out" ./builder/build.sh "$pkg" "$ver"
+            out="$(mktemp)"; log="$(mktemp)"
+
+            # 1) build + push. On failure -> file an arm64-gap issue, keep going.
+            if ! GITHUB_OUTPUT="$out" ./builder/build.sh "$pkg" "$ver" 2>&1 | tee "$log"; then
+              echo "  build FAILED for $pkg=$ver"; file_gap "$pkg" "$ver" "$log"; fail=1; echo '::endgroup::'; continue
+            fi
             pinned="$(grep '^pinned=' "$out" | cut -d= -f2-)"
-            if [ -z "$pinned" ]; then echo "no pinned digest for $pkg — skipping sign/publish"; fail=1; echo '::endgroup::'; continue; fi
+            if [ -z "$pinned" ]; then echo "  no pinned digest (not pushed) for $pkg"; file_gap "$pkg" "$ver" "$log"; fail=1; echo '::endgroup::'; continue; fi
 
             # 2) keyless sign the pushed digest (truthful CI provenance)
             echo "signing $pinned"
-            cosign sign --yes "$pinned"
+            cosign sign --yes "$pinned" || { echo "  sign FAILED"; fail=1; echo '::endgroup::'; continue; }
 
             # 3) set the repo public (D6a — robot token can't; OAuth can)
-            echo "setting quay.io/aarchbio/$pkg public"
             code="$(curl -s -o /dev/null -w '%{http_code}' -X POST \
               -H "Authorization: Bearer $QUAY_OAUTH_TOKEN" -H 'Content-Type: application/json' \
               -d '{"visibility":"public"}' \

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: What is aarchbio?
+    url: https://github.com/playgroundlogic/aarchbio#readme
+    about: Native arm64 rebuilds of BioContainers. Read this first.
+  - name: Browse published images
+    url: https://quay.io/organization/aarchbio
+    about: See which tools are already available on quay.io/aarchbio.

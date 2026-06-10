@@ -1,0 +1,54 @@
+name: Request a container
+description: Ask aarchbio to build a native arm64 (aarch64) image for a bioconda tool.
+title: "request: <tool>=<version>"
+labels: ["container-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        aarchbio rebuilds [BioContainers](https://biocontainers.pro/) images for
+        arm64 (Apple Silicon + AWS Graviton). If a tool you need is amd64-only,
+        request it here. Most tools just work — the bioconda arm64 package
+        usually already exists and we only need to publish the container.
+  - type: input
+    id: tool
+    attributes:
+      label: Tool (bioconda package name)
+      description: The exact bioconda package name, e.g. `salmon`, `star`, `fastqc`.
+      placeholder: salmon
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The exact version you need, e.g. `1.10.3`. Find it on the tool's bioconda page or quay.io/biocontainers.
+      placeholder: 1.10.3
+    validations:
+      required: true
+  - type: input
+    id: amd64_image
+    attributes:
+      label: Existing amd64 image (optional)
+      description: The quay.io/biocontainers image you're currently stuck emulating, if you know it.
+      placeholder: quay.io/biocontainers/salmon:1.10.3--h6dccd9a_2
+    validations:
+      required: false
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Where do you need it?
+      multiple: true
+      options:
+        - Apple Silicon Mac (M-series)
+        - AWS Graviton (arm64 server)
+        - Other arm64
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else?
+      description: Pipeline it's part of (e.g. nf-core/taxprofiler), error you hit (`exec format error`?), urgency.
+    validations:
+      required: false
