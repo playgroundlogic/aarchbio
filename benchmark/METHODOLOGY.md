@@ -1,48 +1,75 @@
 # Benchmark methodology
 
-The project's thesis — *native arm64 biocontainers are meaningfully faster (and,
-on Graviton, cheaper) than amd64-under-emulation* — is only worth telling if it
-is **measured, reproducible, and resistant to "you cherry-picked that" attacks.**
-This document is the protocol. It is written before any numbers exist so the
-method can't be reverse-engineered from a desired conclusion.
+This project exists because **amd64 biocontainers don't reliably work on arm64** —
+the origin was nf-core/taxprofiler on AWS Graviton where every biocontainer died
+with `exec format error`. So the primary claim is about **correctness and
+availability**, not speed. Speed is a real but *secondary* finding.
 
-> **Status:** methodology + harness only. No results collected yet. Results, when
-> produced, land in `results/` with the full environment captured alongside.
+Everything here is **measured, reproducible, and resistant to "you cherry-picked
+that" attacks.** The protocol is written before conclusions so the method can't
+be reverse-engineered from a desired result.
 
-## The single claim under test
+> **Status:** correctness sweep is methodology-only (not yet run). A 4-tool
+> *speed* pilot has been run on Apple Silicon — see [Speed (secondary)](#speed-secondary-finding)
+> for results and their heavy caveats.
 
-> For the same tool, same version, and same input, a **native arm64** container
-> runs faster than the **amd64 container under QEMU emulation**, on the same
-> machine. On Graviton, it is additionally cheaper per workload.
+## The claims under test, in priority order
 
-The *only* variable is the container architecture / execution mode. Everything
-else — tool version, input data, thread count, machine — is held fixed within a
-given comparison.
+1. **(Primary) Availability/correctness.** A meaningful fraction of amd64
+   biocontainers **fail or are unreliable** when run on arm64 under emulation —
+   they don't start, crash, hang, or (worst) silently compute wrong answers.
+   Native arm64 rebuilds run correctly. *This is the painkiller.*
+2. **(Secondary) Speed.** Where the amd64 container *does* run under emulation,
+   the native arm64 rebuild is often faster — but the margin is highly
+   tool-dependent (see pilot). *This is the vitamin.*
+3. **(Secondary) Cost.** On Graviton, native arm64 is cheaper per workload
+   (price/performance). Covered by the Graviton leg.
 
-## Two legs
+## Two platforms — emulation behaves differently on each
 
-| Leg | Machine | Compares | Cost | Status |
+"Does it work under emulation?" has **two different answers**, and a correctness
+sweep must cover both:
+
+| | **Apple Silicon (Mac)** | **AWS Graviton (Linux)** |
+|---|---|---|
+| Emulation **by default**? | **Yes** — Docker Desktop bundles QEMU/Rosetta and registers it | **No** — bare host has no `binfmt_misc` x86 handler |
+| amd64 container, default | runs (silently emulated) | **`exec format error` — won't start** |
+| Emulated only if | (already on) | you explicitly `docker run --privileged tonistiigi/binfmt` or install qemu-user-static |
+| Filesystem | VM boundary (virtiofs) — slow I/O | native — fast I/O |
+| Dominant failure | *silent* tax / occasionally wrong | *loud* — doesn't run at all |
+
+This asymmetry is the crux: **Mac hides the problem by shipping the emulator;
+Linux/Graviton exposes it by shipping nothing.** On a vanilla Graviton instance,
+an amd64 biocontainer simply fails to start — emulation is an opt-in layer you'd
+have to install (and wouldn't want in production). So one tool can be
+**silently-emulated-and-fine on a Mac**, **silently-wrong on a Mac under bare
+QEMU**, and **dead on arrival on Graviton**. The motivating headline example is
+Graviton's `exec format error` — cleanest to demonstrate, the default behavior,
+and the literal origin.
+
+## Legs
+
+| Leg | Machine | Measures | Cost | Status |
 |-----|---------|----------|------|--------|
-| **Mac** | Apple Silicon (this repo's dev box: M4 Pro, 12c, 48 GB) | amd64-via-QEMU vs native arm64 | free | harness ready, not run |
-| **Graviton** | AWS EC2 (e.g. c7g vs c7i), via spore.host / nf-spawn | native arm64 vs amd64, *and* $/workload | **real money** | plan only — requires explicit sign-off, see [graviton-plan.md](graviton-plan.md) |
-
-The Mac leg proves *speed*. The Graviton leg proves *speed + cost* and ties to
-the spore.host ephemeral-compute story (cheaper than people assume).
+| **Correctness sweep** | both platforms | runs-correct / exec-format-error / crash / hang / silently-wrong | Graviton part costs money | methodology only |
+| **Mac speed pilot** | Apple Silicon (M4 Pro, 12c, 48 GB) | wall-clock, amd64-QEMU vs native arm64 | free | 4-tool pilot run |
+| **Graviton** | AWS EC2 (c7g vs c7i) via spore.host/nf-spawn | correctness (loud failures) + speed + $/workload | **real money** | plan only, sign-off req'd — [graviton-plan.md](graviton-plan.md) |
 
 ## Tools under test
 
 Chosen to span the emulation-sensitivity spectrum, so the result is honest about
 *where* the benefit is large and where it's modest:
 
-| Tool | Type | Expected emulation tax | Why included |
-|------|------|------------------------|--------------|
-| `bwa mem` | compiled C, SIMD | high (~2–4×) | the classic aligner; worst-case native hotloop |
-| `minimap2` | compiled C, SIMD | high (~2–4×) | modern aligner; SIMD-heavy, QEMU's weak spot |
-| `samtools sort/view` | compiled C | medium–high | ubiquitous in every pipeline; self-contained |
-| `seqkit` | Go binary | moderate | fast, trivial self-contained workload; lower-bound case |
+| Tool | Type | Pre-pilot guess | Pilot actual (M4) | Why included |
+|------|------|-----------------|-------------------|--------------|
+| `bwa mem` | compiled C, SIMD | high (~2–4×) | **0.99× (none)** | the classic aligner |
+| `minimap2` | compiled C, SIMD | high (~2–4×) | 1.28× | modern SIMD-heavy aligner |
+| `samtools sort` | compiled C | medium–high | 1.15× | ubiquitous; self-contained |
+| `seqkit` | Go binary | moderate | **10.9×** | the standout |
 
-Reporting a *moderate* case (seqkit) next to *high* cases (bwa/minimap2) is
-deliberate — it shows we're not hiding the tools where the benefit is smaller.
+The pilot **inverted the predictions**: the Go tool (seqkit) was the huge win and
+the C aligners were modest-to-none. Reporting all four — including bwa, where
+native was *not* faster — is the point.
 
 ## Controls (what makes it honest)
 
@@ -84,6 +111,75 @@ Three rows per tool, all on the same M-series machine:
   Graviton leg against real EC2 on-demand/Spot prices.
 - We will flag any tool where native arm64 is *not* faster, if that happens.
   Negative results stay in the table.
+
+## Speed (secondary finding)
+
+### Mac speed pilot — results
+
+Apple M4 Pro, 12 cores, 48 GB; SCALE=3 inputs; 4 threads; N=10; median wall-clock
+(includes container startup). Raw: `results/mac_scale3.json`.
+
+| Tool | amd64 emulated | arm64 native | Speedup |
+|------|---------------:|-------------:|--------:|
+| seqkit (Go) | 16.55s | 1.52s | **10.9×** |
+| minimap2 (C) | 10.04s | 7.86s | 1.28× |
+| samtools (C) | 1.03s | 0.89s | 1.15× |
+| bwa (C) | 12.68s | 12.84s | **0.99× (none)** |
+
+**Honest reading:** the speed benefit is **real but highly tool-dependent** —
+order-of-magnitude for the Go tool, modest for C aligners, nil for bwa. This is
+*not* "biocontainers are Nx faster." Speed is the vitamin; correctness (above) is
+the painkiller.
+
+### Why this pilot is only a pilot — read before quoting any number
+
+- **n = 4.** Four tools (1 Go, 3 C) cannot characterize ~10,000 tools across
+  Python/R/JVM/Rust/etc. The Go-vs-C pattern rests on a single Go data point. No
+  generalization is claimed.
+- **Selection bias toward tools that *work*.** By construction the speed pilot
+  only includes tools that *run* under emulation. The tools that matter most to
+  the primary thesis are the ones that **fail** — and they're invisible to a
+  speed benchmark. The correctness sweep, not this table, is the real story.
+- **Confound 1 — compute vs I/O not separated.** QEMU taxes CPU, not I/O. Tools
+  that write large outputs (bwa/minimap2 emit big SAMs to a mounted volume) have
+  their emulation tax *diluted* by I/O time that's similar in both modes. bwa's
+  0.99× may be an I/O-masked result, **not** evidence that native gives no
+  compute benefit. Fix: write to tmpfs/`/dev/null` and record bytes I/O.
+- **Confound 2 — Docker-on-Mac filesystem overhead.** Mounted volumes cross the
+  Docker Desktop VM boundary (virtiofs), inflating the I/O component for *both*
+  modes and compressing all speedups toward 1.0×. On native-Linux Graviton (no VM
+  boundary) the same tools could show *larger* speedups. The Mac pilot likely
+  **understates** the real arm64 advantage.
+
+### Next (when we return to speed)
+
+Sample **by runtime class** (Go / Python / R / JVM / Rust / compiled-C-SIMD), not
+by popularity, and isolate compute from I/O — so "what predicts the speedup?" gets
+a real answer instead of an n=4 guess.
+
+## Generational sweeps (a separate axis)
+
+Beyond arm-vs-x86, two generational curves test *how arm64 bioinformatics matures
+over time*. They measure different things and — importantly — need **different
+collection models**:
+
+| Sweep | Generations | Measures | Collection model |
+|-------|-------------|----------|------------------|
+| **Graviton** | 1→4 (`a1`,`c6g`,`c7g`,`c8g`) | native-arm64 perf + price/perf per gen | **orchestrated** — nf-spawn/Spawn launches each on demand, TTL auto-terminate, ~$ per run. See [graviton-plan.md](graviton-plan.md). |
+| **Apple Silicon** | M1→M5 | native-arm64 perf per gen **and** the emulation tax per gen (does QEMU/Rosetta improve on newer chips?) | **crowd-sourced** — no on-demand cloud M-series fleet; data comes from real machines running the (reproducible) harness and submitting checksum-verified results |
+
+**Why the asymmetry:** Graviton generations are EC2 instance types you spin up and
+tear down cheaply; Apple Silicon generations are physical laptops. AWS EC2 Mac
+instances exist but are dedicated hosts with a **24-hour minimum allocation** —
+too expensive/slow for a casual sweep. So the M-series curve is only feasible if
+the benchmark is trivially reproducible by others — which is exactly why the
+harness must be packaged as a clean, self-contained, one-command runner. The
+Apple Silicon sweep's collection method *is* the reproducibility argument (D6).
+
+**Novel angle (Apple only):** because each M-series machine can run *both*
+amd64-emulated and arm64-native, the M1→M5 sweep can show whether Apple's
+emulation (QEMU/Rosetta) tax shrinks or grows across chip generations — a
+question the Graviton sweep can't ask (Graviton doesn't emulate by default).
 
 ## Repro
 

@@ -198,6 +198,41 @@ of scope until then.
 eagerly mirroring every historical tag of every tool is needless build and push
 work. Pre-warm the head, let the long tail of old versions arrive on demand.
 
+### D8 — Microarchitecture-tuned fat images (future, gated on the generational sweep)
+
+**Idea:** for hot, SIMD-bound tools, ship **one image containing multiple builds**
+of the tool — each compiled for a different arm64 microarch level — plus a tiny
+launcher that detects CPU features at `docker run` time and `exec`s the best one:
+
+```
+/opt/<tool>/armv8-a/      baseline — any arm64 (Graviton1+, Apple M1+)
+/opt/<tool>/armv8.2-a+sve/  Graviton3 (Neoverse V1, SVE)
+/opt/<tool>/armv9-a+sve2/   Graviton4 (Neoverse V2, SVE2)
+/usr/local/bin/<tool> -> launcher  # reads AT_HWCAP/HWCAP2, picks by FEATURE not chip
+```
+
+Same tag, one pull, optimal binary chosen automatically on Graviton2/3/4 or
+M-series. This is **runtime dispatch across separately-compiled builds** — *not*
+in-source function multiversioning (`target_clones`), which most bioinformatics
+tools' source doesn't support. Doing it at packaging time is what keeps it a
+packaging concern.
+
+**Decision: deferred and selective, not v1.** Reasons:
+- **It breaks the pure-conda path (D3).** bioconda ships one baseline `armv8-a`
+  build; SVE/SVE2 variants require **compiling from source** with custom `-march`
+  flags. So this only applies to tools we build ourselves — i.e. the "hard 15%,"
+  not the easy 85%. No `conda install` shortcut exists for it.
+- **Costs:** N× build time, larger images, and every variant must be correctness-
+  verified (not just "it runs") — each must produce identical output.
+- **Select by feature, not chip.** SVE is vector-length-agnostic, so an
+  `+sve` build runs on both Graviton3 (256-bit) and Graviton4. The launcher keys
+  off HWCAP feature flags so it's robust to instances we've never seen.
+
+**Gating:** build a fat image only for tools where the **generational benchmark
+sweep** (see `benchmark/`) shows a baseline-vs-tuned gap on Graviton3/4 worth the
+cost. Measure first, then fatten the few that matter. Ties to the hard-15%
+discussion below.
+
 ## Architecture
 
 ```

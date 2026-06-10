@@ -1,0 +1,20 @@
+{
+  "leg": "mac", "stamp": "scale3",
+  "env": {
+    "chip": "Apple M4 Pro", "cores": 12,
+    "mem_gb": 48,
+    "os": "26.5 (25F71)",
+    "docker": "29.5.3",
+    "threads": 4, "runs": 10
+  },
+  "results": [
+    {"tool":"minimap2","version":"2.28","mode":"amd64-emulated","image":"quay.io/biocontainers/minimap2:2.28--h577a1d6_4","digest":"quay.io/biocontainers/minimap2@sha256:8310d4996f929c1dbde6d2b17b755d211d6e4493ce6cc3d514842cf8df27af80","median_s":10.0376,"min_s":9.4581,"max_s":11.5147,"raw":"10.0335 9.5801 10.0418 10.5192 11.5147 9.7954 11.3717 11.1501 9.8349 9.4581"},
+    {"tool":"minimap2","version":"2.28","mode":"arm64-native","image":"quay.io/playground-logic/minimap2:2.28--h0cbc5ad_4","digest":"quay.io/playground-logic/minimap2@sha256:35c6dc971927c31990b8ec98cedd09e51a9476b54c2122ae1ed737124d0e9904","median_s":7.85655,"min_s":7.6782,"max_s":8.1238,"raw":"7.8836 8.1238 8.0778 7.6782 7.6853 7.8800 7.7035 7.9090 7.7936 7.8331"},
+    {"tool":"bwa","version":"0.7.18","mode":"amd64-emulated","image":"quay.io/biocontainers/bwa:0.7.18--h577a1d6_2","digest":"quay.io/biocontainers/bwa@sha256:c5d0c7ca366aa58f479e01f50cc99c35b6707c7e6d87fb919e7cd03a21ff4e89","median_s":12.6807,"min_s":12.1125,"max_s":14.1831,"raw":"13.6376 13.4141 14.1831 13.9812 12.4727 12.3628 12.3156 12.8887 12.3007 12.1125"},
+    {"tool":"bwa","version":"0.7.18","mode":"arm64-native","image":"quay.io/playground-logic/bwa:0.7.18--h0cbc5ad_2","digest":"quay.io/playground-logic/bwa@sha256:a17ff83ca9f2174ea93355a4e95106a3e7f5b06de9475911f3b451739b12fc08","median_s":12.835,"min_s":11.4962,"max_s":20.5836,"raw":"12.6333 11.4962 13.0367 11.6610 13.4250 12.3413 11.9943 14.0487 13.9228 20.5836"},
+    {"tool":"samtools","version":"1.22.1","mode":"amd64-emulated","image":"quay.io/biocontainers/samtools:1.22.1--h96c455f_0","digest":"quay.io/biocontainers/samtools@sha256:23dc2c29f457a448a0d341fb97b2632a2c8004925214cb6420562a5b12adf8a2","median_s":1.02555,"min_s":0.9416,"max_s":1.1811,"raw":"1.1565 1.1302 1.1811 1.1563 1.0726 0.9552 0.9695 0.9429 0.9416 0.9785"},
+    {"tool":"samtools","version":"1.22.1","mode":"arm64-native","image":"quay.io/playground-logic/samtools:1.22.1--h0b41a95_0","digest":"quay.io/playground-logic/samtools@sha256:ec70171b0b226a7f4206ed46dc24fed8fa07ac44c4ac9b4ceff2a95204d83b0e","median_s":0.88885,"min_s":0.8174,"max_s":2.3388,"raw":"0.8843 0.8934 2.3388 1.1668 1.1637 0.9344 0.8508 0.8215 0.8412 0.8174"},
+    {"tool":"seqkit","version":"2.11.0","mode":"amd64-emulated","image":"quay.io/biocontainers/seqkit:2.11.0--he881be0_0","digest":"quay.io/biocontainers/seqkit@sha256:68d36cb416f3e1973c7fb6da557a84cea22859ef9fd26f1ee257cc8d6fa06ba1","median_s":16.5534,"min_s":16.2889,"max_s":16.8121,"raw":"16.8121 16.7127 16.7346 16.2889 16.8108 16.3017 16.5460 16.5462 16.5087 16.5606"},
+    {"tool":"seqkit","version":"2.11.0","mode":"arm64-native","image":"quay.io/playground-logic/seqkit:2.11.0--h8865c2f_0","digest":"quay.io/playground-logic/seqkit@sha256:295a8e736a482de9364a8620a2cc5667ef741c8a67d59baf231501546b4f2f5f","median_s":1.52215,"min_s":1.4214,"max_s":1.7820,"raw":"1.5370 1.4945 1.5416 1.7820 1.5129 1.5209 1.5158 1.4214 1.5234 1.5781"}
+  ]
+}

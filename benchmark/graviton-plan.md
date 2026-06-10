@@ -34,6 +34,34 @@ amd64 biocontainer (no emulation — it's a native x86 host). We are NOT emulati
 on Graviton; we're comparing each architecture running its *native* image. (The
 QEMU-tax story is the Mac leg's job; the Graviton story is price/performance.)
 
+## Generational sweep (Graviton 1→4)
+
+A second axis, distinct from arm-vs-x86: **how native arm64 bioinformatics
+improves across Graviton generations, and whether the price/performance gap vs
+x86 widens each gen.** This is the actual Graviton-*adoption* argument — not just
+"arm64 works" but "arm64 keeps getting cheaper-faster."
+
+Same container, same seeded inputs, launched across generations (size-matched,
+e.g. `.4xlarge`), TTL auto-terminate, then wall-clock ÷ each instance's Spot/
+on-demand price → a **generational price/performance curve.**
+
+| Gen | Core | Family | Note for this benchmark |
+|-----|------|--------|-------------------------|
+| Graviton1 | Cortex-A72 | `a1` | ⚠️ being retired, no real vector unit, small sizes — include for the trend line but expect it to be the weak/asterisked point |
+| Graviton2 | Neoverse N1 | `c6g` | baseline, widely deployed |
+| Graviton3 | Neoverse V1 | `c7g` | SVE (256-bit) — big FP/SIMD step |
+| Graviton4 | Neoverse V2 | `c8g` | SVE2, more memory bandwidth |
+
+**Two honesty caveats to record in results:**
+
+- **bioconda builds target baseline `armv8-a`**, so they likely do **not** use
+  Graviton3 SVE / Graviton4 SVE2. Generational gains we measure are therefore
+  mostly clock + microarchitecture + memory bandwidth, **not** vector width.
+  Record each tool's `-march`/build flags so gains aren't misattributed. (This
+  also flags a future angle: per-generation tuned builds for the hard 15%.)
+- **Graviton1 (`a1`)** may be too weak or size-limited for some workloads; if a
+  tool can't run meaningfully there, note it rather than dropping the row.
+
 ## Metrics
 
 - **Wall-clock per workload** (same tools, same seeded inputs as the Mac leg —
