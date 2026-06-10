@@ -1,4 +1,4 @@
-# biocontainers-arm64
+# aarchbio
 
 Rebuilds [BioContainers](https://biocontainers.pro/) images for ARM64 (aarch64)
 and publishes them to a public, no-account-required registry — no

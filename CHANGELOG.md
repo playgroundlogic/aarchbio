@@ -40,4 +40,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   builder now derives the tag from what was actually installed and fails hard on
   any version/hash mismatch.
 
-[Unreleased]: https://github.com/scttfrdmn/biocontainers-arm64/compare/HEAD...HEAD
+[Unreleased]: https://github.com/scttfrdmn/aarchbio/compare/HEAD...HEAD

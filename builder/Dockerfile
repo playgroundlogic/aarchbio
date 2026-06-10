@@ -1,4 +1,4 @@
-# Generic biocontainers-arm64 builder.
+# Generic aarchbio builder.
 #
 # One Dockerfile for every tool: the tool + version are build args, so the same
 # recipe scales from 1 image to 10,000. This mirrors how BioContainers itself
@@ -39,15 +39,15 @@ ENV PATH=/opt/conda/bin:$PATH
 LABEL org.opencontainers.image.title="${PKG}" \
       org.opencontainers.image.version="${PKG_VERSION}" \
       org.opencontainers.image.source="${SOURCE_RECIPE}" \
-      org.opencontainers.image.url="https://github.com/scttfrdmn/biocontainers-arm64" \
+      org.opencontainers.image.url="https://github.com/scttfrdmn/aarchbio" \
       org.opencontainers.image.revision="${BUILDER_GIT_SHA}" \
       org.opencontainers.image.vendor="Playground Logic" \
       org.opencontainers.image.description="Native arm64 rebuild of bioconda ${PKG}=${PKG_VERSION}. Unofficial community rebuild by Playground Logic; not affiliated with or endorsed by BioContainers or AWS." \
-      io.biocontainers-arm64.bioconda-package="${PKG}" \
-      io.biocontainers-arm64.bioconda-version="${PKG_VERSION}" \
-      io.biocontainers-arm64.builder-git-sha="${BUILDER_GIT_SHA}" \
-      io.biocontainers-arm64.build-platform="${BUILD_PLATFORM}" \
-      io.biocontainers-arm64.publisher="Playground Logic"
+      io.aarchbio.bioconda-package="${PKG}" \
+      io.aarchbio.bioconda-version="${PKG_VERSION}" \
+      io.aarchbio.builder-git-sha="${BUILDER_GIT_SHA}" \
+      io.aarchbio.build-platform="${BUILD_PLATFORM}" \
+      io.aarchbio.publisher="Playground Logic"
 
 # Default to a login-ish shell so `docker run <img> <tool> ...` works directly.
 USER mambauser
