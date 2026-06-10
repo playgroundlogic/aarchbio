@@ -45,76 +45,93 @@ else
   echo "[build] (no host conda — skipping pre-check; the in-container install is the gate)"
 fi
 
-# --- 2. Build --------------------------------------------------------------
-# Build to a temporary tag FIRST. We do NOT predict the build hash from a host
-# `conda search` — the resolver inside the arm64 container can (and does) pick a
-# different build, which would make the tag misreport the contents. Provenance
-# (D6) requires the tag to reflect what was ACTUALLY installed, so we read the
-# real build hash out of the finished image in step 3 and tag from that.
+# --- 2. Build arm64 locally (probe build) ----------------------------------
+# Build the arm64 image to a temp tag and --load it, so we can (a) read the real
+# installed build hash, (b) detect whether the package is noarch, and (c) smoke-
+# test — all before deciding how to publish. We do NOT predict the build hash
+# from a host `conda search`; the in-container resolver is the source of truth.
 TMP_IMAGE="${REGISTRY}/${PKG}:_building_${VER}"
-echo "[build] building (${PLATFORM}, native on arm64 host = no emulation) ..."
+echo "[build] building probe image (linux/arm64, native = no emulation) ..."
 docker buildx build \
-  --platform "$PLATFORM" \
+  --platform linux/arm64 \
   --build-arg PKG="$PKG" \
   --build-arg PKG_VERSION="$VER" \
   --build-arg SOURCE_RECIPE="$SOURCE_RECIPE" \
   --build-arg BUILDER_GIT_SHA="$GIT_SHA" \
-  --build-arg BUILD_PLATFORM="$PLATFORM" \
   -t "$TMP_IMAGE" \
   --load \
   "$HERE"
 
-# --- 3. Resolve the tag from what was actually installed -------------------
-# Ask micromamba inside the image for the real version + build string. This is
-# the source of truth; the tag is derived from it, never from a prediction.
-echo "[build] reading installed build hash from the image ..."
-INSTALLED="$(docker run --rm --platform "$PLATFORM" "$TMP_IMAGE" \
+# --- 3. Resolve tag + detect noarch from what was actually installed --------
+# `micromamba list` columns: name version build channel. The channel/subdir for
+# a noarch package shows the package living in noarch; we detect it by asking for
+# the package's subdir explicitly via `micromamba list --json` if available, else
+# infer from the build string (noarch builds carry no arch token like h*/pl* with
+# arch). Most reliable: check the installed package's platform via conda metadata.
+echo "[build] reading installed package metadata from the probe image ..."
+INSTALLED="$(docker run --rm --platform linux/arm64 "$TMP_IMAGE" \
               micromamba list -n base 2>/dev/null \
               | awk -v p="$PKG" '$1==p {print $2" "$3}')"
 GOT_VER="${INSTALLED%% *}"
 GOT_HASH="${INSTALLED##* }"
 [ -n "$GOT_HASH" ] || { echo "[build] ERROR: could not read installed build hash" >&2; exit 2; }
 
-# Sanity: the installed version must match what we asked for.
 if [ "$GOT_VER" != "$VER" ]; then
-  echo "[build] ERROR: requested ${VER} but image contains ${GOT_VER}" >&2
-  exit 2
+  echo "[build] ERROR: requested ${VER} but image contains ${GOT_VER}" >&2; exit 2
 fi
-# If a hash was pinned on the CLI, the install MUST match it, or the pin is a lie.
 if [ -n "$BUILD_HASH" ] && [ "$BUILD_HASH" != "$GOT_HASH" ]; then
-  echo "[build] ERROR: pinned build ${BUILD_HASH} but image contains ${GOT_HASH}" >&2
-  exit 2
+  echo "[build] ERROR: pinned build ${BUILD_HASH} but image contains ${GOT_HASH}" >&2; exit 2
+fi
+
+# noarch detection: read the package record's subdir from the conda metadata in
+# the image. noarch packages record "subdir": "noarch" in their conda-meta JSON.
+SUBDIR="$(docker run --rm --platform linux/arm64 "$TMP_IMAGE" sh -c \
+  "cat /opt/conda/conda-meta/${PKG}-${GOT_VER}-${GOT_HASH}.json 2>/dev/null" \
+  | grep -o '\"subdir\"[[:space:]]*:[[:space:]]*\"[^\"]*\"' | head -1 | sed 's/.*\"\([^\"]*\)\"$/\1/')"
+if [ "$SUBDIR" = "noarch" ]; then
+  IS_NOARCH=1; echo "[build] package is NOARCH -> will publish a MULTI-ARCH manifest (amd64+arm64)"
+else
+  IS_NOARCH=0; echo "[build] package subdir='${SUBDIR:-unknown}' -> arm64-only (amd64 already on biocontainers)"
 fi
 
 TAG="${GOT_VER}--${GOT_HASH}"
 IMAGE="${REGISTRY}/${PKG}:${TAG}"
-docker tag "$TMP_IMAGE" "$IMAGE"
-docker rmi "$TMP_IMAGE" >/dev/null 2>&1 || true
-echo "[build] tagged from actual install: ${IMAGE}"
 
-# --- 4. Smoke test ---------------------------------------------------------
-# Confirm the binary actually runs on arm64 (catches a package that installs but
-# can't execute). Many tools respond to --version or --help; try a few.
-echo "[build] smoke test ..."
-if docker run --rm --platform "$PLATFORM" "$IMAGE" "$PKG" --version >/dev/null 2>&1 \
-   || docker run --rm --platform "$PLATFORM" "$IMAGE" "$PKG" --help >/dev/null 2>&1 \
-   || docker run --rm --platform "$PLATFORM" "$IMAGE" sh -c "command -v $PKG" >/dev/null 2>&1; then
-  echo "[build] smoke test PASSED ($PKG is present and runnable on arm64)"
+# --- 4. Smoke test (arm64 probe) -------------------------------------------
+echo "[build] smoke test (arm64) ..."
+if docker run --rm --platform linux/arm64 "$TMP_IMAGE" "$PKG" --version >/dev/null 2>&1 \
+   || docker run --rm --platform linux/arm64 "$TMP_IMAGE" "$PKG" --help >/dev/null 2>&1 \
+   || docker run --rm --platform linux/arm64 "$TMP_IMAGE" sh -c "command -v $PKG" >/dev/null 2>&1; then
+  echo "[build] smoke test PASSED ($PKG present and runnable on arm64)"
 else
   echo "[build] WARNING: smoke test inconclusive — verify $PKG manually" >&2
 fi
+docker rmi "$TMP_IMAGE" >/dev/null 2>&1 || true
 
-# --- 5. Optional push ------------------------------------------------------
+# --- 5. Publish ------------------------------------------------------------
+# noarch  -> multi-arch manifest (amd64+arm64), each platform native; nobody ever
+#            emulates an arch-neutral interpreter. MUST --push (buildx can't
+#            --load a manifest list).
+# arch-specific -> arm64 only; the native amd64 build already exists upstream at
+#            quay.io/biocontainers, so we fill only the arm64 gap.
 DIGEST=""
 if [ "${PUSH:-0}" = "1" ]; then
-  echo "[build] pushing ${IMAGE} (PUSH=1) ..."
-  docker push "$IMAGE"
-  # Resolve the pushed digest — cosign signs BY DIGEST, not by tag, so downstream
-  # steps (signing, set-public) must reference exactly what was pushed.
-  DIGEST="$(docker inspect --format '{{index .RepoDigests 0}}' "$IMAGE" 2>/dev/null | sed 's/.*@//')"
-  echo "[build] pushed. digest=${DIGEST:-unknown}"
+  if [ "$IS_NOARCH" = "1" ]; then PLATFORMS="linux/amd64,linux/arm64"; else PLATFORMS="linux/arm64"; fi
+  echo "[build] building+pushing ${IMAGE} for ${PLATFORMS} ..."
+  docker buildx build \
+    --platform "$PLATFORMS" \
+    --build-arg PKG="$PKG" \
+    --build-arg PKG_VERSION="$VER" \
+    --build-arg SOURCE_RECIPE="$SOURCE_RECIPE" \
+    --build-arg BUILDER_GIT_SHA="$GIT_SHA" \
+    -t "$IMAGE" \
+    --push \
+    "$HERE"
+  # Digest of the pushed manifest (the manifest-list digest for multi-arch).
+  DIGEST="$(docker buildx imagetools inspect "$IMAGE" --format '{{.Manifest.Digest}}' 2>/dev/null)"
+  echo "[build] pushed. platforms=${PLATFORMS} digest=${DIGEST:-unknown}"
 else
-  echo "[build] not pushing (set PUSH=1 to push to ${REGISTRY}). Image is loaded locally."
+  echo "[build] not pushing (set PUSH=1). Probe arm64 image was validated, then removed."
 fi
 
 # --- 6. Machine-readable outputs ------------------------------------------
@@ -131,5 +148,7 @@ emit tag      "$TAG"
 emit digest   "$DIGEST"
 emit pinned   "$PINNED"
 emit pushed   "${PUSH:-0}"
+emit noarch   "${IS_NOARCH:-0}"
+emit platforms "$([ "${IS_NOARCH:-0}" = 1 ] && echo 'linux/amd64,linux/arm64' || echo 'linux/arm64')"
 
 echo "[build] done: ${IMAGE}"

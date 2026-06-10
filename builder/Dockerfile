@@ -21,7 +21,11 @@ ARG BIOCONDA_CHANNEL=bioconda
 # labels so any tag is traceable back to its bioconda source + this builder.
 ARG SOURCE_RECIPE
 ARG BUILDER_GIT_SHA=unknown
-ARG BUILD_PLATFORM=unknown
+# TARGETPLATFORM is set automatically by buildx per target arch (e.g.
+# linux/arm64, linux/amd64). For a noarch multi-arch build this records the
+# correct platform on each variant rather than a single hardcoded value.
+ARG TARGETPLATFORM
+ARG BUILD_PLATFORM=${TARGETPLATFORM}
 
 USER root
 # Install exactly the pinned package from bioconda (+ conda-forge for deps) into
