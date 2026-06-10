@@ -49,19 +49,28 @@ jobs:
         run: |
           set -uo pipefail
           arm=(); multi=(); legs=(); gaps=()
-          for pair in ${{ inputs.tools }}; do
-            pkg="${pair%%=*}"; ver="${pair#*=}"
+          # Each token is "pkg=version" or a MULLED spec "pkg=version+extra=ver+...".
+          # The primary pkg=version drives classify/tag; '+'-joined extras become
+          # EXTRA_PACKAGES (space-separated) for a mulled image (e.g. Wave's
+          # kraken2_coreutils_pigz). Extras are carried in the matrix JSON as "extra".
+          for token in ${{ inputs.tools }}; do
+            primary="${token%%+*}"                 # pkg=version
+            pkg="${primary%%=*}"; ver="${primary#*=}"
+            extra=""
+            if [ "$token" != "$primary" ]; then    # had '+' -> extras present
+              extra="$(echo "${token#*+}" | tr '+' ' ')"   # "coreutils=9.4 pigz=2.8"
+            fi
             out="$(mktemp)"
             if ! GITHUB_OUTPUT="$out" ./builder/classify.sh "$pkg" "$ver"; then
               gaps+=("{\"tool\":\"$pkg\",\"version\":\"$ver\"}"); continue
             fi
             tag="$(grep '^tag=' "$out" | cut -d= -f2-)"
             noarch="$(grep '^noarch=' "$out" | cut -d= -f2-)"
-            obj="{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\"}"
+            obj="{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\",\"extra\":\"$extra\"}"
             if [ "$noarch" = "1" ]; then
               multi+=("$obj")
-              legs+=("{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\",\"platform\":\"linux/amd64\",\"runner\":\"ubuntu-24.04\"}")
-              legs+=("{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\",\"platform\":\"linux/arm64\",\"runner\":\"ubuntu-24.04-arm\"}")
+              legs+=("{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\",\"extra\":\"$extra\",\"platform\":\"linux/amd64\",\"runner\":\"ubuntu-24.04\"}")
+              legs+=("{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\",\"extra\":\"$extra\",\"platform\":\"linux/arm64\",\"runner\":\"ubuntu-24.04-arm\"}")
             else
               arm+=("$obj")
             fi
@@ -95,6 +104,7 @@ jobs:
           PUSH: '1'
           COSIGN_YES: 'true'
           QUAY_OAUTH_TOKEN: ${{ secrets.QUAY_OAUTH_TOKEN }}
+          EXTRA_PACKAGES: ${{ matrix.tool.extra }}
         run: |
           set -uo pipefail
           out="$(mktemp)"
@@ -126,6 +136,7 @@ jobs:
       - name: Build one arch natively, push by digest
         env:
           PLATFORM: ${{ matrix.leg.platform }}
+          EXTRA_PACKAGES: ${{ matrix.leg.extra }}
         run: |
           set -uo pipefail
           out="$(mktemp)"
