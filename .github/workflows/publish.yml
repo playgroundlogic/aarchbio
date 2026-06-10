@@ -1,0 +1,97 @@
+# Build → push → keyless-sign → set-public, one job per tool.
+#
+# This is the D3 "make it a bot" builder. For now it is manually dispatched with
+# an explicit tool list; the ranking driver (D2) that auto-generates that list is
+# a later addition. Each tool runs the existing builder/build.sh, then signs the
+# pushed image with cosign KEYLESS (D6: Sigstore OIDC -> Fulcio -> Rekor), then
+# flips the repo public via the quay API (D6a).
+#
+# Runner: GitHub-hosted `ubuntu-24.04-arm` — native arm64, so docker builds the
+# arm64 images with NO emulation. Keyless cosign works out of the box here
+# (ambient OIDC), and it stays safe when the repo goes public. (orion remains
+# available for ad-hoc/bulk local builds via build.sh over SSH, but is not the
+# official signing path.)
+
+name: publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      tools:
+        description: 'Space-separated "pkg=version" pairs, e.g. "minimap2=2.28 bwa=0.7.18"'
+        required: true
+        type: string
+
+# Keyless signing needs an OIDC token; quay calls need the secrets.
+permissions:
+  contents: read
+  id-token: write   # REQUIRED for cosign keyless (OIDC)
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04-arm   # GitHub-hosted native arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Tooling preflight
+        run: |
+          set -euo pipefail
+          for bin in docker cosign curl jq; do
+            command -v "$bin" >/dev/null || { echo "missing: $bin"; exit 1; }
+          done
+          cosign version 2>&1 | head -1
+
+      - name: Registry login (robot)
+        env:
+          QUAY_USER: ${{ secrets.QUAY_USER }}
+          QUAY_TOKEN: ${{ secrets.QUAY_TOKEN }}
+        run: echo "$QUAY_TOKEN" | docker login quay.io -u "$QUAY_USER" --password-stdin
+
+      - name: Build, push, sign, publish each tool
+        env:
+          REGISTRY: quay.io/aarchbio
+          PUSH: '1'
+          QUAY_OAUTH_TOKEN: ${{ secrets.QUAY_OAUTH_TOKEN }}
+          COSIGN_YES: 'true'          # non-interactive keyless
+        run: |
+          set -euo pipefail
+          fail=0
+          for pair in ${{ inputs.tools }}; do
+            pkg="${pair%%=*}"; ver="${pair#*=}"
+            echo "::group::$pkg=$ver"
+            # 1) build + push (build.sh writes outputs incl. the pushed digest)
+            out="$(mktemp)"
+            GITHUB_OUTPUT="$out" ./builder/build.sh "$pkg" "$ver"
+            pinned="$(grep '^pinned=' "$out" | cut -d= -f2-)"
+            if [ -z "$pinned" ]; then echo "no pinned digest for $pkg — skipping sign/publish"; fail=1; echo '::endgroup::'; continue; fi
+
+            # 2) keyless sign the pushed digest (truthful CI provenance)
+            echo "signing $pinned"
+            cosign sign --yes "$pinned"
+
+            # 3) set the repo public (D6a — robot token can't; OAuth can)
+            echo "setting quay.io/aarchbio/$pkg public"
+            code="$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+              -H "Authorization: Bearer $QUAY_OAUTH_TOKEN" -H 'Content-Type: application/json' \
+              -d '{"visibility":"public"}' \
+              "https://quay.io/api/v1/repository/aarchbio/$pkg/changevisibility")"
+            [ "$code" = "200" ] && echo "  public ✓" || { echo "  changevisibility HTTP $code"; fail=1; }
+            echo '::endgroup::'
+          done
+          exit $fail
+
+      - name: Verify signatures (independent check)
+        run: |
+          set -euo pipefail
+          for pair in ${{ inputs.tools }}; do
+            pkg="${pair%%=*}"
+            echo "verify $pkg:"
+            cosign tree "quay.io/aarchbio/$pkg" || true
+          done

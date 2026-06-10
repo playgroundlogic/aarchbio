@@ -27,15 +27,23 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 SOURCE_RECIPE="https://github.com/bioconda/bioconda-recipes/tree/master/recipes/${PKG}"
 GIT_SHA="$(git -C "$HERE" rev-parse --short HEAD 2>/dev/null || echo unknown)"
 
-# --- 1. Assert the arm64 conda package exists ------------------------------
-echo "[build] checking bioconda linux-aarch64 for ${PKG}=${VER} ..."
+# --- 1. Assert the arm64 conda package exists (best-effort pre-check) ------
+# This is an EARLY failure check only. The authoritative gate is the in-container
+# `micromamba install` in step 2 — if no linux-aarch64 package exists, that fails
+# regardless. So when `conda` isn't on the host (e.g. a hosted CI runner), we skip
+# the pre-check rather than hard-fail, and let the build be the source of truth.
 spec="$PKG=$VER"
-if ! conda search -c bioconda --platform linux-aarch64 "$spec" >/dev/null 2>&1; then
-  echo "[build] ERROR: no linux-aarch64 bioconda package for ${PKG}=${VER}." >&2
-  echo "[build]        This tool is in the 'hard 15%' or the version is wrong." >&2
-  exit 2
+if command -v conda >/dev/null 2>&1; then
+  echo "[build] checking bioconda linux-aarch64 for ${PKG}=${VER} ..."
+  if ! conda search -c bioconda --platform linux-aarch64 "$spec" >/dev/null 2>&1; then
+    echo "[build] ERROR: no linux-aarch64 bioconda package for ${PKG}=${VER}." >&2
+    echo "[build]        This tool is in the 'hard 15%' or the version is wrong." >&2
+    exit 2
+  fi
+  echo "[build] OK: ${PKG}=${VER} available for arm64."
+else
+  echo "[build] (no host conda — skipping pre-check; the in-container install is the gate)"
 fi
-echo "[build] OK: ${PKG}=${VER} available for arm64."
 
 # --- 2. Build --------------------------------------------------------------
 # Build to a temporary tag FIRST. We do NOT predict the build hash from a host
@@ -97,12 +105,31 @@ else
 fi
 
 # --- 5. Optional push ------------------------------------------------------
+DIGEST=""
 if [ "${PUSH:-0}" = "1" ]; then
   echo "[build] pushing ${IMAGE} (PUSH=1) ..."
   docker push "$IMAGE"
-  echo "[build] pushed."
+  # Resolve the pushed digest — cosign signs BY DIGEST, not by tag, so downstream
+  # steps (signing, set-public) must reference exactly what was pushed.
+  DIGEST="$(docker inspect --format '{{index .RepoDigests 0}}' "$IMAGE" 2>/dev/null | sed 's/.*@//')"
+  echo "[build] pushed. digest=${DIGEST:-unknown}"
 else
   echo "[build] not pushing (set PUSH=1 to push to ${REGISTRY}). Image is loaded locally."
 fi
+
+# --- 6. Machine-readable outputs ------------------------------------------
+# Emit results for a CI caller: the image ref, the pushed digest, and the
+# digest-pinned ref that cosign/verification should use. Written to
+# $GITHUB_OUTPUT when running under GitHub Actions, always echoed for humans.
+PINNED=""
+[ -n "$DIGEST" ] && PINNED="${REGISTRY}/${PKG}@${DIGEST}"
+emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_OUTPUT"; }
+echo "[build] outputs:"
+emit image    "$IMAGE"
+emit tool     "$PKG"
+emit tag      "$TAG"
+emit digest   "$DIGEST"
+emit pinned   "$PINNED"
+emit pushed   "${PUSH:-0}"
 
 echo "[build] done: ${IMAGE}"
