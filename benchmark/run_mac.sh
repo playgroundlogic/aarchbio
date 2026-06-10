@@ -20,7 +20,7 @@ mkdir -p "$RESULTS"
 
 N="${N:-10}"                 # timed runs per (tool,mode)
 THREADS="${THREADS:-4}"
-ARM_REG="${ARM_REG:-quay.io/playground-logic}"
+ARM_REG="${ARM_REG:-quay.io/playgroundlogic}"
 AMD_REG="${AMD_REG:-quay.io/biocontainers}"
 
 [ -f "$DATA/reads.fastq" ] || { echo "ERROR: run ./gen_data.sh first (no test data)"; exit 1; }

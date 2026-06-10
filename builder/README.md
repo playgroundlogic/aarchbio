@@ -23,7 +23,7 @@ from 1 image to 10,000.
 # Pin the exact conda build hash (build fails if the install doesn't match):
 ./build.sh minimap2 2.28 h0cbc5ad_4
 
-# Push to quay.io/playground-logic (requires `docker login quay.io`):
+# Push to quay.io/playgroundlogic (requires `docker login quay.io`):
 PUSH=1 ./build.sh minimap2 2.28
 ```
 

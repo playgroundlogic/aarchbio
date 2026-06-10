@@ -10,7 +10,7 @@
 #   1. asserts the linux-aarch64 conda package exists      (the project's premise)
 #   2. builds --platform linux/arm64 natively (no QEMU on an arm64 host)
 #   3. stamps provenance labels (D6)
-#   4. tags <version>--<build>  (D4) under quay.io/playground-logic (D1)
+#   4. tags <version>--<build>  (D4) under quay.io/playgroundlogic (D1)
 #
 # It does NOT push by default. Set PUSH=1 to push (requires `docker login quay.io`).
 set -euo pipefail
@@ -19,7 +19,7 @@ PKG="${1:?usage: build.sh <pkg> <version> [build_hash]}"
 VER="${2:?usage: build.sh <pkg> <version> [build_hash]}"
 BUILD_HASH="${3:-}"
 
-REGISTRY="${REGISTRY:-quay.io/playground-logic}"
+REGISTRY="${REGISTRY:-quay.io/playgroundlogic}"
 PLATFORM="${PLATFORM:-linux/arm64}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 

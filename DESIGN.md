@@ -43,7 +43,7 @@ piece is the container publishing step, not the package build.
 
 ### D1 — Registry: quay.io (canonical)
 
-**Decision:** publish to **`quay.io/playground-logic/`** as the single canonical
+**Decision:** publish to **`quay.io/playgroundlogic/`** as the single canonical
 registry. (ECR Public is deferred to a possible accelerator mirror — see D7.)
 
 **Why:**
@@ -116,7 +116,7 @@ would never cover the long tail.
 ### D5 — Publisher of record and trust model
 
 **Decision:** **Playground Logic** is the publisher of record, under the
-namespace `quay.io/playground-logic/` (D1). AWS is infrastructure only
+namespace `quay.io/playgroundlogic/` (D1). AWS is infrastructure only
 (Graviton/ARM64 for compute) — not the publisher, and nothing about the project
 implies AWS endorsement. Trust is established in two layers:
 
@@ -135,7 +135,7 @@ implies AWS endorsement. Trust is established in two layers:
 - A company is durable. A public registry that consumers pin in
   `nextflow.config` must persist; an ephemeral sandbox account cannot be the
   publisher of record.
-- It's honestly attributed: `quay.io/playground-logic/<tool>` claims a Playground
+- It's honestly attributed: `quay.io/playgroundlogic/<tool>` claims a Playground
   Logic rebuild — true, and it impersonates neither BioContainers nor AWS.
 
 ### D6 — Provenance and attestation (v1 requirement)
@@ -248,7 +248,7 @@ GitHub Actions (ubuntu-24.04-arm — free native ARM64 runners)
             → docker buildx --platform linux/arm64   (native, no QEMU)
             → push → tag <version>--<build>                              (D4)
                 │
-                └── quay.io/playground-logic/<tool>                      (D1)
+                └── quay.io/playgroundlogic/<tool>                      (D1)
 ```
 
 Consumers point a Nextflow registry override at it (works on both Graviton and
@@ -257,7 +257,7 @@ Apple Silicon — Docker selects the arm64 image automatically):
 ```nextflow
 // nextflow.config
 docker {
-    registry = 'quay.io/playground-logic'
+    registry = 'quay.io/playgroundlogic'
 }
 ```
 
@@ -282,7 +282,7 @@ separately and is not a v1 blocker.
 - **OQ2 — base image parity:** confirm the ARM64 base container matches the
   amd64 BioContainers base closely enough that only the architecture differs.
 - **OQ3 — multi-arch manifest:** decide whether to publish a single multi-arch
-  manifest (so `quay.io/playground-logic/<tool>` resolves to arm64 on M-series
+  manifest (so `quay.io/playgroundlogic/<tool>` resolves to arm64 on M-series
   and Graviton automatically and could later carry amd64 too) or arm64-only tags.
   Multi-arch is the more transparent UX for Mac users.
 
