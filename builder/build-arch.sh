@@ -16,6 +16,7 @@ PKG="${1:?usage: build-arch.sh <pkg> <version>}"
 VER="${2:?usage: build-arch.sh <pkg> <version>}"
 PLATFORM="${PLATFORM:?set PLATFORM=linux/amd64 or linux/arm64}"
 REGISTRY="${REGISTRY:-quay.io/aarchbio}"
+EXTRA_PACKAGES="${EXTRA_PACKAGES:-}"   # mulled-image extra "name=version" specs
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
 SOURCE_RECIPE="https://github.com/bioconda/bioconda-recipes/tree/master/recipes/${PKG}"
@@ -35,6 +36,7 @@ docker buildx build \
   --build-arg PKG_VERSION="$VER" \
   --build-arg SOURCE_RECIPE="$SOURCE_RECIPE" \
   --build-arg BUILDER_GIT_SHA="$GIT_SHA" \
+  --build-arg EXTRA_PACKAGES="$EXTRA_PACKAGES" \
   --provenance=false \
   --metadata-file "$META" \
   --output "type=image,name=${REGISTRY}/${PKG},push-by-digest=true,name-canonical=true,push=true" \

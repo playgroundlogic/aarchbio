@@ -21,6 +21,9 @@ BUILD_HASH="${3:-}"
 
 REGISTRY="${REGISTRY:-quay.io/aarchbio}"
 PLATFORM="${PLATFORM:-linux/arm64}"
+# EXTRA_PACKAGES: space-separated "name=version" for mulled images (e.g.
+# kraken2 + "coreutils=9.4 pigz=2.8"). The primary PKG still names the repo/tag.
+EXTRA_PACKAGES="${EXTRA_PACKAGES:-}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
 # bioconda recipe URL for the source label (provenance).
@@ -58,6 +61,7 @@ docker buildx build \
   --build-arg PKG_VERSION="$VER" \
   --build-arg SOURCE_RECIPE="$SOURCE_RECIPE" \
   --build-arg BUILDER_GIT_SHA="$GIT_SHA" \
+  --build-arg EXTRA_PACKAGES="$EXTRA_PACKAGES" \
   -t "$TMP_IMAGE" \
   --load \
   "$HERE"
@@ -124,6 +128,7 @@ if [ "${PUSH:-0}" = "1" ]; then
     --build-arg PKG_VERSION="$VER" \
     --build-arg SOURCE_RECIPE="$SOURCE_RECIPE" \
     --build-arg BUILDER_GIT_SHA="$GIT_SHA" \
+  --build-arg EXTRA_PACKAGES="$EXTRA_PACKAGES" \
     -t "$IMAGE" \
     --push \
     "$HERE"

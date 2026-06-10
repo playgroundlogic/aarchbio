@@ -27,12 +27,18 @@ ARG BUILDER_GIT_SHA=unknown
 ARG TARGETPLATFORM
 ARG BUILD_PLATFORM=${TARGETPLATFORM}
 
+# Optional extra pinned packages for "mulled" images (e.g. Wave's
+# kraken2_coreutils_pigz fuses kraken2+coreutils+pigz into one container). Space-
+# separated "name=version" specs; empty for a normal single-tool image.
+ARG EXTRA_PACKAGES=""
+
 USER root
-# Install exactly the pinned package from bioconda (+ conda-forge for deps) into
-# the base env. --platform is implied by the host arch on a native arm64 builder.
+# Install the primary pinned package plus any extras from bioconda (+ conda-forge
+# for deps) into the base env. --platform is implied by the host arch on a native
+# arm64 builder.
 RUN micromamba install -y -n base \
         -c ${BIOCONDA_CHANNEL} -c conda-forge \
-        "${PKG}=${PKG_VERSION}" \
+        "${PKG}=${PKG_VERSION}" ${EXTRA_PACKAGES} \
     && micromamba clean --all --yes
 
 # Make the env's binaries the default PATH (matches biocontainers UX).
