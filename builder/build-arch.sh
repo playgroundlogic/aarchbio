@@ -20,6 +20,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 
 SOURCE_RECIPE="https://github.com/bioconda/bioconda-recipes/tree/master/recipes/${PKG}"
 GIT_SHA="$(git -C "$HERE" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+if command -v uv >/dev/null 2>&1; then PY=(uv run python); else PY=(python3); fi
 emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_OUTPUT"; }
 
 # Build this single platform natively and push by digest only (no -t tag).
@@ -39,7 +40,7 @@ docker buildx build \
   --output "type=image,name=${REGISTRY}/${PKG},push-by-digest=true,name-canonical=true,push=true" \
   "$HERE"
 
-digest="$(uv run python -c 'import json,sys; print(json.load(open(sys.argv[1])).get("containerimage.digest",""))' "$META" 2>/dev/null)"
+digest="$("${PY[@]}" -c 'import json,sys; print(json.load(open(sys.argv[1])).get("containerimage.digest",""))' "$META" 2>/dev/null)"
 rm -f "$META"
 if [ -z "${digest:-}" ]; then
   echo "[build-arch] ERROR: could not determine pushed digest from buildx metadata" >&2; exit 2

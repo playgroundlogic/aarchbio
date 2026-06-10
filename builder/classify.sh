@@ -20,6 +20,11 @@ PKG="${1:?usage: classify.sh <pkg> <version>}"
 VER="${2:?usage: classify.sh <pkg> <version>}"
 MAMBA_IMAGE="${MAMBA_IMAGE:-mambaorg/micromamba:1.5.8}"
 
+# Pick a Python interpreter portably: `uv run python` locally (project standard),
+# plain python3 on CI runners that don't have uv. PY is an array so it expands
+# correctly whether it's one word or two.
+if command -v uv >/dev/null 2>&1; then PY=(uv run python); else PY=(python3); fi
+
 emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_OUTPUT"; }
 
 # Solve the arm64 environment (dry-run) and read the package record.
@@ -31,7 +36,7 @@ json="$(docker run --rm --platform linux/arm64 "$MAMBA_IMAGE" \
 # JSON is still being written, and under `pipefail` that broken-pipe poisons the
 # command (observed on big solves like metaphlan in CI).
 JSON_TMP="$(mktemp)"; printf '%s' "$json" > "$JSON_TMP"
-read -r SUBDIR BUILD <<<"$(uv run python -c '
+read -r SUBDIR BUILD <<<"$("${PY[@]}" -c '
 import json,sys
 try:
     d=json.load(open(sys.argv[2]))
