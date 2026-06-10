@@ -18,6 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Generalized the project thesis: the audience is all arm64 researchers — both
   Apple Silicon Macs and arm64/Graviton servers — and the core harm is *silent*
   QEMU emulation on Macs, not just the loud `exec format error` on servers.
+- D9: noarch tools (Python/Java — e.g. multiqc, metaphlan, fastqc) are published
+  as **multi-arch manifests** (amd64+arm64), not arm64-only — a container bundles
+  a native interpreter + native deps even when the top package is arch-neutral.
+  arch-specific tools stay arm64-only (amd64 already upstream). Most acute on
+  Graviton, where amd64-only noarch is a hard `exec format error`, not just slow.
+- D10: hard-15% policy — on arm64 build failure the CI auto-files a deduped
+  `arm64-gap` issue rather than compiling from source (which would make us a
+  second bioconda); the fix belongs upstream in the bioconda recipe.
+- D11: a `container-request` issue form is the miss-driven build queue (resolves
+  OQ1 — registries can't trigger builds on a pull-miss, issues can).
+- D12: build-infra direction — hosted runners are slow (cold cache + multi-arch
+  doubling); plan to add orion (M4, warm cache) as a bulk build farm while
+  keeping hosted runners for the canonical sign/publish path.
 - **CI publish pipeline working end-to-end.** `.github/workflows/publish.yml`
   on GitHub-hosted `ubuntu-24.04-arm` (native arm64, no QEMU) runs, per tool:
   build → push → cosign **keyless-sign** → **set-public** → verify, in ~1 min.

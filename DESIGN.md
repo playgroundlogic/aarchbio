@@ -265,6 +265,72 @@ sweep** (see `benchmark/`) shows a baseline-vs-tuned gap on Graviton3/4 worth th
 cost. Measure first, then fatten the few that matter. Ties to the hard-15%
 discussion below.
 
+### D9 — noarch tools → multi-arch manifest; arch-specific → arm64-only
+
+**Decision:** the builder branches on whether the bioconda package is `noarch`:
+
+- **noarch** (pure Python, Java, etc. — e.g. multiqc, metaphlan, fastqc): publish
+  a **multi-arch manifest** (`linux/amd64,linux/arm64`), each variant natively
+  built. A noarch *package* is arch-neutral, but a *container* never is — it
+  bundles a native interpreter (python/openjdk) and native dependency binaries
+  (numpy, pysam, bowtie2…). Shipping it arm64-only would force x86 users to
+  emulate an arm64 interpreter — the exact mistake we exist to fix, mirrored.
+- **arch-specific** (compiled C/C++/Rust with a real `linux-aarch64` build —
+  e.g. bwa, samtools, fastp, kraken2): publish **arm64-only**. The native amd64
+  build already exists upstream at `quay.io/biocontainers`; we fill only the gap.
+
+**Why it matters most on Graviton:** on a Mac the amd64 noarch container is merely
+*slow* (emulated interpreter). On a vanilla Graviton instance (no binfmt/QEMU) it
+**fails to start** — `exec format error`. So arch-neutral code is locked out of an
+architecture by packaging alone; the multi-arch fix makes it *run at all*.
+
+**Detection:** the builder builds an arm64 probe image, reads the installed
+package's `subdir` from `/opt/conda/conda-meta/<pkg>-<ver>-<build>.json` inside
+it (`"subdir":"noarch"` ⇒ multi-arch). The tag (`<version>--<build>`, D4) is
+unchanged: noarch build hashes are identical across arches, so one tag covers
+both. Multi-arch builds must `--push` (buildx can't `--load` a manifest list).
+
+**Caveat:** a noarch top package can still have a dependency with no
+`linux-aarch64` build — then the arm64 half fails and the tool is "hard 15%"
+(D10), not multi-arch. The build, not the noarch label, is the proof.
+
+### D10 — Hard-15% policy: report upstream, don't compile from source
+
+**Decision:** when the arm64 build fails (a dependency has no `linux-aarch64`
+bioconda package), the builder **auto-files a deduped `arm64-gap` issue**
+(tool, version, build-log tail, run URL) and moves on. It does **not** attempt to
+compile the missing package from source.
+
+**Why not from-source (rejected):** building a conda package for a new arch from
+source means reproducing bioconda's per-recipe build scripts, patches, flags, and
+tests — and recursing into *its* missing deps. That turns aarchbio into a second
+bioconda and makes us own the correctness of packages no blessed channel
+produced (a direct D6 trust regression). The correct fix lives **upstream**:
+enable `linux-aarch64` in the bioconda recipe's CI. aarchbio's leverage is making
+the gap **visible and actionable**, and the auto-filed issues double as the
+upstream-contribution backlog.
+
+### D11 — Request issues are the miss-driven build queue (resolves OQ1)
+
+**Decision:** a GitHub **issue form** (`request-container.yml`, label
+`container-request`) is how users request a tool, and it *is* the D3 "miss-driven"
+driver. This resolves OQ1: a registry can't trigger a build on a pull-miss, but a
+filed issue can be parsed and fed into the publish workflow. Pre-warm (D2 top-N)
+and these requests are two queues into the one builder.
+
+### D12 — Build infrastructure: hosted for sign/publish, orion for bulk (planned)
+
+**Observation:** GitHub-hosted runners are slow for this workload — cold start,
+no conda/layer cache between runs (every run re-pulls the base and re-solves from
+scratch), and multi-arch (D9) doubles the install work. Heavy tools (e.g.
+metaphlan) take many minutes.
+
+**Direction:** keep **hosted `ubuntu-24.04-arm`** for the canonical sign/publish
+path (reliable keyless OIDC, safe for a public repo), and add **orion** (the M4
+mac, native arm64, warm conda cache, no per-minute clock) as a **bulk build
+farm** for grinding the long tail. Not yet built; becomes worthwhile once the
+request queue (D11) grows.
+
 ## Architecture
 
 ```
