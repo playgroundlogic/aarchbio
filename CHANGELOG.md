@@ -18,5 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Generalized the project thesis: the audience is all arm64 researchers — both
   Apple Silicon Macs and arm64/Graviton servers — and the core harm is *silent*
   QEMU emulation on Macs, not just the loud `exec format error` on servers.
+- `benchmark/` — reproducible benchmark protocol to back the thesis with data:
+  `METHODOLOGY.md` (honest-benchmark controls), `gen_data.sh` (deterministic
+  seeded inputs), `run_mac.sh` (Apple Silicon amd64-emulated vs native-arm64,
+  free), and `graviton-plan.md` (EC2 speed+cost leg, design only — runs only with
+  explicit sign-off since it spends money). No results collected yet.
 
 [Unreleased]: https://github.com/scttfrdmn/biocontainers-arm64/compare/HEAD...HEAD

@@ -124,6 +124,24 @@ biocontainer failed with `exec format error`. But that was just the loud version
 of a problem most researchers hit quietly on their Macs every day. The fix should
 be a small bot, not a commercial service.
 
+## Proving the thesis (benchmark)
+
+The claim "native arm64 is faster, and on Graviton cheaper" is only worth telling
+if it's measured. [`benchmark/`](benchmark/) holds a reproducible protocol:
+
+- [METHODOLOGY.md](benchmark/METHODOLOGY.md) — the honest-benchmark protocol
+  (same tool/version/input, pinned threads, median of N runs, captured
+  environment), written before any numbers exist.
+- A **Mac leg** (`run_mac.sh`) comparing amd64-under-QEMU vs native arm64 on
+  Apple Silicon — free, reproducible on any M-series machine.
+- A **Graviton leg** ([graviton-plan.md](benchmark/graviton-plan.md)) for the
+  speed *and cost* story on EC2 — design only; it spends real money and runs only
+  with explicit sign-off.
+
+Tools span the emulation-sensitivity range (`bwa`, `minimap2`, `samtools`,
+`seqkit`) so the result is honest about where the benefit is large and where it's
+modest. No results collected yet.
+
 ## Documentation
 
 - [DESIGN.md](DESIGN.md) — architecture and decision record

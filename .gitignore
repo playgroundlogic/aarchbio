@@ -16,6 +16,9 @@ venv/
 .coverage
 htmlcov/
 
+# Benchmark generated inputs (reproducible via gen_data.sh; results/ IS tracked)
+benchmark/data/
+
 # Editors / OS
 .DS_Store
 .idea/
