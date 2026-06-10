@@ -60,12 +60,12 @@ GitHub Actions (ubuntu-24.04-arm — free native ARM64 runners)
             → sign + stamp provenance (source recipe + git SHA)
             → push → tag <version>--<build>
                 │
-                └── quay.io/playgroundlogic/<tool>
+                └── quay.io/aarchbio/<tool>
 ```
 
 The key choices, in brief (full rationale in [DESIGN.md](DESIGN.md)):
 
-- **Registry — quay.io** (`quay.io/playgroundlogic`). Free and unlimited for a
+- **Registry — quay.io** (`quay.io/aarchbio`). Free and unlimited for a
   solo publisher, anonymous pulls, no rate limits, and it sits right next to the
   amd64 originals at `quay.io/biocontainers/` — where the community (and Mac
   users) already look. ECR Public is deferred to a possible same-region
@@ -93,7 +93,7 @@ the arm64 image automatically:
 ```nextflow
 // nextflow.config
 docker {
-    registry = 'quay.io/playgroundlogic'
+    registry = 'quay.io/aarchbio'
 }
 ```
 

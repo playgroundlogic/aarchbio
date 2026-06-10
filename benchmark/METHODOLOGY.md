@@ -98,7 +98,7 @@ native was *not* faster — is the point.
 Three rows per tool, all on the same M-series machine:
 
 - **`amd64-emulated`** — `docker run --platform linux/amd64 quay.io/biocontainers/<tool>` (QEMU). The status quo most Mac users are silently on.
-- **`arm64-native`** — `docker run --platform linux/arm64 quay.io/playgroundlogic/<tool>` (this project's image).
+- **`arm64-native`** — `docker run --platform linux/arm64 quay.io/aarchbio/<tool>` (this project's image).
 - **`arm64-bare`** *(optional baseline)* — the conda-installed binary run directly on the host, no container — to isolate container overhead from architecture.
 
 ## What we will NOT claim
