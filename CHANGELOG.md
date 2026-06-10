@@ -23,5 +23,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   seeded inputs), `run_mac.sh` (Apple Silicon amd64-emulated vs native-arm64,
   free), and `graviton-plan.md` (EC2 speed+cost leg, design only — runs only with
   explicit sign-off since it spends money). No results collected yet.
+- `builder/` — the core builder: a generic `Dockerfile` + `build.sh` that
+  rebuilds any bioconda package as a native arm64 container (tool/version as
+  args). Asserts the linux-aarch64 package exists, builds `--platform
+  linux/arm64`, and **tags from the actually-installed build hash** (read out of
+  the finished image) so the tag can never misreport its contents.
+- Confirmed bioconda `linux-aarch64` availability and **built native arm64 images
+  locally** for `minimap2`, `bwa`, `samtools`, `seqkit` on Apple Silicon (M4
+  Pro) — all arm64, tag-matches-install, runnable. Proof that the project's core
+  premise works. Nothing pushed.
+
+### Fixed
+- Tag/provenance drift: the builder originally predicted the conda build hash via
+  a host `conda search`, but the in-container arm64 resolver picked a different
+  build (`minimap2` tagged `h73052cd_3` while containing `h0cbc5ad_4`). The
+  builder now derives the tag from what was actually installed and fails hard on
+  any version/hash mismatch.
 
 [Unreleased]: https://github.com/scttfrdmn/biocontainers-arm64/compare/HEAD...HEAD
