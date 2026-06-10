@@ -1,7 +1,7 @@
 # biocontainers-arm64
 
-Rebuilds [BioContainers](https://biocontainers.pro/) images for ARM64 (aarch64 /
-AWS Graviton) and publishes them to a public, no-account-required registry — no
+Rebuilds [BioContainers](https://biocontainers.pro/) images for ARM64 (aarch64)
+and publishes them to a public, no-account-required registry — no
 [Wave](https://seqera.io/wave/), no Seqera Platform, no external account.
 
 > **Status:** design / pre-implementation. The architecture is settled (see
@@ -9,12 +9,20 @@ AWS Graviton) and publishes them to a public, no-account-required registry — n
 
 ## Problem
 
-BioContainers publishes ~10,000 bioinformatics tool containers at
-`quay.io/biocontainers/`. Every image is built from a
-[bioconda](https://bioconda.github.io/) recipe. As of 2026, essentially all of
-them are `linux/amd64` only. Running them on Graviton (ARM64) means QEMU
-emulation (slow, fragile) or a commercial service like Wave. The failure mode is
-abrupt: every pull dies with `exec format error`.
+**A large and growing share of the machines researchers actually use are arm64,
+but the containers they depend on are not.** Apple Silicon (M-series) Macs are
+arm64. AWS Graviton and other arm64 servers are arm64. Yet BioContainers — the
+~10,000 bioinformatics tool images at `quay.io/biocontainers/`, each built from a
+[bioconda](https://bioconda.github.io/) recipe — is, as of 2026, essentially all
+`linux/amd64`.
+
+The worst part is that this usually fails *silently*. On an Apple Silicon laptop,
+Docker quietly falls back to QEMU emulation: the container "works," but runs an
+amd64 binary under emulation — slower, occasionally subtly wrong, and giving no
+signal that anything is off. On a server that lacks the emulation shim, the same
+pull dies outright with `exec format error`. Either way the researcher pays a tax
+they can't see, and the only escapes today are slow emulation or a commercial
+service like Wave.
 
 ## The insight that makes this easy
 
@@ -34,7 +42,7 @@ The missing piece is the container publishing step, not the package build.
 1. Parse the image label → bioconda package + version
 2. On a native ARM64 runner: assert a linux-aarch64 conda package exists
 3. docker buildx --platform linux/arm64   (native — no emulation)
-4. Push to ECR Public under a stable <version>--<build> tag
+4. Push to quay.io under a stable <version>--<build> tag
 ```
 
 ## How it works
@@ -49,16 +57,19 @@ GitHub Actions (ubuntu-24.04-arm — free native ARM64 runners)
           parse label → resolve bioconda pkg+version
             → assert linux-aarch64 package exists
             → docker buildx --platform linux/arm64
+            → sign + stamp provenance (source recipe + git SHA)
             → push → tag <version>--<build>
                 │
-                └── public.ecr.aws/<alias>/<tool>
+                └── quay.io/playground-logic/<tool>
 ```
 
 The key choices, in brief (full rationale in [DESIGN.md](DESIGN.md)):
 
-- **Registry — ECR Public.** Anonymous pulls, no rate limits, and pulls stay on
-  the AWS backbone for Graviton EC2 consumers. Encouraging Graviton adoption is
-  an explicit goal, not just a side effect.
+- **Registry — quay.io** (`quay.io/playground-logic`). Free and unlimited for a
+  solo publisher, anonymous pulls, no rate limits, and it sits right next to the
+  amd64 originals at `quay.io/biocontainers/` — where the community (and Mac
+  users) already look. ECR Public is deferred to a possible same-region
+  accelerator mirror for Graviton, if pull latency ever justifies it.
 - **Prioritization — bioconda downloads, nf-core boosted.** Build the most-used
   tools first, ranked by anaconda.org download counts, with a boost for anything
   on the critical path of an nf-core pipeline.
@@ -67,15 +78,22 @@ The key choices, in brief (full rationale in [DESIGN.md](DESIGN.md)):
   a lazy miss-driven queue (covers the long tail).
 - **Versioning — `<version>--<build>`.** Pre-warm latest + most-pulled versions;
   lazy-build specific older versions on first request.
+- **Publisher & trust — Playground Logic, with verifiable provenance.** Published
+  by Playground Logic (AWS is infrastructure only — no implied AWS endorsement) as
+  an unofficial community rebuild. Every image is signed and stamped with the
+  source bioconda recipe + git SHA, so trust rides on a verifiable, reproducible
+  build chain rather than on the registry name.
 
 ## Usage (planned)
 
-Point a Nextflow / nf-core pipeline's registry override at the mirror:
+Point a Nextflow / nf-core pipeline's registry override at the mirror. The same
+config works on an Apple Silicon laptop and a Graviton server — Docker selects
+the arm64 image automatically:
 
 ```nextflow
 // nextflow.config
 docker {
-    registry = 'public.ecr.aws/<alias>'
+    registry = 'quay.io/playground-logic'
 }
 ```
 
@@ -98,12 +116,13 @@ and is not a v1 blocker.
 - **nf-core / Nextflow:** have begun adding `--platform linux/arm64` to their own
   containers but haven't backfilled biocontainers.
 
-## Motivation
+## Origin
 
-Came out of running nf-core/taxprofiler on AWS Graviton3 (c7g/r7g) instances via
-[nf-spawn](https://github.com/spore-host/nf-spawn). Every biocontainer failed
-with `exec format error`. The fix should be a small bot, not a commercial
-service.
+The sharp edge that surfaced this was running nf-core/taxprofiler on AWS
+Graviton3 via [nf-spawn](https://github.com/spore-host/nf-spawn), where every
+biocontainer failed with `exec format error`. But that was just the loud version
+of a problem most researchers hit quietly on their Macs every day. The fix should
+be a small bot, not a commercial service.
 
 ## Documentation
 

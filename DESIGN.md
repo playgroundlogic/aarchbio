@@ -5,13 +5,24 @@ authoritative design reference; the [README](README.md) is the elevator pitch.
 
 ## Goal
 
-Make ARM64 (aarch64 / AWS Graviton) builds of [BioContainers](https://biocontainers.pro/)
+Make ARM64 (aarch64) builds of [BioContainers](https://biocontainers.pro/)
 images available from a public, no-account-required registry, so that Nextflow /
-nf-core pipelines run natively on Graviton instead of under QEMU emulation.
+nf-core pipelines run natively on arm64 instead of under QEMU emulation.
 
-Secondary, explicit goal: **encourage Graviton adoption.** When the ARM64 images
-are also the ones that pull fastest and cheapest on AWS, the path of least
-resistance points at Graviton.
+There are **two arm64 audiences**, and they hit the identical failure today:
+
+- **AWS Graviton servers** (c7g/r7g, etc.) — the original motivating case via
+  nf-spawn.
+- **Apple Silicon Macs** (M-series) — every bioinformatician running Docker
+  Desktop on an M1/M2/M3/M4 laptop. Pulling an amd64-only biocontainer either
+  fails with `exec format error` or silently runs under slow QEMU emulation.
+
+Serving both widens the user base materially and reinforces the registry choice
+(D1): Mac users are not browsing the AWS ECR gallery — they look where the
+bioinformatics community already looks.
+
+Secondary goal: **encourage Graviton adoption.** Native arm64 images remove the
+friction that pushes people back to x86, on both the server and laptop side.
 
 ## Core insight
 
@@ -30,28 +41,40 @@ piece is the container publishing step, not the package build.
 
 ## Decisions
 
-### D1 — Registry: ECR Public
+### D1 — Registry: quay.io (canonical)
 
-**Decision:** publish to `public.ecr.aws/<alias>/` (ECR Public).
+**Decision:** publish to **`quay.io/playground-logic/`** as the single canonical
+registry. (ECR Public is deferred to a possible accelerator mirror — see D7.)
 
 **Why:**
-- Anonymous pulls, no login, no Docker Hub-style rate limits.
-- Consumers are Graviton EC2 instances; pulls from ECR Public stay on the AWS
-  backbone — fast and low-cost to the instance. This directly serves the
-  Graviton-adoption goal.
-- The bot runs inside AWS internally, so ECR Public is the natural home and the
-  stakeholder story ("AWS-hosted ARM images for the bioinformatics community")
-  is coherent.
+- **Free and unlimited.** quay.io public repositories cost the publisher nothing;
+  Red Hat bears the storage and bandwidth. For a **single-person company**
+  (Playground Logic) this removes an open-ended personal bill — there is no
+  storage-tail or egress-overage exposure as there is on ECR Public.
+- **Discoverability.** BioContainers' own amd64 images already live at
+  `quay.io/biocontainers/`. The arm64 rebuild sitting next door, on the same
+  registry the bioinformatics community already uses, is far more discoverable
+  than an AWS gallery — especially to the Apple Silicon audience, who have no
+  reason to ever open the ECR gallery.
+- **Anonymous, no login, no Docker Hub-style rate limits** — same as ECR on this
+  axis; never a differentiator between them.
 
-**Caveat to confirm before scale-out:** ECR Public has per-account storage and
-bandwidth free-tier limits. Layer dedup (a shared conda base across all images)
-keeps real storage far below `N images × full size`, but the quota should be
-checked before we mirror the long tail.
+**Why not ECR Public as canonical (it was the original choice — superseded):**
+ECR rested on three pillars; two collapsed once D5 made Playground Logic (not
+AWS) the publisher:
+1. *Same-region Graviton pull speed* — still real, but a measurable optimization,
+   not a v1 necessity. Captured as D7.
+2. *"AWS-hosted is a coherent stakeholder story"* — **retired by D5.** With
+   Playground Logic as publisher and AWS as mere infrastructure, there is no
+   AWS-endorsement story to be coherent about.
+3. *Anonymous / no rate limits* — quay matches this; not a differentiator.
+   On top of that, ECR Public puts a metered bill (storage + internet egress
+   beyond the free tier) on a solo founder's account, which quay does not.
 
-**Not chosen:** quay.io as primary. It is also anonymous, but it's where the
-amd64-only originals already live, the org has had throttling pain, and it adds
-nothing toward the Graviton story. Mirroring to quay later is possible but is
-explicitly out of scope for v1.
+**Future:** if pull latency is ever measured to hurt nf-spawn job startup on
+Graviton, add ECR Public as a same-region accelerator mirror (D7) — a data-driven
+optimization, not a guess, and a reversible one (adding a second push target is a
+one-step builder change; un-pinning a registry users depend on is not).
 
 ### D2 — Prioritization axis: bioconda download counts, nf-core boosted
 
@@ -82,13 +105,86 @@ ways rather than writing two systems.
   builder ahead of demand. This is a warm-up loop over the same builder, not
   separate code. Kills the cold-start latency for the bulk of real pulls.
 - **Miss-driven driver:** when something requests an image we don't have, enqueue
-  a build. ECR Public has no native "pull-through that triggers a build," so the
-  miss signal needs a thin mechanism — see [Open questions](#open-questions).
+  a build. A public registry has no native "pull-through that triggers a build,"
+  so the miss signal needs a thin mechanism — see [Open questions](#open-questions).
 
 **Why builder-first:** the builder has to be correct and idempotent regardless;
 making it the foundation means Pareto pre-warming and lazy fill are just two
 queues into one engine. Lazy-only would leave a bad cold-start UX; Pareto-only
 would never cover the long tail.
+
+### D5 — Publisher of record and trust model
+
+**Decision:** **Playground Logic** is the publisher of record, under the
+namespace `quay.io/playground-logic/` (D1). AWS is infrastructure only
+(Graviton/ARM64 for compute) — not the publisher, and nothing about the project
+implies AWS endorsement. Trust is established in two layers:
+
+1. **Identity** — the Playground Logic-branded namespace, with a clear
+   "unofficial community rebuild of BioContainers" statement. This answers
+   *who stands behind these images*.
+2. **Integrity** — every image carries provenance and is independently
+   verifiable. This answers *can I prove this image is a faithful arm64 rebuild
+   of the bioconda recipe it claims, and not tampered with*. See D6.
+
+**Why Playground Logic and not other options:**
+- It's a name we own, so it sidesteps any naming-policy or trademark problem —
+  we do **not** borrow `biocontainers`/`bioconda`/`aws`, which are other parties'
+  names. (This also satisfies ECR Public's custom-alias policy, relevant only if
+  D7's accelerator mirror is ever stood up.)
+- A company is durable. A public registry that consumers pin in
+  `nextflow.config` must persist; an ephemeral sandbox account cannot be the
+  publisher of record.
+- It's honestly attributed: `quay.io/playground-logic/<tool>` claims a Playground
+  Logic rebuild — true, and it impersonates neither BioContainers nor AWS.
+
+### D6 — Provenance and attestation (v1 requirement)
+
+**Decision:** trust is carried by verifiable build provenance, not by the alias
+looking legitimate. The following are **v1 requirements, not nice-to-haves:**
+
+- **Provenance labels** — every image is stamped with the source bioconda recipe
+  and the exact git SHA it was built from, so any tag traces back to its source.
+- **Build attestation / signing** — images are signed (e.g. cosign) and/or carry
+  SLSA provenance proving they were produced by this public build pipeline from
+  that source, not hand-uploaded. This is what lets someone trust the *registry*
+  without having to trust *us* personally — they trust the verifiable build
+  chain.
+- **Public, reproducible build** — the GitHub Actions workflow *is* the recipe;
+  anyone can re-run it and reproduce the image. Trust the process, not the
+  person.
+
+**Why a requirement:** the entire value of the project depends on strangers
+trusting images enough to run them in their pipelines. A nicer-looking namespace
+borrows trust; verifiable provenance *earns* it. Promoting this from the former
+open question OQ3 to a first-class requirement reflects that the namespace is the
+weakest trust lever and attestation is the strongest.
+
+### D7 — ECR Public deferred to optional accelerator mirror
+
+**Decision:** ECR Public is **not** part of v1. quay.io is the sole canonical
+registry (D1). ECR Public may be added later as a *same-region accelerator
+mirror* — but only if pull latency is measured to materially hurt nf-spawn job
+startup on Graviton, and only as a mirror of the quay-canonical images (never a
+divergent second source).
+
+**Why deferred, not adopted now:**
+- The only surviving ECR advantage is same-region-free pull speed for Graviton
+  EC2 (D1). That is a measurable optimization, not a v1 unknown worth paying for
+  blind, and it does nothing for the Apple Silicon audience (who pull over the
+  internet regardless).
+- Dual-publishing multiplies the D6 trust surface: two registries must be proven
+  byte-identical and both signed, and lazy/re-pushed builds must stay in sync.
+  One canonical, signed source is a *stronger* trust story than two mirrors.
+- It's the reversible direction: adding an ECR push target later is a one-step
+  builder change; un-pinning a registry users already depend on is not.
+
+**Stretch / external-funding path:** if the project gains real adoption, lobby
+AWS internally for an **AWS-funded ECR Public replication** of the quay-canonical
+images. That makes the accelerator mirror someone else's bill and turns the
+Graviton speed advantage into a genuine, free-to-Playground-Logic feature. This
+is aspirational and depends on adoption + internal sponsorship — explicitly out
+of scope until then.
 
 ### D4 — Versioning policy
 
@@ -99,8 +195,8 @@ would never cover the long tail.
 - Mirror BioContainers' own tag scheme: `<version>--<build>`.
 
 **Why:** pipelines pin specific versions, so we can't publish only `latest`. But
-eagerly mirroring every historical tag of every tool would blow up ECR storage.
-Pre-warm the head, let the long tail of old versions arrive on demand.
+eagerly mirroring every historical tag of every tool is needless build and push
+work. Pre-warm the head, let the long tail of old versions arrive on demand.
 
 ## Architecture
 
@@ -113,18 +209,20 @@ GitHub Actions (ubuntu-24.04-arm — free native ARM64 runners)
     └── Builder (idempotent):                                            (D3)
           parse label → resolve bioconda pkg+version
             → assert linux-aarch64 conda package exists
+            → sign + stamp provenance (source recipe + git SHA)         (D6)
             → docker buildx --platform linux/arm64   (native, no QEMU)
             → push → tag <version>--<build>                              (D4)
                 │
-                └── public.ecr.aws/<alias>/<tool>                        (D1)
+                └── quay.io/playground-logic/<tool>                      (D1)
 ```
 
-Consumers point a Nextflow registry override at it:
+Consumers point a Nextflow registry override at it (works on both Graviton and
+Apple Silicon — Docker selects the arm64 image automatically):
 
 ```nextflow
 // nextflow.config
 docker {
-    registry = 'public.ecr.aws/<alias>'
+    registry = 'quay.io/playground-logic'
 }
 ```
 
@@ -146,17 +244,21 @@ separately and is not a v1 blocker.
   miss. Options: a thin pull-proxy that enqueues on 404; an issue/PR-based
   request form; or a periodic reconciler that diffs "requested" vs "published."
   Undecided.
-- **OQ2 — ECR Public quota (D1):** confirm storage/bandwidth free-tier headroom
-  against the projected long-tail image count before scaling past the pre-warm
-  set.
-- **OQ3 — provenance:** should rebuilt images carry a label asserting "rebuilt
-  for arm64 from bioconda recipe X at <sha>" for traceability back to the source?
-- **OQ4 — base image parity:** confirm the ARM64 base container matches the
+- **OQ2 — base image parity:** confirm the ARM64 base container matches the
   amd64 BioContainers base closely enough that only the architecture differs.
+- **OQ3 — multi-arch manifest:** decide whether to publish a single multi-arch
+  manifest (so `quay.io/playground-logic/<tool>` resolves to arm64 on M-series
+  and Graviton automatically and could later carry amd64 too) or arm64-only tags.
+  Multi-arch is the more transparent UX for Mac users.
+
+> Former OQ2 (ECR Public quota) is moot — quay.io is canonical and free (D1);
+> ECR is deferred (D7). Former OQ3 (provenance) is resolved — now a v1
+> requirement in D6.
 
 ## Non-goals (v1)
 
-- Mirroring to quay.io or any registry other than ECR Public.
+- Publishing to any registry other than quay.io. ECR Public is deferred to a
+  possible accelerator mirror (D7), not a v1 target.
 - Rebuilding tools whose bioconda recipe has no `linux-aarch64` package and no
   feasible native build.
 - Replacing Wave / Seqera for on-the-fly, arbitrary-image builds. This is a
