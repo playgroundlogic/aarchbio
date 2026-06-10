@@ -26,14 +26,25 @@ emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_O
 json="$(docker run --rm --platform linux/arm64 "$MAMBA_IMAGE" \
         micromamba create -n _c --dry-run --json -c bioconda -c conda-forge "${PKG}=${VER}" 2>/dev/null)"
 
-read -r SUBDIR BUILD <<<"$(printf '%s' "$json" | uv run python -c '
+# Pass the solve JSON via a temp file, NOT a pipe: the parser finishing early
+# (it stops at the matching package) would close a pipe while micromamba's large
+# JSON is still being written, and under `pipefail` that broken-pipe poisons the
+# command (observed on big solves like metaphlan in CI).
+JSON_TMP="$(mktemp)"; printf '%s' "$json" > "$JSON_TMP"
+read -r SUBDIR BUILD <<<"$(uv run python -c '
 import json,sys
-try: d=json.load(sys.stdin)
-except Exception: print(""); sys.exit()
+try:
+    d=json.load(open(sys.argv[2]))
+except Exception:
+    sys.exit()
+out=("","")
 for a in d.get("actions",{}).get("LINK",[]):
     if a.get("name")==sys.argv[1]:
-        print(a.get("subdir",""), a.get("build_string") or a.get("build","")); break
-' "$PKG" 2>/dev/null)"
+        out=(a.get("subdir",""), a.get("build_string") or a.get("build",""))
+        break
+print(out[0], out[1])
+' "$PKG" "$JSON_TMP" 2>/dev/null)"
+rm -f "$JSON_TMP"
 
 if [ -z "${BUILD:-}" ]; then
   echo "[classify] ERROR: could not resolve ${PKG}=${VER} for linux-aarch64 (no arm64 solution)" >&2
