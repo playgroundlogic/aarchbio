@@ -310,6 +310,21 @@ enable `linux-aarch64` in the bioconda recipe's CI. aarchbio's leverage is makin
 the gap **visible and actionable**, and the auto-filed issues double as the
 upstream-contribution backlog.
 
+**Two kinds of gap (found during the demand-first farm run):**
+1. **Tool never had arm64** — genuinely the hard tail (e.g. `ale`, which is
+   `linux-64-only` at every version).
+2. **Version-pinning gap** — arm64 *exists for the tool* but **not at the version
+   the pipeline pins**. E.g. `adapterremoval=2.3.2` (taxprofiler's pin) has no
+   arm64 build, yet newer adapterremoval does. This is common: pipelines pin old
+   versions that predate the recipe's arm64 enablement. The fix here isn't
+   upstream packaging — it's the *pipeline* bumping to an arm64-having version.
+   The gap issue should note "arm64 available at ≥X" so the action is clear.
+
+This distinction matters for the audit story too: the audit measured *latest*
+versions (~62% arm64-capable), but pipelines pin *specific, often older* versions,
+so the *as-pinned* arm64 coverage is lower. Both numbers are true and worth
+reporting — latest = the opportunity, as-pinned = the lived experience.
+
 ### D11 — Request issues are the miss-driven build queue (resolves OQ1)
 
 **Decision:** a GitHub **issue form** (`request-container.yml`, label
