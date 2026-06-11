@@ -60,13 +60,32 @@ build_arch_remote() {
   printf '%s' "$dg"
 }
 
+# Re-auth all three machines to quay. Robot-token sessions expire on multi-hour
+# runs (observed: 401 on the tag/merge step mid-run), so we re-login periodically.
+# Reads creds from the repo .env (gitignored).
+relogin() {
+  local u t
+  u="$(sed -n 's/^QUAY_USER="\(.*\)"/\1/p' "$REPO/.env")"
+  t="$(sed -n 's/^QUAY_TOKEN="\(.*\)"/\1/p' "$REPO/.env")"
+  [ -n "$t" ] || { log "WARN: no QUAY_TOKEN in .env; skipping relogin"; return; }
+  echo "$t" | docker login quay.io -u "$u" --password-stdin >/dev/null 2>&1
+  # remote: pass token via stdin to a login shell running docker login
+  echo "$t" | ssh "$ARM_HOST" "zsh -lc 'docker login quay.io -u \"$u\" --password-stdin'" >/dev/null 2>&1
+  echo "$t" | ssh "$AMD_HOST" "bash -lc 'docker login quay.io -u \"$u\" --password-stdin'" >/dev/null 2>&1
+}
+
 log "farm: amd=$AMD_HOST arm=$ARM_HOST registry=$REGISTRY"
 log "syncing builder/ to both boxes ..."
 sync_builder "$ARM_HOST"; sync_builder "$AMD_HOST"
+relogin; log "authenticated all 3 machines"
 
+RELOGIN_EVERY="${RELOGIN_EVERY:-25}"   # re-auth every N tools
+count=0
 while IFS= read -r line; do
   line="${line%%#*}"; line="$(echo "$line" | xargs)"   # strip comments/space
   [ -z "$line" ] && continue
+  count=$((count+1))
+  if [ $((count % RELOGIN_EVERY)) -eq 0 ]; then log "periodic re-auth (tool #$count)"; relogin; fi
   primary="${line%%+*}"; pkg="${primary%%=*}"; ver="${primary#*=}"
   extra=""; [ "$line" != "$primary" ] && extra="$(echo "${line#*+}" | tr '+' ' ')"
 
