@@ -1,0 +1,7 @@
+
+=== summary (n=24) ===
+  noarch             6  (25%)
+  linux-aarch64     18  (75%)
+  linux-64-only      0  (0%)
+  missing            0  (0%)
+  --> arm64-capable: 24/24 (100%)
