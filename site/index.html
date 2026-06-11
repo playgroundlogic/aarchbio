@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aarchbio — native arm64 bioinformatics containers</title>
+    <meta name="description" content="Native arm64 (aarch64) rebuilds of BioContainers for Apple Silicon and AWS Graviton. The bioconda packages already support arm64; aarchbio publishes the containers.">
+    <meta property="og:title" content="aarchbio — native arm64 bioinformatics containers">
+    <meta property="og:description" content="The packages are ready for arm64; the containers aren't. aarchbio fills that gap — native, signed, no account required.">
+    <meta property="og:url" content="https://aarch.bio">
+    <meta name="theme-color" content="#f8fafc">
+    <script>(function(){var t=localStorage.getItem('theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+    <link rel="stylesheet" href="css/style.css?v=1">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <nav class="nav" role="navigation" aria-label="Main navigation">
+        <div class="nav-container">
+            <a href="/" class="nav-brand" aria-label="aarchbio home">
+                <span class="nav-wordmark">aarch<span class="accent">bio</span></span>
+            </a>
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle navigation" aria-expanded="false" aria-controls="nav-links">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="#gap">The gap</a>
+                <a href="#how">How it works</a>
+                <a href="#use">Use it</a>
+                <a href="#trust">Trust</a>
+                <a href="https://github.com/playgroundlogic/aarchbio" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in new tab)">GitHub</a>
+                <button class="btn-theme" id="theme-toggle" aria-label="Toggle color theme">
+                    <span id="theme-icon" aria-hidden="true">🌙</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+
+            <!-- Hero -->
+            <header class="hero">
+                <div class="hero-eyebrow">Open Source · Apache 2.0</div>
+                <h1>
+                    Native <span class="accent-teal">arm64</span> bioinformatics<br>
+                    containers, <span class="accent-green">no emulation</span>.
+                </h1>
+                <p class="hero-sub">
+                    The bioconda packages already work on arm64. The containers haven't
+                    caught up. aarchbio rebuilds <a href="https://biocontainers.pro/" style="color:inherit">BioContainers</a>
+                    natively for Apple Silicon and AWS Graviton — signed, public,
+                    no account required.
+                </p>
+                <div class="hero-buttons">
+                    <a class="btn btn-primary" href="#use">Use it →</a>
+                    <a class="btn btn-secondary" href="https://github.com/playgroundlogic/aarchbio" target="_blank" rel="noopener noreferrer">GitHub</a>
+                </div>
+            </header>
+
+            <!-- Stats -->
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-num green">~62%</div>
+                    <div class="stat-label">of tools already have an arm64 conda package</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num rose">~100%</div>
+                    <div class="stat-label">of containers real pipelines pull are amd64-only</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num teal">10.9×</div>
+                    <div class="stat-label">faster native vs. emulated (seqkit, M4 Pro)</div>
+                </div>
+            </div>
+            <p class="footer-note">Measured, not guessed — see the <a href="https://github.com/playgroundlogic/aarchbio/tree/main/audit" style="color:var(--accent-teal)">audit</a>.</p>
+        </div>
+
+        <!-- The gap -->
+        <section id="gap">
+            <div class="container">
+                <div class="section-header">
+                    <h2>A gap, not a failing</h2>
+                    <p>aarchbio stands on the shoulders of bioconda, BioContainers, nf-core, and Seqera/Wave — an enormous, mostly-volunteer good. arm64 simply hasn't finished catching up.</p>
+                </div>
+                <div class="prose">
+                    <p><strong>The machines researchers use are increasingly arm64</strong> — every
+                    Apple Silicon Mac, every AWS Graviton instance. But the ~10,000 BioContainers
+                    images are still essentially all <code>linux/amd64</code>.</p>
+                    <p>On a Mac, Docker quietly emulates the amd64 image under QEMU — slower,
+                    occasionally subtly wrong, with no signal anything is off. On a vanilla
+                    Graviton instance there's no emulation layer, so the same image fails to
+                    start at all: <code>exec format error</code>.</p>
+                    <p>We surveyed the gap rather than guessing. About a third of bioconda
+                    packages are <strong>noarch</strong> (Python/Java — architecture-neutral by
+                    nature) and another third ship native <strong>linux-aarch64</strong> builds.
+                    Only ~8% are genuinely arm64-blocked. Yet across five popular nf-core
+                    pipelines, <strong>every container they pull is amd64-only</strong> — about a
+                    third of them Seqera Wave "mulled" images, a clever approach whose arm64
+                    builds just aren't there yet. The packages are ready; the
+                    <strong>container publishing</strong> is what hasn't caught up. That's the one
+                    gap aarchbio fills — and ideally helps close upstream.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How it works -->
+        <section id="how" style="background:var(--bg-card-hover);">
+            <div class="container">
+                <div class="section-header">
+                    <h2>How it works</h2>
+                    <p>A BioContainers image is essentially <code>conda install &lt;pkg&gt;</code> in a base container. Rebuilding for arm64 is the same recipe, native.</p>
+                </div>
+                <div class="grid">
+                    <div class="card">
+                        <span class="tag teal">native build</span>
+                        <h3>No emulation, ever</h3>
+                        <p>Each architecture builds on its own native runner — arm64 on arm64, amd64 on amd64 — then merges into one manifest. We never emulate to publish images whose whole purpose is ending emulation.</p>
+                    </div>
+                    <div class="card">
+                        <span class="tag green">multi-arch noarch</span>
+                        <h3>noarch served everywhere</h3>
+                        <p>Python/Java tools are architecture-neutral, so they're published as multi-arch manifests (amd64 + arm64). Docker picks the native one on any host — Mac or Graviton.</p>
+                    </div>
+                    <div class="card">
+                        <span class="tag blue">provenance</span>
+                        <h3>Signed, traceable</h3>
+                        <p>Every image is cosign keyless-signed in CI and logged to the Sigstore transparency log. Anyone can verify it was built by our public workflow, from a specific commit — no need to trust us.</p>
+                    </div>
+                    <div class="card">
+                        <span class="tag amber">mulled images</span>
+                        <h3>Fused tools, handled</h3>
+                        <p>Wave-style "mulled" images that fuse several tools into one container are rebuilt native too — the multi-package case is first-class, not an afterthought.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Use it -->
+        <section id="use">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Use it</h2>
+                    <p>Point your pipeline's registry at aarchbio. The same config works on an Apple Silicon laptop and a Graviton server — Docker selects the arm64 image automatically.</p>
+                </div>
+                <div class="code">
+<span class="c">// nextflow.config</span>
+docker {
+    registry = '<span class="k">quay.io/aarchbio</span>'
+}
+                </div>
+                <div class="code">
+<span class="c"># or pull directly — no login, no account</span>
+docker pull <span class="k">quay.io/aarchbio</span>/seqkit:2.11.0--h8865c2f_0
+                </div>
+                <p class="section-header" style="margin-top:2rem;margin-bottom:1rem;"><strong>Published so far</strong> — <span style="color:var(--accent-green)">green</span> marks multi-arch (Mac + Graviton); plain are native arm64:</p>
+                <div class="catalog">
+                    <span class="chip">minimap2</span>
+                    <span class="chip">bwa</span>
+                    <span class="chip">samtools</span>
+                    <span class="chip">seqkit</span>
+                    <span class="chip">fastp</span>
+                    <span class="chip">kraken2 <span class="multi">·mulled</span></span>
+                    <span class="chip"><span class="multi">fastqc</span></span>
+                    <span class="chip"><span class="multi">multiqc</span></span>
+                    <span class="chip"><span class="multi">metaphlan</span></span>
+                </div>
+                <p class="footer-note">Need a tool? <a href="https://github.com/playgroundlogic/aarchbio/issues/new?template=request-container.yml" style="color:var(--accent-teal)">Request it</a> — most just work.</p>
+            </div>
+        </section>
+
+        <!-- Trust -->
+        <section id="trust" style="background:var(--bg-card-hover);">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Verify, don't trust</h2>
+                    <p>The whole point is that you don't have to take our word for it.</p>
+                </div>
+                <div class="code">
+<span class="c"># confirm the image was built by aarchbio's CI, from source, logged publicly</span>
+cosign verify <span class="k">quay.io/aarchbio</span>/metaphlan:4.1.1--pyhdfd78af_0 \
+    --certificate-identity-regexp 'github.com/playgroundlogic/aarchbio' \
+    --certificate-oidc-issuer https://token.actions.githubusercontent.com
+                </div>
+                <div class="prose" style="margin-top:1.5rem;">
+                    <p>Images are built by a public GitHub Actions workflow, keyless-signed with
+                    <a href="https://www.sigstore.dev/">Sigstore</a>, and recorded in the Rekor
+                    transparency log. The signature attests <em>which workflow, which repo, which
+                    commit</em> produced the image. The build is reproducible — re-run it yourself
+                    and get the same result. Trust the process, not the publisher.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-brand">aarch<span class="accent">bio</span></div>
+                <div class="footer-links">
+                    <a href="https://github.com/playgroundlogic/aarchbio" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <a href="https://quay.io/organization/aarchbio" target="_blank" rel="noopener noreferrer">Registry</a>
+                    <a href="https://github.com/playgroundlogic/aarchbio/tree/main/audit" target="_blank" rel="noopener noreferrer">Audit</a>
+                    <a href="https://github.com/playgroundlogic/aarchbio/issues/new?template=request-container.yml" target="_blank" rel="noopener noreferrer">Request a tool</a>
+                </div>
+            </div>
+            <p class="footer-note">
+                An unofficial community project by Playground Logic — not affiliated with or endorsed by
+                BioContainers, bioconda, nf-core, Seqera, or AWS. Apache 2.0.
+            </p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
