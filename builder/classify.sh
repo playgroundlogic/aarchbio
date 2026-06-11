@@ -25,7 +25,7 @@ MAMBA_IMAGE="${MAMBA_IMAGE:-mambaorg/micromamba:1.5.8}"
 # correctly whether it's one word or two.
 if command -v uv >/dev/null 2>&1; then PY=(uv run python); else PY=(python3); fi
 
-emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_OUTPUT"; }
+emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_OUTPUT"; return 0; }
 
 # Solve the arm64 environment (dry-run) and read the package record.
 json="$(docker run --rm --platform linux/arm64 "$MAMBA_IMAGE" \

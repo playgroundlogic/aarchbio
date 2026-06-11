@@ -22,7 +22,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 SOURCE_RECIPE="https://github.com/bioconda/bioconda-recipes/tree/master/recipes/${PKG}"
 GIT_SHA="$(git -C "$HERE" rev-parse --short HEAD 2>/dev/null || echo unknown)"
 if command -v uv >/dev/null 2>&1; then PY=(uv run python); else PY=(python3); fi
-emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_OUTPUT"; }
+emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_OUTPUT"; return 0; }
 
 # Build this single platform natively and push by digest only (no -t tag).
 # --provenance=false keeps buildx from adding an extra manifest entry that would

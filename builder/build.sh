@@ -145,7 +145,7 @@ fi
 # $GITHUB_OUTPUT when running under GitHub Actions, always echoed for humans.
 PINNED=""
 [ -n "$DIGEST" ] && PINNED="${REGISTRY}/${PKG}@${DIGEST}"
-emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_OUTPUT"; }
+emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_OUTPUT"; return 0; }
 echo "[build] outputs:"
 emit image    "$IMAGE"
 emit tool     "$PKG"

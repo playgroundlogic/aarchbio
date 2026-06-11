@@ -78,8 +78,8 @@ while IFS= read -r line; do
   if ! GITHUB_OUTPUT="$cout" "$REPO/builder/classify.sh" "$pkg" "$ver" >/dev/null 2>&1; then
     log "  classify FAILED (no arm64 solution) -> gap"; record "$line" gap "no arm64 solution"; continue
   fi
-  tag="$(grep '^tag=' "$cout" | cut -d= -f2-)"
-  noarch="$(grep '^noarch=' "$cout" | cut -d= -f2-)"
+  tag="$(grep '^tag=' "$cout" | head -1 | cut -d= -f2-)"
+  noarch="$(grep '^noarch=' "$cout" | head -1 | cut -d= -f2-)"
   image="$REGISTRY/$pkg:$tag"
 
   if [ "$noarch" = "1" ]; then
@@ -91,21 +91,33 @@ while IFS= read -r line; do
     if [ -z "$da" ] || [ -z "$dr" ]; then
       log "  build FAILED (amd='$da' arm='$dr')"; record "$line" fail "build-leg empty digest"; continue
     fi
-    # merge on this Mac (has buildx + auth)
-    if REGISTRY="$REGISTRY" "$REPO/builder/merge.sh" "$pkg" "$tag" "$da" "$dr" >/dev/null 2>&1; then
+    # merge on this Mac (has buildx + auth). Retry: the merge is a remote
+    # registry op that can transiently fail under farm load; the operation
+    # itself is sound, so retry before giving up. Last error kept for the log.
+    merr=""; ok=0
+    for attempt in 1 2 3; do
+      if merr="$(REGISTRY="$REGISTRY" "$REPO/builder/merge.sh" "$pkg" "$tag" "$da" "$dr" 2>&1)"; then ok=1; break; fi
+      sleep 5
+    done
+    if [ "$ok" = 1 ]; then
       log "  published $image (multi-arch)"; record "$line" ok "$image multi-arch"
     else
-      log "  merge FAILED"; record "$line" fail "merge"; continue
+      log "  merge FAILED: $(printf '%s' "$merr" | tail -1)"; record "$line" fail "merge"; continue
     fi
   else
     log "  arch-specific -> arm64-only @$ARM_HOST"
     dr="$(build_arch_remote arm_sh linux/arm64 "$pkg" "$ver" "$extra")"
     if [ -z "$dr" ]; then log "  build FAILED"; record "$line" fail "arm64 build empty digest"; continue; fi
-    # tag the pushed-by-digest image to its real tag via imagetools (no rebuild)
-    if docker buildx imagetools create --tag "$image" "$REGISTRY/$pkg@$dr" >/dev/null 2>&1; then
+    # tag the pushed-by-digest image to its real tag via imagetools (retry too)
+    terr=""; ok=0
+    for attempt in 1 2 3; do
+      if terr="$(docker buildx imagetools create --tag "$image" "$REGISTRY/$pkg@$dr" 2>&1)"; then ok=1; break; fi
+      sleep 5
+    done
+    if [ "$ok" = 1 ]; then
       log "  published $image (arm64)"; record "$line" ok "$image arm64"
     else
-      log "  tag FAILED"; record "$line" fail "imagetools tag"; continue
+      log "  tag FAILED: $(printf '%s' "$terr" | tail -1)"; record "$line" fail "imagetools tag"; continue
     fi
   fi
 done < "$WORKLIST"
