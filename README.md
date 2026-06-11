@@ -21,8 +21,42 @@ Docker quietly falls back to QEMU emulation: the container "works," but runs an
 amd64 binary under emulation — slower, occasionally subtly wrong, and giving no
 signal that anything is off. On a server that lacks the emulation shim, the same
 pull dies outright with `exec format error`. Either way the researcher pays a tax
-they can't see, and the only escapes today are slow emulation or a commercial
-service like Wave.
+they can't see.
+
+## A gap, not a failing
+
+aarchbio stands entirely on the shoulders of
+[bioconda](https://bioconda.github.io/), [BioContainers](https://biocontainers.pro/),
+[nf-core](https://nf-co.re/), and [Seqera/Wave](https://seqera.io/wave/). These
+projects built the infrastructure that makes bioinformatics reproducible at all —
+an enormous, mostly-volunteer good. arm64 simply hasn't finished catching up yet,
+which is unsurprising given how recently it became mainstream for researchers.
+This project just fills that one gap, and ideally helps close it upstream.
+
+We surveyed the gap rather than guessing at it (see [`audit/`](audit/)):
+
+- **~62% of bioinformatics tools could already run natively on arm64** — about a
+  third of bioconda packages are `noarch` (Python/Java — architecture-neutral by
+  nature), and another third already ship native `linux-aarch64` builds. Only
+  ~8% are genuinely arm64-blocked; for the most-used tools it was effectively 0%.
+- **Yet across five popular nf-core pipelines, ~100% of the containers they pull
+  are still amd64-only.** The packages are ready; the *container publishing* step
+  is what hasn't caught up.
+
+A note on [Wave](https://seqera.io/wave/), since pipelines increasingly use it:
+Wave's on-demand and "mulled" multi-tool images are a genuinely clever way to
+assemble exactly the dependencies a step needs. Today those community images are
+built for amd64 — so for arm64 users they currently emulate or fail just like the
+classic ones. (About a third of the containers we surveyed were Wave-mulled.)
+That's a publishing gap too, not a flaw in the approach.
+
+And the cost of running emulated rather than native is real and measurable — not
+a complaint, a number. On an Apple M4 Pro, the same tool emulated (amd64 under
+QEMU) vs. native arm64 (this project's rebuild): `seqkit` **10.9× faster**
+native; compiled aligners more modest (`minimap2` 1.28×). It's tool-dependent,
+not a blanket claim — full method and results in [`benchmark/`](benchmark/), and
+the cost is starker on Graviton, where the emulated image often won't start at
+all.
 
 ## The insight that makes this easy
 
@@ -109,8 +143,10 @@ and is not a v1 blocker.
 
 ## Prior art / alternatives
 
-- **Wave (Seqera):** does this on-demand, but requires an account and routes
-  container pulls through an external service.
+- **Wave (Seqera):** solves a broader problem — on-demand, per-step container
+  assembly — and does it well; arm64 community images just aren't there yet. A
+  great fit if you want a managed service; aarchbio is the no-account, pre-built
+  alternative for the arm64 slice.
 - **bioconda `linux-aarch64` channel:** the conda packages exist — container
   publishing is the missing piece this project fills.
 - **nf-core / Nextflow:** have begun adding `--platform linux/arm64` to their own
@@ -151,7 +187,7 @@ modest. No results collected yet.
 
 - https://github.com/bioconda/bioconda-recipes
 - https://github.com/BioContainers/containers
-- https://seqera.io/wave/ (the commercial alternative)
+- https://seqera.io/wave/ (Seqera Wave — the managed, on-demand approach)
 - https://github.com/spore-host/nf-spawn (the executor that surfaced this)
 
 ## License
