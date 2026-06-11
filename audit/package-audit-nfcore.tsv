@@ -1,0 +1,875 @@
+tool	latest	subdirs	bucket
+abacas	1.3.1	noarch	noarch
+abra2	2.24	linux-64,linux-aarch64	linux-aarch64
+abricate	1.4.0	linux-64,noarch,osx-64	noarch
+abritamr	1.3.0	noarch	noarch
+abyss	2.3.10	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+adapterremoval	2.3.4	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+adapterremovalfixprefix	0.0.5	linux-64,noarch,osx-64	noarch
+admixture	1.3.0	linux-64,osx-64	linux-64-only
+affy	?		missing
+agat	1.7.0	noarch	noarch
+agrvate	1.0.2	noarch	noarch
+ale	20180904	linux-64,osx-64	linux-64-only
+alignoth	1.5.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+allelecounter	?		missing
+ampcombi	3.0.0	noarch	noarch
+ampcombi2	?		missing
+ampir	?		missing
+amplify	2.0.1	noarch	noarch
+amps	?		missing
+amrfinderplus	?		missing
+amulety	2.1.3	noarch	noarch
+anarcii	?		missing
+angsd	0.940	linux-64,linux-aarch64	linux-aarch64
+anndata	0.6.22.post1	noarch	noarch
+annosine	?		missing
+annotsv	3.5.10	noarch	noarch
+anota2seq	?		missing
+antismash	8.0.4	linux-64,noarch,osx-64	noarch
+any2fasta	0.8.1	linux-64,noarch,osx-64	noarch
+apbs	?		missing
+arcashla	?		missing
+argnorm	1.1.0	noarch	noarch
+aria2	1.34.0	linux-64,osx-64	linux-64-only
+ariba	2.14.7	linux-64,osx-64	linux-64-only
+arriba	2.5.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+art	2016.06.05	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+artic	1.10.2	noarch	noarch
+ascat	3.2.0	linux-64,noarch,osx-64	noarch
+ashlar	1.20.0	noarch	noarch
+assemblyscan	?		missing
+ataqv	1.3.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+atlas	2.0.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+atlasgeneannotationmanipulation	?		missing
+authentict	1.0.1	linux-64,osx-64	linux-64-only
+autocycler	0.6.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+backsub	?		missing
+bacphlip	0.9.6	noarch	noarch
+bakta	1.12.0	noarch	noarch
+bam2fastx	3.0.0	linux-64,osx-64	linux-64-only
+bamaligncleaner	0.3	noarch	noarch
+bamclipper	1.0.0	linux-64,noarch,osx-64	noarch
+bamcmp	2.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+bamreadcount	?		missing
+bamstats	0.3.5	linux-64,osx-64	linux-64-only
+bamtofastq10x	?		missing
+bamtools	2.5.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+bamutil	1.0.15	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+bandage	0.9.0	linux-64,linux-aarch64,osx-64	linux-aarch64
+barrnap	1.10.6	linux-64,noarch,osx-64	noarch
+bases2fastq	?		missing
+basicpy	?		missing
+bbmap	39.81	linux-64,linux-aarch64,noarch,osx-64,osx-arm64	linux-aarch64
+bcftools	1.23.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+bcl2fastq	?		missing
+bclconvert	?		missing
+beagle5	?		missing
+bedgovcf	0.1.1	linux-64,osx-64	linux-64-only
+bedops	2.4.42	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+bedtools	2.31.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+bff	?		missing
+bftools	8.0.0	noarch	noarch
+bigslice	2.0.2	noarch	noarch
+bio2zarr	0.2.1	noarch	noarch
+bioawk	1.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+biobambam	2.0.185	linux-64,linux-aarch64	linux-aarch64
+bioformats2raw	?		missing
+biohansel	?		missing
+biomformat	?		missing
+biscuit	1.8.1.20260511	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+bismark	0.25.1	linux-64,noarch,osx-64	noarch
+blast	2.17.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+blat	36	linux-64,osx-64	linux-64-only
+blobtk	0.8.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+bowtie	1.3.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+bowtie2	2.5.5	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+bracken	3.1p1	linux-64,linux-aarch64,noarch,osx-64	linux-aarch64
+braker3	3.0.8	noarch	noarch
+busco	6.1.0	linux-64,noarch,osx-64	noarch
+bwa	0.7.19	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+bwafastalign	?		missing
+bwamem2	?		missing
+bwameme	?		missing
+bwameth	0.2.9	linux-64,noarch,osx-64	noarch
+caalm	1.0.0	noarch	noarch
+cadd	?		missing
+cafe	5.1.0	linux-64	linux-64-only
+calder2	?		missing
+canu	2.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+canvas	1.35.1.1316	linux-64	linux-64-only
+carveme	1.6.6	noarch	noarch
+cat	6.0.1	linux-64,noarch,osx-64	noarch
+catpack	?		missing
+cdhit	?		missing
+celesta	?		missing
+cellbender	0.3.2	noarch	noarch
+cellpose	?		missing
+cellranger	?		missing
+cellrangerarc	?		missing
+cellrangeratac	?		missing
+cellsnp	?		missing
+centrifuge	1.0.4.2	linux-64,linux-aarch64,osx-64	linux-aarch64
+centrifuger	1.1.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+checkm	?		missing
+checkm2	1.1.0	noarch	noarch
+checkqc	4.0.7	noarch	noarch
+checkv	1.1.1	noarch	noarch
+chewbbaca	3.5.4	linux-64,noarch,osx-64	noarch
+chopper	0.13.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+chromap	0.3.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+chromograph	1.3.1	linux-64,noarch	noarch
+circexplorer2	2.3.8	linux-64,noarch,osx-64	noarch
+circularmapper	1.93.5	linux-64,noarch,osx-64	noarch
+civicpy	5.4.0	noarch	noarch
+clair3	2.0.1	linux-64,linux-aarch64,noarch,osx-arm64	linux-aarch64
+clame	1.0	linux-64,linux-aarch64	linux-aarch64
+clipkit	2.12.0	noarch	noarch
+clippy	1.5.0	noarch	noarch
+clonalframeml	1.20	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+clustalo	1.2.4	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+clusty	1.2.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+cmaple	1.1.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+cmseq	1.0.4	noarch	noarch
+cnaqc	?		missing
+cnvkit	0.9.13	linux-64,noarch,osx-64	noarch
+cnvnator	0.4.1	linux-64,linux-aarch64	linux-aarch64
+cnvpytor	1.3.2	linux-64,noarch,osx-64	noarch
+cobiontid	?		missing
+cobrameta	?		missing
+cobs	0.3.1	linux-64,linux-aarch64,osx-64	linux-aarch64
+comebin	1.0.4	noarch	noarch
+comet	?		missing
+concoct	1.1.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+conifer	1.0.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+controlfreec	?		missing
+cooler	0.10.4	linux-64,noarch,osx-64	noarch
+cooltools	0.7.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+coptr	1.1.4	noarch	noarch
+coreograph	?		missing
+coverm	0.7.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+cowpy	?		missing
+crabs	1.14.0	noarch	noarch
+crabz	?		missing
+cramino	1.3.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+crisprcleanr	?		missing
+crispresso2	2.3.4	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+crumble	0.9.1	linux-64,osx-64	linux-64-only
+csvtk	0.31.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+ctatsplicing	?		missing
+ctree	?		missing
+custom	?		missing
+cutadapt	5.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+cutesv	2.1.3	noarch	noarch
+damageprofiler	1.1	linux-64,noarch,osx-64	noarch
+dastool	?		missing
+datavzrd	?		missing
+deacon	0.15.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+decoupler	1.5.0	noarch	noarch
+dedup	0.12.9	linux-64,noarch,osx-64	noarch
+deeparg	1.0.4	noarch	noarch
+deepbgc	0.1.31	noarch	noarch
+deepcell	?		missing
+deepsomatic	?		missing
+deeptmhmm	?		missing
+deeptools	3.5.6	linux-64,noarch,osx-64	noarch
+deepvariant	1.10.0	linux-64,noarch	noarch
+delly	2.0.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+demuxem	0.1.8	noarch	noarch
+deseq2	?		missing
+diamond	2.2.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+diann	?		missing
+disambiguate	?		missing
+doubletdetection	4.3.0.post1	noarch	noarch
+dragen	?		missing
+dragmap	1.3.0	linux-64,linux-aarch64	linux-aarch64
+dragonflye	1.2.1	noarch	noarch
+drep	3.6.2	linux-64,noarch,osx-64	noarch
+dshbio	?		missing
+dssp	?		missing
+duphold	0.2.1	linux-64	linux-64-only
+dupradar	?		missing
+dysgu	1.8.8	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+ea-utils	1.1.2.779	linux-64	linux-64-only
+eagle2	2.4.1	linux-64,osx-64	linux-64-only
+eautils	?		missing
+ectyper	2.0.0	linux-64,noarch,osx-64	noarch
+eggnogmapper	?		missing
+eido	?		missing
+eigenstratdatabasetools	1.1.0	noarch	noarch
+eklipse	1.8	noarch	noarch
+elprep	5.1.3	linux-64,linux-aarch64,noarch,osx-64,osx-arm64	linux-aarch64
+emboss	6.6.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+emmtyper	0.2.0	noarch	noarch
+emu	3.6.2	noarch	noarch
+endorspy	1.4	noarch	noarch
+ensemblvep	?		missing
+entrezdirect	?		missing
+epang	?		missing
+epic2	0.0.54	linux-64,linux-aarch64	linux-aarch64
+estsfs	?		missing
+evigene	23.7.15	noarch	noarch
+expansionhunter	5.0.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+expansionhunterdenovo	0.9.0	linux-64,linux-aarch64	linux-aarch64
+fairy	0.5.8	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+falco	1.3.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+falint	?		missing
+famsa	2.4.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+faqcs	2.12	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+fargene	0.1	linux-64,noarch,osx-64	noarch
+fast2q	2.8.1	noarch	noarch
+fastani	1.34	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+fastavalidator	?		missing
+fastawindows	?		missing
+fastcov	0.1.3	noarch	noarch
+fastdup	1.0.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+fastk	1.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+fastme	2.1.6.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+fastp	1.3.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+fastplong	0.4.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+fastqc	0.12.1	linux-64,noarch,osx-64	noarch
+fastqdl	?		missing
+fastqe	0.5.2	linux-64,noarch,osx-64	noarch
+fastqscan	?		missing
+fastqscreen	?		missing
+fastqutils	?		missing
+fasttree	2.2.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+fastx	?		missing
+fcs	?		missing
+fcsgx	?		missing
+ffq	0.3.1	noarch	noarch
+fgbio	4.1.0	linux-64,noarch,osx-64	noarch
+fgumi	0.3.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+fibertoolsrs	?		missing
+filtlong	0.3.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+finaletoolkit	0.11.1	noarch	noarch
+find	?		missing
+flash	1.2.11	linux-64,osx-64	linux-64-only
+flye	2.9.6	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+foldcomp	1.0.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+foldmason	2.7bd21ed	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+foldseek	8.ef4e960	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+force	?		missing
+fq	0.12.0	linux-64,linux-aarch64,osx-64	linux-aarch64
+fqtk	0.3.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+freebayes	1.3.10	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+freyja	2.0.3	linux-64,noarch,osx-64	noarch
+fusioncatcher	1.33	linux-64,noarch,osx-64	noarch
+fusioninspector	?		missing
+fusionreport	?		missing
+galah	0.4.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+gamma	2.2	noarch	noarch
+gangstr	2.5.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+ganon	2.4.1	linux-64,linux-aarch64	linux-aarch64
+gappa	0.9.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+gapseq	2.1.0	linux-64,noarch	noarch
+gatk	3.8	linux-64,noarch,osx-64	noarch
+gatk4	4.6.2.0	linux-64,noarch,osx-64	noarch
+gatk4spark	?		missing
+gawk	None	linux-64,osx-64	linux-64-only
+gcta	1.94.1	linux-64,osx-64	linux-64-only
+gecco	0.10.3	noarch	noarch
+gedi	1.0.6a	noarch	noarch
+gem2	20200110	linux-64	linux-64-only
+gem3	?		missing
+gemmi	?		missing
+genescopefk	?		missing
+genin2	2.1.6	noarch	noarch
+genmap	1.3.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+genmod	3.10.2	noarch	noarch
+genomad	1.12.0	noarch	noarch
+genomescope2	2.1.0	noarch	noarch
+genotyphi	2.0	noarch	noarch
+genrich	0.6.1	linux-64,osx-64	linux-64-only
+gens	?		missing
+geofetch	0.12.11	noarch	noarch
+geoquery	?		missing
+getorganelle	1.7.7.1	noarch	noarch
+gfaffix	0.2.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+gfastats	1.3.11	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+gfatools	0.5.5	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+gffcompare	0.12.10	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+gffread	0.12.9	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+gget	0.29.0	noarch	noarch
+glimpse	?		missing
+glimpse2	?		missing
+glnexus	1.4.1	linux-64,linux-aarch64	linux-aarch64
+gmmdemux	?		missing
+gnu	?		missing
+goat	0.2.5	linux-64,osx-64	linux-64-only
+goatools	1.2.3	linux-64,noarch,osx-64	noarch
+goleft	0.2.6	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+gprofiler2	?		missing
+grabix	0.1.8	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+graphmap2	?		missing
+graphtyper	2.7.7	linux-64,linux-aarch64	linux-aarch64
+gridss	2.13.2	linux-64,linux-aarch64,noarch,osx-64,osx-arm64	linux-aarch64
+grimer	1.1.0	noarch	noarch
+gsea	4.3.2	noarch	noarch
+gstama	?		missing
+gt	?		missing
+gtdbtk	2.7.2	linux-64,noarch	noarch
+gtfsort	0.2.4	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+gubbins	3.4.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+gunc	1.1.1	noarch	noarch
+gunzip	?		missing
+gvcftools	0.17.0	linux-64,osx-64	linux-64-only
+gzrt	0.9.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+hamronization	1.2.1	noarch	noarch
+hapibd	?		missing
+haplocheck	1.3.3	noarch	noarch
+haplogrep2	?		missing
+haplogrep3	3.2.2	noarch	noarch
+happy	?		missing
+hasheddrops	?		missing
+helitronscanner	1.0	noarch	noarch
+hhsuite	3.3.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+hicap	1.0.4	noarch	noarch
+hicexplorer	3.7.6	linux-64,noarch,osx-64	noarch
+hifiadapterfilt	3.0.0	noarch	noarch
+hifiasm	0.25.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+hificnv	1.0.1	linux-64	linux-64-only
+hifitrimmer	?		missing
+hiphase	1.7.0	linux-64	linux-64-only
+hisat2	2.2.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+hisat3n	?		missing
+hlala	?		missing
+hmmcopy	0.1.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+hmmer	3.4	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+hmtnote	0.7.2	noarch	noarch
+homer	5.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+hostile	2.0.2	noarch	noarch
+hpsuissero	1.0.1	noarch	noarch
+htodemux	?		missing
+htseq	2.1.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+htslib	1.23.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+htsnimtools	?		missing
+huggingface	?		missing
+humann3	?		missing
+humid	1.0.37	linux-64,osx-64	linux-64-only
+hypo	1.0.3	linux-64,linux-aarch64	linux-aarch64
+ichorcna	?		missing
+icountmini	?		missing
+idemux	0.1.6	noarch	noarch
+idr	2.0.4.2	linux-64,linux-aarch64,osx-64	linux-aarch64
+igv	2.19.8	linux-64,noarch,osx-64	noarch
+igvreports	?		missing
+ilastik	?		missing
+imc2mc	?		missing
+immunedeconv	?		missing
+infernal	1.1.5	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+instrain	1.10.0	noarch	noarch
+integronfinder	?		missing
+interproscan	5.59_91.0	linux-64	linux-64-only
+iphop	1.4.2	noarch	noarch
+iqtree	3.1.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+irescue	1.2.0	noarch	noarch
+islandpath	1.0.6	linux-64,noarch,osx-64	noarch
+ismapper	2.0.2	noarch	noarch
+isoseq	4.3.0	linux-64	linux-64-only
+isoseq3	4.0.0	linux-64,noarch	noarch
+ivar	1.4.4	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+jasminesv	1.1.5	noarch	noarch
+jellyfish	2.2.10	linux-64,osx-64	linux-64-only
+juicertools	2.20.00	noarch	noarch
+jupyternotebook	?		missing
+jvarkit	2024.08.25	noarch	noarch
+kaiju	1.10.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+kalign	?		missing
+kallisto	0.52.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+kallistobustools	?		missing
+kat	2.4.2	linux-64,osx-64	linux-64-only
+khmer	3.0.0a3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+kleborate	3.2.4	noarch	noarch
+kma	1.6.11	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+kmcp	0.9.5	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+kmergenie	1.7051	linux-64,linux-aarch64,osx-64	linux-aarch64
+knotannotsv	1.1.5	noarch	noarch
+kofamscan	1.3.0	noarch	noarch
+kraken2	2.17.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+krakentools	1.2.1	noarch	noarch
+krakenuniq	1.0.4	linux-64,linux-aarch64,osx-64	linux-aarch64
+krona	2.8.1	linux-64,noarch,osx-64	noarch
+last	1651	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+learnmsa	2.0.16	noarch	noarch
+leehom	1.2.15	linux-64	linux-64-only
+legsta	0.5.2	noarch	noarch
+leviosam2	0.5.0	linux-64,linux-aarch64,osx-64	linux-aarch64
+liftoff	1.6.3	noarch	noarch
+lima	26.2.1	linux-64	linux-64-only
+limma	?		missing
+links	2.0.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+lissero	0.4.10	noarch	noarch
+llamacpppython	?		missing
+localcdsearch	?		missing
+lofreq	2.1.5	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+longphase	2.0.2	linux-64,linux-aarch64,osx-arm64	linux-aarch64
+longstitch	1.0.5	noarch	noarch
+lsa	?		missing
+ltrfinder	?		missing
+ltrharvest	?		missing
+ltrretriever	?		missing
+macrel	1.6.0	linux-64,noarch,osx-64	noarch
+macs2	2.2.9.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+macs3	3.0.4	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+macse	2.07	noarch	noarch
+macsyfinder	2.1.6	noarch	noarch
+mafft	7.525	linux-64,linux-aarch64,osx-64	linux-aarch64
+mageck	0.5.9.5	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+magus	?		missing
+malt	0.62	noarch	noarch
+maltextract	?		missing
+manta	1.6.0	linux-64,linux-aarch64,osx-64	linux-aarch64
+mapad	0.45.0	linux-64,linux-aarch64,osx-64	linux-aarch64
+mapdamage2	2.2.3	linux-64,linux-aarch64,noarch,osx-64,osx-arm64	linux-aarch64
+mash	2.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+mashmap	3.1.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+mashtree	1.4.6	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+mat2json	?		missing
+maxbin2	2.2.7	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+maxquant	2.0.3.0	linux-64,noarch	noarch
+mcquant	?		missing
+mcroni	1.0.4	noarch	noarch
+mcstaging	?		missing
+md5sum	?		missing
+mdust	2006.10.17	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+medaka	2.2.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+megahit	1.2.9	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+megan	6.25.10	linux-64,linux-aarch64	linux-aarch64
+melon	0.3.0	noarch	noarch
+memote	0.17.0	noarch	noarch
+meningotype	0.8.6b	noarch	noarch
+merfin	1.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+merqury	1.3	noarch	noarch
+merquryfk	1.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+meryl	2013	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+metabat2	2.18_23_gc869c52	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+metabuli	1.2.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+metacache	2.6.0	linux-64,linux-aarch64	linux-aarch64
+metaeuk	6.a5d39d9	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+metamaps	0.1.98102e9	linux-64,osx-64	linux-64-only
+metamdbg	1.4	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+metaphlan	4.2.4	noarch	noarch
+metaphlan3	?		missing
+metaspace	?		missing
+metator	1.3.10	linux-64,osx-64	linux-64-only
+methbat	1.1.0	linux-64	linux-64-only
+methurator	2.1.1	noarch	noarch
+methyldackel	0.6.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+mgikit	2.1.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+midas	1.3.2	linux-64,noarch	noarch
+mifaser	1.64	noarch	noarch
+mindagap	0.0.2	noarch	noarch
+minia	3.2.6	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+miniasm	0.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+minimac4	4.1.6	linux-64,osx-64	linux-64-only
+minimap2	2.31	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+miniprot	0.18	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+miranda	3.3a	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+mirdeep2	2.0.1.3	linux-64,noarch,osx-64	noarch
+mirtop	0.4.30	linux-64,noarch,osx-64	noarch
+mirtrace	1.0.1	noarch	noarch
+mitohifi	?		missing
+mitorsaw	0.2.10	linux-64	linux-64-only
+mlst	2.33.1	linux-64,noarch,osx-64	noarch
+mmseqs	?		missing
+mobster	0.2.4.1	linux-64,noarch,osx-64	noarch
+mobsuite	?		missing
+modkit	?		missing
+molkartgarage	?		missing
+mosdepth	0.3.14	linux-64,linux-aarch64,noarch,osx-64,osx-arm64	linux-aarch64
+motus	4.0.4	linux-64,noarch,osx-64	noarch
+msisensor	0.5	linux-64,linux-aarch64	linux-aarch64
+msisensor2	0.1	linux-64	linux-64-only
+msisensorpro	?		missing
+mtmalign	?		missing
+mtnucratio	0.7.1	noarch	noarch
+mudskipper	0.1.0	linux-64,osx-64	linux-64-only
+multiqc	1.35	linux-64,noarch,osx-64	noarch
+multiqcsav	?		missing
+multiseqdemux	?		missing
+multivcfanalyzer	0.89.0	noarch	noarch
+mummer	3.23	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+muscle	5.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+muscle5	?		missing
+muse	2.1.2	linux-64,linux-aarch64,osx-64	linux-aarch64
+mygene	3.2.2	linux-64,noarch,osx-64	noarch
+mykrobe	0.13.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+myloasm	0.5.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+nacho	?		missing
+nail	0.5.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+nanocomp	1.25.6	linux-64,noarch,osx-64	noarch
+nanofilt	2.8.0	linux-64,noarch,osx-64	noarch
+nanolyse	1.2.1	linux-64,noarch,osx-64	noarch
+nanomonsv	0.9.0	noarch	noarch
+nanoplot	1.47.0	linux-64,noarch,osx-64	noarch
+nanoq	0.10.0	linux-64,linux-aarch64,osx-64	linux-aarch64
+narfmap	1.4.2	linux-64	linux-64-only
+ncbigenomedownload	?		missing
+ncbitools	?		missing
+nextclade	3.21.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+nextgenmap	0.5.5	linux-64,osx-64	linux-64-only
+ngmaster	2.0.0	noarch	noarch
+ngmerge	0.5	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+ngsbits	?		missing
+ngscheckmate	1.0.1	linux-64,linux-aarch64,noarch,osx-64,osx-arm64	linux-aarch64
+nonpareil	3.5.5	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+nucmer	?		missing
+numorph	?		missing
+oatk	1.0	linux-64,osx-64	linux-64-only
+octopusv	0.3.3	noarch	noarch
+odgi	0.9.4	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+oncocnv	7.0	noarch	noarch
+openms	3.5.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+openmsthirdparty	?		missing
+opt	0.0.1	noarch	noarch
+optitype	1.5.0	linux-64,noarch	noarch
+orfipy	0.0.4	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+orthofinder	3.1.5	linux-64,noarch,osx-64	noarch
+osfclient	?		missing
+paftools	?		missing
+pairix	0.3.9	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+pairtools	1.1.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+panacus	0.4.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+panaroo	1.7.0	noarch	noarch
+pangolin	4.4	noarch	noarch
+parabricks	?		missing
+paraclu	10	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+paragraph	2.3	linux-64	linux-64-only
+paraphase	4.0.0	linux-64,noarch	noarch
+paraphrase	?		missing
+parsesdrf	?		missing
+parsnp	2.1.5	linux-64,osx-64	linux-64-only
+pasty	2.2.1	noarch	noarch
+pbbam	2.4.0	linux-64,osx-64	linux-64-only
+pbccs	6.4.0	linux-64,noarch	noarch
+pbcpgtools	?		missing
+pbjasmine	26.1.3	linux-64	linux-64-only
+pbmarkdup	1.2.0	linux-64	linux-64-only
+pbmm2	26.1.99	linux-64,noarch,osx-64	noarch
+pbptyper	2.0.0	noarch	noarch
+pbsv	2.11.0	linux-64,noarch	noarch
+pbtk	3.5.0	linux-64	linux-64-only
+pcgr	?		missing
+pcne	3.3.1	noarch	noarch
+pdb2pqr	?		missing
+pear	0.9.11	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+peddy	0.4.8	linux-64,noarch,osx-64	noarch
+peka	1.0.2	noarch	noarch
+perbase	1.4.0	linux-64,linux-aarch64,noarch,osx-64,osx-arm64	linux-aarch64
+percolator	3.7.1	linux-64,linux-aarch64	linux-aarch64
+phantompeakqualtools	1.2.2	linux-64,noarch,osx-64	noarch
+pharmcat	?		missing
+pharokka	1.9.1	noarch	noarch
+phenoimager2mc	?		missing
+phispy	5.0.10	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+phyloflash	3.4.2	linux-64,noarch,osx-64	noarch
+picard	3.4.0	linux-64,noarch,osx-64	noarch
+picrust2	2.6.3	noarch	noarch
+pigz	?		missing
+pilon	1.24	linux-64,noarch,osx-64	noarch
+pindel	0.2.5b9	linux-64,linux-aarch64	linux-aarch64
+pints	?		missing
+pirate	1.0.5	noarch	noarch
+plasmidfinder	2.1.6	noarch	noarch
+plasmidid	1.6.5	noarch	noarch
+plastid	0.6.1	linux-64,osx-64	linux-64-only
+platypus	?		missing
+plink	1.90b6.21	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+plink2	2.00a5.10	linux-64,osx-64	linux-64-only
+plotsr	1.1.1	noarch	noarch
+pmdtools	0.60	noarch	noarch
+pneumocat	1.2.1	linux-64,noarch,osx-64	noarch
+polypolish	0.6.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+poolsnp	1.0.1	noarch	noarch
+popscle	0.1	linux-64,linux-aarch64,osx-64	linux-aarch64
+porechop	0.2.4	linux-64,linux-aarch64,osx-64	linux-aarch64
+portcullis	1.2.4	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+portello	0.7.0	linux-64	linux-64-only
+preseq	3.2.0	linux-64,linux-aarch64,osx-64	linux-aarch64
+president	0.6.8	noarch	noarch
+presto	0.7.9	linux-64,noarch,osx-64	noarch
+pretextmap	0.2.4	linux-64,osx-64	linux-64-only
+pretextsnapshot	0.0.7	linux-64,osx-64	linux-64-only
+pridepy	0.0.16	noarch	noarch
+primerprospector	1.0.1	linux-64,osx-64	linux-64-only
+prinseqplusplus	?		missing
+prodigal	2.6.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+prokka	1.15.6	linux-64,noarch,osx-64	noarch
+proovframe	0.9.7	noarch	noarch
+propr	?		missing
+proseg	?		missing
+proteinortho	6.3.6	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+proteus	?		missing
+pureclip	1.3.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+purecn	?		missing
+purgedups	?		missing
+pychopper	2.7.10	noarch	noarch
+pyclonevi	?		missing
+pycoqc	2.5.2	linux-64,noarch,osx-64	noarch
+pydamage	1.0	noarch	noarch
+pygenprop	?		missing
+pypgx	0.26.0	noarch	noarch
+pypolca	0.4.0	noarch	noarch
+pyrodigal	3.7.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+qcat	1.1.0	noarch	noarch
+qcatch	0.2.12	noarch	noarch
+qsv	?		missing
+qualimap	2.3	linux-64,noarch,osx-64	noarch
+quantmsutils	?		missing
+quartonotebook	?		missing
+quast	5.3.0	linux-64,linux-aarch64,noarch,osx-64	linux-aarch64
+quilt	?		missing
+racon	1.5.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+ragtag	2.1.0	noarch	noarch
+rapidnj	2.3.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+rastair	2.1.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+rasusa	4.1.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+rattle	1.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+raven	?		missing
+raw2ometiff	?		missing
+raxmlng	?		missing
+rbt	?		missing
+regenie	4.1.2	linux-64,osx-64	linux-64-only
+regtools	1.0.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+repeatmasker	4.2.3	linux-64,noarch,osx-64	noarch
+repeatmodeler	2.0.8	linux-64,noarch,osx-64	noarch
+resfinder	4.7.2	noarch	noarch
+rgi	6.0.8	linux-64,noarch,osx-64	noarch
+rhocall	0.5.1	linux-64,linux-aarch64,osx-64	linux-aarch64
+ribocode	1.2.15	linux-64,noarch,osx-64	noarch
+ribodetector	0.3.3	noarch	noarch
+ribotish	0.2.8	linux-64,noarch	noarch
+ribotricer	1.5.0	linux-64,noarch,osx-64	noarch
+ribowaltz	2.0	noarch	noarch
+riker	0.2.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+ripgrep	?		missing
+rmarkdownnotebook	?		missing
+rmats	4.3.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+rnaquast	2.3.2	linux-64,osx-64	linux-64-only
+roary	3.13.0	linux-64,osx-64	linux-64-only
+rpbp	4.0.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+rrnatranscripts	?		missing
+rsem	1.3.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+rseqc	5.0.4	linux-64,linux-aarch64,noarch,osx-64	linux-aarch64
+rtgtools	?		missing
+rtn	?		missing
+rundbcan	?		missing
+rustqc	0.2.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+s4pred	1.2.1	noarch	noarch
+sageproteomics	?		missing
+salmon	1.11.4	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+salsa2	2.3	linux-64,osx-64	linux-64-only
+saltshaker	?		missing
+sam2lca	1.1.4	noarch	noarch
+sambamba	1.0.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+samblaster	0.1.26	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+samclip	0.4.0	linux-64,noarch,osx-64	noarch
+samplesheetparser	?		missing
+samshee	0.2.14	noarch	noarch
+samtools	1.23.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+savana	1.3.7	noarch	noarch
+sawfish	2.2.1	linux-64	linux-64-only
+scanpy	1.7.2	linux-64,noarch,osx-64	noarch
+scds	?		missing
+scimap	?		missing
+scoary	1.6.16	linux-64,noarch,osx-64	noarch
+scramble	1.0.2	linux-64,osx-64	linux-64-only
+scvitools	?		missing
+seacr	1.3	noarch	noarch
+segemehl	0.3.4	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+segul	0.23.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+semibin	2.3.0	noarch	noarch
+sentieon	202503.03	linux-64,linux-aarch64,osx-64	linux-aarch64
+seq2hla	2.3	linux-64,noarch,osx-64	noarch
+seqcluster	1.2.9	linux-64,noarch,osx-64	noarch
+seqfu	1.26.0	linux-64,linux-aarch64,noarch,osx-64,osx-arm64	linux-aarch64
+seqkit	2.13.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+seqsero2	1.3.2	noarch	noarch
+seqtk	1.5	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+sequali	1.0.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+sequencetools	1.6.0.0	linux-64,osx-64,osx-arm64	linux-64-only
+sequenzautils	?		missing
+seqwish	0.7.11	linux-64,linux-aarch64	linux-aarch64
+seroba	1.0.2	linux-64,noarch,osx-64	noarch
+severus	1.7	noarch	noarch
+sexdeterrmine	1.1.2	noarch	noarch
+sgdemux	1.2.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+shapeit5	5.1.1	linux-64,osx-64	linux-64-only
+shasta	0.14.0	linux-64,osx-64	linux-64-only
+shasum	?		missing
+shigapass	1.5.0	noarch	noarch
+shigatyper	2.0.5	noarch	noarch
+shigeifinder	1.3.5	noarch	noarch
+shinyngs	?		missing
+shovill	1.4.2	linux-64,noarch,osx-64	noarch
+sickle	0.7.0	linux-64,noarch	noarch
+sigprofiler	?		missing
+simpleaf	0.25.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+singlem	0.21.3	noarch	noarch
+sistr	?		missing
+ska	1.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+skani	0.3.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+skesa	2.5.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+slamdunk	0.4.3	linux-64,noarch	noarch
+slimfastq	2.04	linux-64,osx-64	linux-64-only
+smncopynumbercaller	1.1.2	noarch	noarch
+smoothxg	0.8.2	linux-64,linux-aarch64	linux-aarch64
+smoove	0.2.8	linux-64	linux-64-only
+snakemake	9.22.0	linux-64,noarch,osx-64	noarch
+snapaligner	?		missing
+sniffles	2.8.0	linux-64,noarch,osx-64	noarch
+snippy	4.6.0	linux-64,noarch,osx-64	noarch
+snpdists	?		missing
+snpeff	5.4.0c	linux-64,noarch,osx-64	noarch
+snpsift	5.4.0c	linux-64,noarch,osx-64	noarch
+snpsites	?		missing
+somalier	0.3.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+sortmerna	4.3.7	linux-64,linux-aarch64,osx-64	linux-aarch64
+souporcell	2.5	linux-64	linux-64-only
+soupx	?		missing
+sourcepredict	0.5.1	noarch	noarch
+sourmash	4.9.4	linux-64,noarch,osx-64	noarch
+spaceranger	?		missing
+spades	4.2.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+sparsesignatures	?		missing
+spatyper	0.3.3	noarch	noarch
+splitubam	0.1.1	linux-64,osx-64	linux-64-only
+spotiflow	?		missing
+spring	1.1.1	linux-64,linux-aarch64	linux-aarch64
+sratools	?		missing
+srst2	0.2.0	linux-64,noarch,osx-64	noarch
+ssuissero	1.0.1	noarch	noarch
+stacks	2.68	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+stadeniolib	?		missing
+stainwarpy	0.2.4	noarch	noarch
+staphopiasccmec	?		missing
+staphscan	0.3.1	noarch	noarch
+star	2.7.11b	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+staramr	0.12.2	linux-64,noarch,osx-64	noarch
+stardist	?		missing
+stare	?		missing
+starfusion	?		missing
+stecfinder	1.1.2	noarch	noarch
+stitch	?		missing
+stranger	0.10.2	noarch	noarch
+strdrop	?		missing
+strdust	0.16.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+strelka	2.9.10	linux-64,noarch	noarch
+stringtie	3.0.3	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+strobealign	0.17.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+strvctvre	1.10	noarch	noarch
+subread	2.1.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+summarizedexperiment	?		missing
+survivor	1.0.7	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+sushie	0.19	noarch	noarch
+svaba	1.2.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+svanalyzer	0.36	noarch	noarch
+svdb	2.10.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+svdss	2.1.1	linux-64	linux-64-only
+svim	2.0.0	noarch	noarch
+svtk	0.0.20190615	linux-64,linux-aarch64,osx-64	linux-aarch64
+svtools	0.5.1	linux-64,noarch,osx-64	noarch
+svtyper	0.7.1	linux-64,noarch,osx-64	noarch
+svync	0.3.0	linux-64,osx-64	linux-64-only
+sylph	0.9.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+sylphtax	?		missing
+syri	1.7.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+t1k	1.0.9	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+tabix	1.11	linux-64,noarch,osx-64	noarch
+tagbam	0.1.0	linux-64,linux-aarch64	linux-aarch64
+tailfindr	?		missing
+tar	?		missing
+taxonkit	0.20.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+taxpasta	0.7.0	noarch	noarch
+tbprofiler	?		missing
+tcoffee	?		missing
+td2	1.1.0	noarch	noarch
+telescope	1.0.3_fix	linux-64,osx-64	linux-64-only
+telogator2	2.2.3	noarch	noarch
+telomerehunter	?		missing
+telseq	0.0.2	linux-64,osx-64	linux-64-only
+tesorter	1.5.1	noarch	noarch
+tetranscripts	2.2.4	noarch	noarch
+thermorawfileparser	2.0.0.dev	linux-64,noarch,osx-64,osx-arm64	noarch
+tiara	?		missing
+tiddit	3.9.5	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+tidk	0.2.65	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+tinc	?		missing
+tmb	1.6.0	noarch	noarch
+topas	1.0.1	noarch	noarch
+toulligqc	2.8.4	linux-64,noarch,osx-64	noarch
+traitar	3.0.1	noarch	noarch
+transdecoder	6.0.0	linux-64,noarch,osx-64	noarch
+trgt	5.0.0	linux-64,noarch	noarch
+trimal	1.5.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+trimgalore	?		missing
+trimmomatic	0.40	linux-64,noarch,osx-64	noarch
+trinity	2.15.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+trnascanse	?		missing
+trust4	1.1.9	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+truvari	5.4.0	linux-64,noarch,osx-64	noarch
+trycycler	0.5.6	noarch	noarch
+tsebra	1.1.2.5	noarch	noarch
+tximeta	?		missing
+ucsc	?		missing
+ultra	1.2.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+ultraplex	1.2.10	linux-64,linux-aarch64,noarch,osx-64,osx-arm64	linux-aarch64
+umicollapse	1.1.0	noarch	noarch
+umitools	0.3.4	linux-64,noarch,osx-64	noarch
+unicycler	0.5.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+universc	?		missing
+untar	?		missing
+untarfiles	?		missing
+unzip	?		missing
+unzipfiles	?		missing
+upd	0.1.1	noarch	noarch
+upp	?		missing
+vamb	5.0.4	linux-64,noarch,osx-64	noarch
+vardictjava	?		missing
+variancepartition	?		missing
+variantbam	1.4.4a	linux-64	linux-64-only
+variantextractor	?		missing
+varlociraptor	8.9.5	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+varscan	2.4.6	linux-64,noarch,osx-64	noarch
+vcf2cytosure	0.9.3	noarch	noarch
+vcf2db	2020.02.24	linux-64,noarch,osx-64	noarch
+vcf2maf	1.6.22	linux-64,noarch	noarch
+vcf2zarr	?		missing
+vcfanno	0.3.8	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+vcfexpress	0.3.4	linux-64,linux-aarch64	linux-aarch64
+vcflib	1.0.15	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+vcfpgloader	?		missing
+vcftools	0.1.17	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+vclust	1.3.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+velocyto	?		missing
+vembrane	2.6.0	noarch	noarch
+verifybamid	1.1.3	linux-64,osx-64	linux-64-only
+vg	1.73.0	linux-64,linux-aarch64	linux-aarch64
+viber	?		missing
+viennarna	2.7.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+viralconsensus	?		missing
+vireo	?		missing
+virusrecom	1.4.0	noarch	noarch
+vizgenpostprocessing	?		missing
+vrhyme	1.1.0	noarch	noarch
+vsearch	2.31.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+vt	2015.11.10	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+vuegen	0.6.0	noarch	noarch
+wfmash	0.24.2	linux-64,linux-aarch64	linux-aarch64
+wget	?		missing
+wgsim	1.0	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+whamg	?		missing
+whatshap	2.8	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+windowmasker	?		missing
+wipertools	1.1.5	noarch	noarch
+wisecondorx	1.3.2	linux-64,noarch,osx-64	noarch
+wittyer	?		missing
+xengsort	2.2.1	noarch	noarch
+xeniumranger	?		missing
+xz	?		missing
+yahs	1.2.2	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+yak	0.1	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+yara	1.0.5	linux-64,linux-aarch64,osx-64,osx-arm64	linux-aarch64
+yte	?		missing
+zip	?		missing

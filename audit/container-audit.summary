@@ -1,0 +1,12 @@
+  taxprofiler@2.0.0: 59 modules
+  sarek@3.8.1: 119 modules
+  rnaseq@3.26.0: 75 modules
+  mag@5.4.2: 69 modules
+  viralrecon@3.0.0: 57 modules
+
+=== container class counts ===
+  wave-plain     75
+  biocontainers  182
+  wave-mulled    117
+=== arch counts ===
+  amd64-only     374

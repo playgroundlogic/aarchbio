@@ -1,0 +1,7 @@
+
+=== summary (n=874) ===
+  noarch           289  (33%)
+  linux-aarch64    262  (29%)
+  linux-64-only     72  (8%)
+  missing          251  (28%)
+  --> arm64-capable: 551/874 (63%)
