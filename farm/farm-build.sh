@@ -28,19 +28,24 @@ WORKLIST="${1:?usage: farm-build.sh <worklist>}"
 if command -v uv >/dev/null 2>&1; then PY=(uv run python); else PY=(python3); fi
 mkdir -p "$(dirname "$STATE")"; touch "$STATE"
 
+# SSH keepalive/timeout options: a dropped connection during a long remote build
+# must NOT hang the whole run forever (observed: a wedged ssh on one tool stalled
+# the run for ~48 min with no recovery). ServerAliveInterval+CountMax bounds a
+# dead connection to ~2 min; ConnectTimeout bounds the initial connect.
+SSH_OPTS=(-o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o BatchMode=yes)
 # Remote shells differ: orion=zsh login, janus=bash login. Wrap commands so PATH
-# (brew, docker) is loaded.
-# `</dev/null` so ssh never consumes the while-read loop's stdin (classic bug).
-arm_sh() { ssh "$ARM_HOST" "zsh -lc '$1'" </dev/null; }
-amd_sh() { ssh "$AMD_HOST" "bash -lc '$1'" </dev/null; }
+# (brew, docker) is loaded. `</dev/null` so ssh never consumes the while-read
+# loop's stdin (classic bug).
+arm_sh() { ssh "${SSH_OPTS[@]}" "$ARM_HOST" "zsh -lc '$1'" </dev/null; }
+amd_sh() { ssh "${SSH_OPTS[@]}" "$AMD_HOST" "bash -lc '$1'" </dev/null; }
 
 # Ship the builder/ dir to a box's /tmp/aarchbio-builder. Uses tar-over-ssh (not
 # rsync — janus/Linux has no rsync) so it's portable; repo is private so we don't
 # git-clone on the boxes.
 sync_builder() {
   local host="$1"
-  ssh "$host" 'rm -rf /tmp/aarchbio-builder && mkdir -p /tmp/aarchbio-builder' </dev/null
-  tar --no-xattrs -C "$REPO/builder" -cf - . 2>/dev/null | ssh "$host" 'tar -C /tmp/aarchbio-builder -xf - 2>/dev/null'
+  ssh "${SSH_OPTS[@]}" "$host" 'rm -rf /tmp/aarchbio-builder && mkdir -p /tmp/aarchbio-builder' </dev/null
+  tar --no-xattrs -C "$REPO/builder" -cf - . 2>/dev/null | ssh "${SSH_OPTS[@]}" "$host" 'tar -C /tmp/aarchbio-builder -xf - 2>/dev/null'
 }
 
 log() { printf '[farm] %s\n' "$*"; }
@@ -70,8 +75,8 @@ relogin() {
   [ -n "$t" ] || { log "WARN: no QUAY_TOKEN in .env; skipping relogin"; return; }
   echo "$t" | docker login quay.io -u "$u" --password-stdin >/dev/null 2>&1
   # remote: pass token via stdin to a login shell running docker login
-  echo "$t" | ssh "$ARM_HOST" "zsh -lc 'docker login quay.io -u \"$u\" --password-stdin'" >/dev/null 2>&1
-  echo "$t" | ssh "$AMD_HOST" "bash -lc 'docker login quay.io -u \"$u\" --password-stdin'" >/dev/null 2>&1
+  echo "$t" | ssh "${SSH_OPTS[@]}" "$ARM_HOST" "zsh -lc 'docker login quay.io -u \"$u\" --password-stdin'" >/dev/null 2>&1
+  echo "$t" | ssh "${SSH_OPTS[@]}" "$AMD_HOST" "bash -lc 'docker login quay.io -u \"$u\" --password-stdin'" >/dev/null 2>&1
 }
 
 log "farm: amd=$AMD_HOST arm=$ARM_HOST registry=$REGISTRY"
