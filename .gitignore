@@ -26,3 +26,4 @@ benchmark/data/
 *.swp
 farm/state.tsv
 farm/coverage-state.tsv
+farm/sign-batch-results.tsv
