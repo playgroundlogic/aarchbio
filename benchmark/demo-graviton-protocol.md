@@ -22,13 +22,22 @@ native arm64 containers.
    later for tighter numbers.
 2. **Same instance *spec*, differ only in family.** c7i↔c7g, r7i↔r7g at identical
    vCPU/RAM. NOT c7i.2xlarge vs c7g.4xlarge — that confounds arch with size.
-3. **Same region/AZ** (us-east-1) — same RODA locality, same Spot/on-demand board.
-4. **Same pipeline version** — both resolve nf-core/taxprofiler 2.0.0 (no `-r`
+3. **NO burstable (t-family) instances anywhere in the MEASURED path.** t4g/t3/t2
+   are credit-based + shared-core: the same workload varies 2x with credit state
+   and noisy neighbors, so you'd measure credit balance, not architecture. The
+   demo ships t4g.medium for FETCH_FASTQ (`process_single` — which also covers
+   MultiQC/krakentools/standard-report, all measured) and t4g.small for the head
+   node. For the benchmark, move every measured stage to a fixed-performance
+   family: `process_single` → c7g.large ↔ c7i.large; head node → c7g.large/
+   c7i.large too (its jitter leaks into `duration`). Only fixed families
+   (c/m/r-7g vs -7i) produce repeatable numbers.
+5. **Same region/AZ** (us-east-1) — same RODA locality, same Spot/on-demand board.
+6. **Same pipeline version** — both resolve nf-core/taxprofiler 2.0.0 (no `-r`
    drift between runs; pin if needed).
-5. **x86 run uses native amd64 containers; arm64 run uses aarchbio native arm64.**
+7. **x86 run uses native amd64 containers; arm64 run uses aarchbio native arm64.**
    NEITHER emulates. This measures native-vs-native price/perf, not the
    emulation tax (that's a separate, already-known story).
-6. **Warm vs cold:** both runs pull containers fresh per ephemeral instance, so
+8. **Warm vs cold:** both runs pull containers fresh per ephemeral instance, so
    container-pull time is included in both equally — fair, though it adds noise;
    note it.
 
