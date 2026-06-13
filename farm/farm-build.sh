@@ -28,11 +28,14 @@ WORKLIST="${1:?usage: farm-build.sh <worklist>}"
 if command -v uv >/dev/null 2>&1; then PY=(uv run python); else PY=(python3); fi
 mkdir -p "$(dirname "$STATE")"; touch "$STATE"
 
-# SSH keepalive/timeout options: a dropped connection during a long remote build
-# must NOT hang the whole run forever (observed: a wedged ssh on one tool stalled
-# the run for ~48 min with no recovery). ServerAliveInterval+CountMax bounds a
-# dead connection to ~2 min; ConnectTimeout bounds the initial connect.
-SSH_OPTS=(-o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=4 -o BatchMode=yes)
+# SSH keepalive/timeout options. Balance two failure modes:
+#  - a truly dead connection (box offline) must not hang the run forever, AND
+#  - a legitimately SLOW remote build (a quiet conda solve/install can run 10+ min
+#    with zero ssh traffic) must NOT be mistaken for dead and killed.
+# The first tuning (CountMax=4 ≈ 2 min) was too aggressive: it killed 74 multi-arch
+# builds mid-install (all noarch/two-leg). 30s × 30 ≈ 15 min tolerates long quiet
+# builds while still bounding a genuinely dead connection.
+SSH_OPTS=(-o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=30 -o BatchMode=yes)
 # Remote shells differ: orion=zsh login, janus=bash login. Wrap commands so PATH
 # (brew, docker) is loaded. `</dev/null` so ssh never consumes the while-read
 # loop's stdin (classic bug).
