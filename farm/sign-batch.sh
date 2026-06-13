@@ -20,7 +20,14 @@ tok=os.environ["QUAY_OAUTH_TOKEN"]
 def api(p):
     r=urllib.request.Request("https://quay.io/api/v1/"+p,headers={"Authorization":"Bearer "+tok})
     return json.load(urllib.request.urlopen(r,timeout=30))
-priv=sorted(x["name"] for x in api("repository?namespace=aarchbio&public=true&private=true")["repositories"] if not x.get("is_public"))
+# Paginate — quay caps repositories per page (~100); without this we only saw
+# the first page and missed the 402 private coverage repos.
+repos=[]; page=None
+while True:
+    q="repository?namespace=aarchbio&public=true&private=true"+(f"&next_page={page}" if page else "")
+    d=api(q); repos+=d["repositories"]; page=d.get("next_page")
+    if not page: break
+priv=sorted(x["name"] for x in repos if not x.get("is_public"))
 for tool in priv:
     tags=[t["name"] for t in api(f"repository/aarchbio/{tool}/tag/?onlyActiveTags=true&limit=50").get("tags",[])
           if not t["name"].endswith((".sig",".att")) and not t["name"].startswith("sha256-")]
