@@ -68,7 +68,26 @@ rather than added it. Worth flagging to PacBio/bioconda upstream as a regression
 ## How these resolve
 
 - **Reconciler (D15):** re-checks gaps on each scheduled run; auto-builds any that
-  upstream has since fixed. No manual tracking rot.
+  upstream has since fixed, and (planned) auto-closes the matching tracking issue.
+  No manual tracking rot.
 - **Upstream issues:** file against the *dependency's* bioconda recipe (one issue
   per missing dep, ranked above), not 53 tool issues.
 - **No from-source builds** (D10). The fix is upstream packaging, where it belongs.
+
+## Issue tracking (how GAPS.md relates to GitHub issues)
+
+`GAPS.md` is the **canonical bulk record** — the full table, regenerable by the
+reconciler. We do **not** mint one issue per gap (that's noise). GitHub issues are
+reserved for the trackable units:
+
+- **`arm64-gap`** — an open gap tracked as an issue (the few worth individual
+  attention: dependency gaps, genuine never-arm64, legacy mulled images).
+- **`arm64-gap` + `upstream`** — fix belongs in an upstream bioconda recipe;
+  these are the candidates to file upstream (with a cross-link when we do).
+- *Closed* — resolved. Either aarchbio built the arm64 version (version-pin gaps,
+  e.g. the 9 demand-run bumps closed as "built X instead"), or upstream filled it
+  and the reconciler rebuilt it.
+
+Current open backlog: `gh issue list --label arm64-gap` (dep-gaps, never-arm64,
+mulled-v2). The 53 coverage dep-gaps live in the table above, not as issues, until
+one warrants individual upstream action.
