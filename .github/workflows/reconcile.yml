@@ -1,0 +1,122 @@
+# Scheduled reconciler (DESIGN.md D15) — keeps the catalog current, autonomously.
+#
+# Weekly: for each TRACKED tool, compare bioconda's latest version against what's
+# published on quay.io/aarchbio, and also retry recorded gaps (upstream may have
+# added arm64 since). Build the delta via the existing publish workflow.
+#
+# Runs on hosted runners (no farm dependency) — it only ever handles a small
+# delta (new versions + newly-buildable gaps), so hosted speed is fine and it
+# survives the local farm being offline.
+#
+# GUARDRAILS (it writes to a public registry unattended):
+#  - bounded: caps how many tools it will queue per run (MAX_DELTA) so a bioconda
+#    mass-release can't trigger a runaway.
+#  - additive only: never deletes or unpublishes anything.
+#  - idempotent: the builder no-ops on an already-current tag.
+#  - concurrency-guarded: won't overlap a previous run.
+
+name: reconcile
+
+on:
+  schedule:
+    - cron: '17 7 * * 1'   # Mondays 07:17 UTC (off the hour to dodge cron congestion)
+  workflow_dispatch:
+    inputs:
+      max_delta:
+        description: 'Max tools to queue this run (runaway guard)'
+        required: false
+        default: '40'
+        type: string
+      dry_run:
+        description: 'Compute the delta but do not dispatch builds'
+        required: false
+        default: 'false'
+        type: string
+
+concurrency:
+  group: reconcile
+  cancel-in-progress: false   # let a running reconcile finish; don't stack
+
+permissions:
+  contents: read
+  actions: write   # to dispatch publish.yml
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute the delta (new versions + retryable gaps)
+        id: delta
+        env:
+          MAX_DELTA: ${{ inputs.max_delta || '40' }}
+        run: |
+          set -uo pipefail
+          python3 - "$MAX_DELTA" <<'PY' > /tmp/delta.txt
+          import json, sys, urllib.request
+          MAX=int(sys.argv[1])
+
+          def quay(path):
+              r=urllib.request.Request("https://quay.io/api/v1/"+path)
+              return json.load(urllib.request.urlopen(r, timeout=30))
+          def anaconda(pkg):
+              try:
+                  r=urllib.request.Request(f"https://api.anaconda.org/package/bioconda/{pkg}")
+                  return json.load(urllib.request.urlopen(r, timeout=30))
+              except Exception:
+                  return None
+
+          # TRACKED SET = every tool currently published in the aarchbio org
+          # (paginated). The catalog tracks itself: anything we've published, we
+          # keep current. New-tool discovery is intentionally out of scope here
+          # (that's a separate, human-curated expansion — guards against scope creep).
+          tracked=[]; page=None
+          while True:
+              d=quay("repository?namespace=aarchbio&public=true&private=true"+(f"&next_page={page}" if page else ""))
+              tracked+=[r["name"] for r in d["repositories"]]; page=d.get("next_page")
+              if not page: break
+
+          delta=[]
+          for tool in sorted(tracked):
+              info=anaconda(tool)
+              if not info: continue
+              latest=info.get("latest_version")
+              if not latest: continue
+              # what tags do we already have for this tool?
+              try:
+                  tags=[t["name"] for t in quay(f"repository/aarchbio/{tool}/tag/?onlyActiveTags=true&limit=100").get("tags",[])
+                        if not t["name"].endswith((".sig",".att")) and not t["name"].startswith("sha256-")]
+              except Exception:
+                  tags=[]
+              have_versions={t.split("--")[0] for t in tags}
+              # queue the latest bioconda version if we don't already have it
+              if latest not in have_versions:
+                  delta.append(f"{tool}={latest}")
+              if len(delta)>=MAX: break
+
+          for spec in delta[:MAX]:
+              print(spec)
+          print(f"[reconcile] delta: {len(delta[:MAX])} tools (cap {MAX})", file=sys.stderr)
+          PY
+          count=$(grep -c . /tmp/delta.txt || echo 0)
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "tools=$(tr '\n' ' ' < /tmp/delta.txt)" >> "$GITHUB_OUTPUT"
+          echo "::notice::reconcile delta = $count tools: $(tr '\n' ' ' < /tmp/delta.txt)"
+
+      - name: Dispatch builds for the delta
+        if: ${{ steps.delta.outputs.count != '0' && inputs.dry_run != 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run publish.yml --repo "$GITHUB_REPOSITORY" \
+            -f tools="${{ steps.delta.outputs.tools }}"
+          echo "::notice::dispatched publish.yml for ${{ steps.delta.outputs.count }} tools"
+
+      - name: Summary
+        run: |
+          echo "Reconcile run: delta=${{ steps.delta.outputs.count }} tools" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/delta.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
