@@ -405,6 +405,36 @@ This is the third and final driver into the one pipeline, completing D3:
   do **not** mirror every historical build (runaway guard). The sweep must respect
   this or it will spawn dozens of builds per tool.
 
+### D16 — Scope boundary: the bioconda-tool-container layer only
+
+**Decision:** aarchbio rebuilds **bioinformatics tool containers** (the
+BioContainers / bioconda layer) for arm64 — and nothing else. This boundary is
+explicit because the container stack has several layers and only one is both
+*gapped* and *unowned*:
+
+| Layer | Owner | arm64 status | aarchbio |
+|-------|-------|--------------|----------|
+| Distro base images (ubuntu, debian) | Docker Official | already multi-arch | out of scope |
+| Language/framework packages (tensorflow, numpy, pytorch) | conda-forge | mostly already arm64 | out of scope |
+| Standalone vendor/ML containers (tensorflow/tensorflow, NVIDIA NGC) | vendors | already multi-arch | out of scope |
+| **Bio tool containers** (quay.io/biocontainers/<tool>) | BioContainers | **amd64-only** | **in scope** |
+
+**Why the narrow scope is a feature, not a limitation:**
+- The other layers either self-solve (Docker Official, vendor images are already
+  multi-arch) or are someone else's clearly-owned responsibility (conda-forge).
+  Rebuilding them would duplicate well-resourced upstream work and blur the
+  mission.
+- It keeps the trust model tight: aarchbio only repackages *blessed bioconda
+  packages*, never compiles from source (D10). A clear scope is what makes
+  "verify the build" a tractable promise.
+- When a gap traces *below* this layer (a conda-forge dep lacking arm64, or an
+  upstream bioconda recipe with arm64 disabled), the fix belongs there, not here —
+  aarchbio surfaces and attributes it (provenance.sh, GAPS.md) rather than
+  reaching down to patch it.
+
+Stated publicly in the README ("Scope") and on the site, because the first
+question observers ask is "where does this stop?"
+
 ## Architecture
 
 ```

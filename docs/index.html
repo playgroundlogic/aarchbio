@@ -104,6 +104,16 @@
                     builds just aren't there yet. The packages are ready; the
                     <strong>container publishing</strong> is what hasn't caught up. That's the one
                     gap aarchbio fills — and ideally helps close upstream.</p>
+                    <p style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border);">
+                    <strong>Scope, deliberately narrow:</strong> aarchbio rebuilds
+                    <em>bioinformatics tool containers</em> (the BioContainers / bioconda layer) —
+                    nothing else. Distro base images (<code>ubuntu</code>), framework packages
+                    (<code>tensorflow</code>, via conda-forge), and vendor ML containers already
+                    handle arm64 and aren't ours to rebuild. When a tool can't be built, the cause
+                    usually lives in one of those layers — surfaced in
+                    <a href="https://github.com/playgroundlogic/aarchbio/blob/main/GAPS.md" style="color:var(--accent-teal)">GAPS.md</a>
+                    and fixed upstream, where it belongs. We don't compile from source — that would
+                    make us a second bioconda and break the verifiable-build trust model.</p>
                 </div>
             </div>
         </section>

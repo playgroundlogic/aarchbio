@@ -47,6 +47,28 @@ We measured the gap rather than guessing (see [`audit/`](audit/)): across a
 across five popular nf-core pipelines, **~100% of the containers they actually
 pull are amd64-only.** The capability is there; the publishing hadn't caught up.
 
+## Scope — what aarchbio does and doesn't do
+
+aarchbio operates at **exactly one layer**: it rebuilds **bioconda tool packages
+into native arm64 containers**. That focus is deliberate — it's the layer where
+the gap is large *and* unowned. The neighboring layers either already handle
+arm64 or belong to someone else:
+
+| Layer | Owner | arm64 today | aarchbio? |
+|-------|-------|-------------|-----------|
+| Distro base images (`ubuntu`, `debian`) | Docker Official | already multi-arch | ❌ out of scope |
+| Language / framework packages (`tensorflow`, `numpy`) | **conda-forge** | mostly already arm64 | ❌ out of scope |
+| Standalone ML / vendor containers (`tensorflow/tensorflow`, NVIDIA NGC) | the vendors | already multi-arch | ❌ out of scope |
+| **Bioinformatics tool containers** (`quay.io/biocontainers/<tool>`) | BioContainers | **amd64-only** ← the gap | ✅ **this** |
+
+So aarchbio is **not** trying to rebuild the whole container universe — just the
+bioinformatics-tool slice that nobody else publishes for arm64. When a tool can't
+be built, the cause usually lives in a layer aarchbio doesn't own (a conda-forge
+dependency without arm64, or an upstream bioconda recipe with arm64 disabled) —
+those are surfaced and attributed in [GAPS.md](GAPS.md), to be fixed upstream
+where they belong. aarchbio does **not** compile packages from source; that would
+make it a second bioconda and break the verifiable-build trust model.
+
 ## How it works
 
 ```
