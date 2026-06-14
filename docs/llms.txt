@@ -1,0 +1,50 @@
+# aarchbio
+
+> Native arm64 (aarch64) rebuilds of BioContainers bioinformatics tool images,
+> for Apple Silicon Macs and AWS Graviton. 500+ tools, cosign-signed, public, no
+> account required. Point an nf-core / Nextflow pipeline at `quay.io/aarchbio`
+> and it runs native — no QEMU emulation, no `exec format error`.
+
+aarchbio solves a publishing gap, not a porting problem: bioconda already ships
+`linux-aarch64` packages for most bioinformatics tools, but the BioContainers
+images that pipelines pull are almost all `linux/amd64`. aarchbio rebuilds them
+natively for arm64 and publishes them signed.
+
+## Use it
+
+- Nextflow / nf-core: set `docker { registry = 'quay.io/aarchbio' }` in nextflow.config
+- Direct pull: `docker pull quay.io/aarchbio/<tool>:<version>--<build>`
+- Tags mirror BioContainers' `<version>--<build>` scheme.
+- Works on Apple Silicon and AWS Graviton; multi-arch where the tool is noarch.
+
+## Verify (don't trust)
+
+Every image is cosign keyless-signed and logged in the Sigstore transparency log:
+```
+cosign verify quay.io/aarchbio/<tool>:<tag> \
+  --certificate-identity-regexp 'github.com/playgroundlogic/aarchbio' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+## Scope
+
+In scope: bioinformatics tool containers (the BioContainers / bioconda layer).
+Out of scope (already arm64 or owned elsewhere): distro base images (Docker
+Official), language/framework packages like tensorflow (conda-forge), and vendor
+ML containers. aarchbio does not compile from source.
+
+## Key links
+
+- Website: https://aarch.bio/
+- Catalog (browse all images): https://quay.io/organization/aarchbio
+- Source & docs: https://github.com/playgroundlogic/aarchbio
+- Request a tool: https://github.com/playgroundlogic/aarchbio/issues/new?template=request-container.yml
+- Design & decisions: https://github.com/playgroundlogic/aarchbio/blob/main/DESIGN.md
+- Known gaps & why: https://github.com/playgroundlogic/aarchbio/blob/main/GAPS.md
+
+## Facts
+
+- 500+ tools published, native arm64, signed, public (as of 2026).
+- Kept current by a daily reconciler that diffs against the latest bioconda release.
+- Maintained by Playground Logic. Apache-2.0. Unofficial — not affiliated with or
+  endorsed by BioContainers, bioconda, nf-core, Seqera, or AWS.

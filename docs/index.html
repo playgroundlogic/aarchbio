@@ -3,12 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>aarchbio — native arm64 bioinformatics containers</title>
-    <meta name="description" content="Native arm64 (aarch64) rebuilds of BioContainers for Apple Silicon and AWS Graviton. The bioconda packages already support arm64; aarchbio publishes the containers.">
-    <meta property="og:title" content="aarchbio — native arm64 bioinformatics containers">
-    <meta property="og:description" content="The packages are ready for arm64; the containers aren't. aarchbio fills that gap — native, signed, no account required.">
-    <meta property="og:url" content="https://aarch.bio">
+    <title>aarchbio — native arm64 (aarch64) BioContainers for Apple Silicon &amp; AWS Graviton</title>
+    <meta name="description" content="Native arm64 (aarch64) rebuilds of BioContainers — 500+ bioinformatics tools (samtools, bwa, kraken2, gatk4, salmon…) for Apple Silicon Macs and AWS Graviton. Signed, public, no account. Point your nf-core / Nextflow pipeline at quay.io/aarchbio and run native, no QEMU emulation.">
+    <meta name="keywords" content="arm64, aarch64, bioinformatics, containers, BioContainers, bioconda, Apple Silicon, AWS Graviton, nf-core, Nextflow, Docker, samtools, kraken2, native arm64 docker, no emulation, multi-arch">
+    <meta name="author" content="Playground Logic">
+    <link rel="canonical" href="https://aarch.bio/">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="aarchbio">
+    <meta property="og:title" content="aarchbio — native arm64 BioContainers for Apple Silicon &amp; Graviton">
+    <meta property="og:description" content="500+ bioinformatics tools rebuilt native for arm64 — signed, public, no account. Point nf-core / Nextflow at quay.io/aarchbio and run native, no emulation.">
+    <meta property="og:url" content="https://aarch.bio/">
+    <meta property="og:image" content="https://aarch.bio/assets/og.png">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter / X card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="aarchbio — native arm64 BioContainers">
+    <meta name="twitter:description" content="500+ bioinformatics tools rebuilt native for arm64 (Apple Silicon, AWS Graviton). Signed, public, no account. quay.io/aarchbio">
+    <meta name="twitter:image" content="https://aarch.bio/assets/og.png">
+
     <meta name="theme-color" content="#f8fafc">
+    <meta name="theme-color" content="#0c1017" media="(prefers-color-scheme: dark)">
+
+    <!-- Structured data (schema.org) — helps search engines & agents parse what this is -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "aarchbio",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Linux (arm64/aarch64)",
+      "description": "Native arm64 (aarch64) rebuilds of BioContainers bioinformatics tool images for Apple Silicon and AWS Graviton. 500+ tools, signed and public, no account required.",
+      "url": "https://aarch.bio/",
+      "downloadUrl": "https://quay.io/organization/aarchbio",
+      "codeRepository": "https://github.com/playgroundlogic/aarchbio",
+      "license": "https://www.apache.org/licenses/LICENSE-2.0",
+      "author": { "@type": "Organization", "name": "Playground Logic" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "keywords": "arm64, aarch64, bioinformatics, containers, BioContainers, bioconda, Apple Silicon, AWS Graviton, nf-core, Nextflow"
+    }
+    </script>
+
     <script>(function(){var t=localStorage.getItem('theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
