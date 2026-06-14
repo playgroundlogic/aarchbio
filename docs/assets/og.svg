@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="'Atkinson Hyperlegible','Inter',-apple-system,system-ui,sans-serif">
+  <defs>
+    <radialGradient id="bg" cx="30%" cy="25%" r="90%">
+      <stop offset="0%" stop-color="#141c28"/>
+      <stop offset="100%" stop-color="#0c1017"/>
+    </radialGradient>
+  </defs>
+
+  <!-- background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- subtle arch motif, right side, low contrast -->
+  <path d="M820 470 V330 a160 160 0 0 1 320 0 V470" fill="none" stroke="#2dd4bf" stroke-width="14" stroke-linecap="round" opacity="0.10"/>
+  <path d="M800 486 H1160" stroke="#4ade80" stroke-width="14" stroke-linecap="round" opacity="0.10"/>
+
+  <!-- wordmark -->
+  <text x="80" y="150" font-size="46" font-weight="700" fill="#e2e8f0">aarch<tspan fill="#2dd4bf">bio</tspan></text>
+
+  <!-- headline -->
+  <text x="80" y="290" font-size="76" font-weight="800" letter-spacing="-2" fill="#e2e8f0">Native <tspan fill="#2dd4bf">arm64</tspan></text>
+  <text x="80" y="382" font-size="76" font-weight="800" letter-spacing="-2" fill="#e2e8f0">bioinformatics</text>
+  <text x="80" y="474" font-size="76" font-weight="800" letter-spacing="-2" fill="#e2e8f0">containers, <tspan fill="#4ade80">no emulation</tspan></text>
+
+  <!-- subline -->
+  <text x="82" y="540" font-size="29" font-weight="400" fill="#94a3b8">500+ tools &#183; signed &#183; Apple Silicon + AWS Graviton</text>
+
+  <!-- bottom strip -->
+  <text x="80" y="596" font-size="26" font-weight="700" fill="#2dd4bf">aarch.bio</text>
+  <text x="1120" y="596" font-size="22" font-weight="400" fill="#64748b" text-anchor="end">Apache-2.0 &#183; Playground Logic</text>
+</svg>
