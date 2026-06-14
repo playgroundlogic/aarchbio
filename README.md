@@ -3,6 +3,9 @@
 **Native arm64 (aarch64) rebuilds of [BioContainers](https://biocontainers.pro/),
 for Apple Silicon and AWS Graviton.** Signed, public, no account required.
 
+🌐 **[playgroundlogic.github.io/aarchbio](https://playgroundlogic.github.io/aarchbio/)**
+ · 📦 [quay.io/aarchbio](https://quay.io/organization/aarchbio)
+
 ```nextflow
 // nextflow.config — point any nf-core / Nextflow pipeline here
 docker { registry = 'quay.io/aarchbio' }
@@ -130,6 +133,8 @@ commercial service. So: a small bot.
 
 ## More
 
+- [**Website**](https://playgroundlogic.github.io/aarchbio/) — the project site (custom domain `aarch.bio` coming soon)
+- [**Catalog**](https://quay.io/organization/aarchbio) — browse all 500+ published images on quay.io
 - [DESIGN.md](DESIGN.md) — architecture & decision record
 - [GAPS.md](GAPS.md) — what can't be built yet, and why
 - [audit/](audit/) — the arm64-readiness survey behind the numbers
