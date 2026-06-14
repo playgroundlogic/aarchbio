@@ -1,0 +1,17 @@
+# Reconciler skip-list — tools the daily reconciler should NOT keep retrying.
+# Two tiers (DESIGN.md D15):
+#   wontfix  — genuine dead-end; never retry (only a human edit removes it).
+#   stuck    — gap with a real chance of an upstream fix; skip the DAILY run but
+#              re-check every <revisit_days> in case upstream re-enabled arm64.
+#
+# Columns (tab-separated):  package  tier  revisit_days  reason
+# (revisit_days is ignored for wontfix; use 0.)
+#
+# Edit this file to add/remove entries. The reconciler reads it each run.
+
+# --- wontfix: tools pinning abandoned deps with no arm64 anywhere ---
+deeparg	wontfix	0	pins lasagne (dead Theano-era DL lib); no arm64 anywhere; already at latest 1.0.4
+deepbgc	wontfix	0	pins keras=2.2.4 (2018, pre-merger); no arm64; already at latest 0.1.31
+
+# --- stuck: upstream arm64 disabled-with-reason; revisit periodically ---
+blast	stuck	30	recipe arm64 disabled "until CircleCI resolved" since 2.17.0 PR (2025-08); maintainers @christiam @ebete; we publish 2.16.0

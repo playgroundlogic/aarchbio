@@ -405,6 +405,22 @@ This is the third and final driver into the one pipeline, completing D3:
   do **not** mirror every historical build (runaway guard). The sweep must respect
   this or it will spawn dozens of builds per tool.
 
+**Skip-list (`farm/skip-list.tsv`) — stop futile retries.** A *published* tool
+whose latest version has no arm64 (e.g. `blast` 2.17.0) is otherwise retried
+**every daily run** forever — pure waste. Two tiers:
+- **`wontfix`** — genuine dead-end, never retried. E.g. `deeparg` (pins the dead
+  `lasagne` lib), `deepbgc` (pins `keras 2.2.4`); both already at latest version,
+  no arm64 anywhere, only a tool-author rewrite could fix them. Only a human edit
+  removes the entry.
+- **`stuck`** — a gap with a real chance of upstream fix; skipped on the daily run
+  but **re-checked on the 1st of each month** (and on manual dispatch). E.g.
+  `blast` (recipe arm64 disabled "until CircleCI resolved"; could re-enable any
+  time). Stops the daily waste without going permanently blind.
+
+The reconciler reads the skip-list each run; `provenance.sh` is how you decide a
+tool's tier (arm64 not-mentioned-and-dead-deps → wontfix; disabled-with-reason →
+stuck).
+
 ### D16 — Scope boundary: the bioconda-tool-container layer only
 
 **Decision:** aarchbio rebuilds **bioinformatics tool containers** (the

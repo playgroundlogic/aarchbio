@@ -55,11 +55,38 @@ jobs:
         id: delta
         env:
           MAX_DELTA: ${{ inputs.max_delta || '40' }}
+          # 'stuck' skip-list entries are re-checked on the 1st of the month (in
+          # the Python) or on a manual dispatch (this flag); the daily run skips
+          # them. 'wontfix' entries are never retried.
+          INCLUDE_STUCK: ${{ github.event_name == 'workflow_dispatch' && 'yes' || '' }}
         run: |
           set -uo pipefail
           python3 - "$MAX_DELTA" <<'PY' > /tmp/delta.txt
-          import json, sys, urllib.request
+          import json, sys, os, urllib.request, datetime
+
           MAX=int(sys.argv[1])
+          # Monthly revisit: include 'stuck' entries on the 1st of the month or on
+          # a manual dispatch; otherwise the daily run skips them.
+          today = datetime.date.today()
+          include_stuck = bool(os.environ.get("INCLUDE_STUCK")) or today.day == 1
+
+          # Read the skip-list (DESIGN.md D15): wontfix=never, stuck=slow-revisit.
+          skip = {}   # package -> tier
+          try:
+              with open("farm/skip-list.tsv") as f:
+                  for line in f:
+                      line=line.strip()
+                      if not line or line.startswith("#"): continue
+                      parts=line.split("\t")
+                      if len(parts)>=2: skip[parts[0]] = parts[1]
+          except FileNotFoundError:
+              pass
+          def skipped(tool):
+              tier = skip.get(tool)
+              if tier is None: return False
+              if tier == "wontfix": return True            # never retry
+              if tier == "stuck": return not include_stuck  # daily skip, monthly retry
+              return False
 
           def quay(path):
               r=urllib.request.Request("https://quay.io/api/v1/"+path)
@@ -81,8 +108,9 @@ jobs:
               tracked+=[r["name"] for r in d["repositories"]]; page=d.get("next_page")
               if not page: break
 
-          delta=[]
+          delta=[]; skipped_n=0
           for tool in sorted(tracked):
+              if skipped(tool): skipped_n+=1; continue   # known dead-end / stuck
               info=anaconda(tool)
               if not info: continue
               latest=info.get("latest_version")
@@ -101,7 +129,8 @@ jobs:
 
           for spec in delta[:MAX]:
               print(spec)
-          print(f"[reconcile] delta: {len(delta[:MAX])} tools (cap {MAX})", file=sys.stderr)
+          print(f"[reconcile] delta: {len(delta[:MAX])} tools (cap {MAX}); "
+                f"skip-list skipped: {skipped_n} (include_stuck={include_stuck})", file=sys.stderr)
           PY
           count=$(grep -c . /tmp/delta.txt || echo 0)
           echo "count=$count" >> "$GITHUB_OUTPUT"
