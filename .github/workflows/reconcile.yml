@@ -19,7 +19,11 @@ name: reconcile
 
 on:
   schedule:
-    - cron: '17 7 * * 1'   # Mondays 07:17 UTC (off the hour to dodge cron congestion)
+    - cron: '17 7 * * *'   # daily at 07:17 UTC (off the hour to dodge cron congestion)
+    # Daily, not weekly: bioconda is high-velocity (hundreds of updates/week), so
+    # daily caps a tool's mirror-lag at ~24h. Cost stays low — the discovery scan
+    # is just API calls; runner-minutes are spent only when there's a real delta
+    # (often zero). MAX_DELTA bounds each run; a backlog self-catches-up next day.
   workflow_dispatch:
     inputs:
       max_delta:
