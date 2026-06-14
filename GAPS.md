@@ -31,18 +31,31 @@ upstream unblocks every tool that needs it. Ranked by downstream impact:
 | Missing arm64 dependency | Tools it blocks | Category |
 |--------------------------|----------------:|----------|
 | `bedtools` (version-pinned) | 3 | compiled — arm64 exists at newer ver; pin bump |
-| `tensorflow` / `keras` / `lasagne` / `h5py` | ~6 | **ML stack** — hard; waits on arm64 ML conda builds |
-| `blast` (>=2.17) | 2 | compiled — arm64 exists at some vers |
-| `bowtie2` / `bowtie` | 3 | compiled aligners — arm64 at other vers |
-| `tabixpp`, `medaka`, `sepp`, `nextgenmap`, `flash`, `bbmap`, `ariba`, `genomethreader`, `biopython`, `r-castor`, `bioconductor-deseq`, `pycoverm`, `cbgen`, `expressbetadiversity`, `pyscipopt`, `ispcr` | 1 each | misc — one upstream issue per dep |
+| `blast` (>=2.17) | 2 | recipe arm64 **disabled** ("until CircleCI resolved", since the 2.17.0 PR merged 2025-08); maintainers `@christiam @ebete` |
+| `bowtie2` / `bowtie` | 3 | compiled aligners — recipe arm64 **enabled**; gap is version-lag |
+| dead ML libs: `lasagne` (deeparg), `keras 2.2.4` (deepbgc) | 2 | **genuine dead-end** — see below |
+| `tabixpp`, `medaka`, `sepp`, `nextgenmap`, `flash`, `bbmap`, `ariba`, `genomethreader`, `biopython`, `r-castor`, `bioconductor-deseq`, `pycoverm`, `cbgen`, `expressbetadiversity`, `pyscipopt`, `ispcr` | 1 each | misc — run `audit/provenance.sh <dep>` to attribute |
 | transitive / pypy ABI (e.g. `fargene`) | few | deep solver conflicts; lowest priority |
 
-**Two clusters worth calling out:**
-- **Compiled aligners (bedtools/blast/bowtie2)** — these *have* arm64 at some
-  version; the gap is a downstream tool pinning a pre-arm64 version of the dep.
-  Self-resolves over time; the reconciler catches it.
-- **ML-dependent tools (deeparg, deepbgc — via tensorflow/keras)** — the genuine
-  hard tail. arm64 ML conda packaging is a conda-forge-scale problem, not ours.
+Use [`audit/provenance.sh <dep>`](audit/provenance.sh) to trace any blocking dep
+to its bioconda recipe maintainers + arm64 status (enabled / disabled-with-reason
+/ not-mentioned / not-bioconda).
+
+**Three clusters worth calling out:**
+- **Compiled aligners (bedtools/bowtie2)** — recipe arm64 is *enabled*; the gap is
+  just a downstream tool pinning a pre-arm64-build version. Self-resolves; the
+  reconciler catches it.
+- **`blast`** — recipe arm64 is *deliberately disabled* with a tracked reason
+  (CircleCI infra), pending re-enablement since the 2.17.0 update merged in Aug
+  2025. Not ours to fix; watch the recipe. We keep the latest arm64-having version
+  (2.16.0) published meanwhile.
+- **`deeparg` / `deepbgc` — NOT a "modern ML on arm64" problem** (corrected: their
+  earlier "tensorflow" label was wrong — tensorflow *does* have arm64 via
+  conda-forge). They pin **abandoned** DL libraries: deeparg needs `lasagne`
+  (dead Theano-era lib) and deepbgc needs `keras 2.2.4` (2018, pre-merger).
+  Neither exists for arm64 anywhere, and both tools are *already at their latest
+  version* — so version-bumping can't help. Genuine dead-end until the **tool
+  authors** modernize their DL stack; far below aarchbio's layer (D16).
 
 ## version-pin gaps (arm64 available at a different version)
 
