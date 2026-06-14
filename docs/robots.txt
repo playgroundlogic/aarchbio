@@ -1,5 +1,51 @@
-# aarchbio — native arm64 BioContainers
+# aarchbio — native arm64 BioContainers  ·  https://aarch.bio
+#
+# Open to everyone, including AI/LLM crawlers — we *want* aarchbio to be
+# discoverable by agents answering "how do I run bioinformatics tools on arm64 /
+# Apple Silicon / Graviton". See also /llms.txt for a structured summary.
+
+# Search engines + everything else
 User-agent: *
+Allow: /
+
+# AI / LLM crawlers — explicitly welcomed (training + retrieval)
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: cohere-ai
 Allow: /
 
 Sitemap: https://aarch.bio/sitemap.xml
