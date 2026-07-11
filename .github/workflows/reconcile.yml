@@ -50,6 +50,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
+      - uses: sigstore/cosign-installer@v3   # for the signing guard
 
       - name: Compute the delta (new versions + retryable gaps)
         id: delta
@@ -147,9 +148,59 @@ jobs:
             -f tools="${{ steps.delta.outputs.tools }}"
           echo "::notice::dispatched publish.yml for ${{ steps.delta.outputs.count }} tools"
 
+      # Signing guard: a build can leave a tag unsigned when a tool is pulled in as
+      # a DEPENDENCY of another tool's build (e.g. coverm's build pushing a bwa tag)
+      # — that sibling tag never goes through the sign step. Scan every image tag
+      # for a matching signature and re-sign any misses. Self-heals the gap daily.
+      - name: Signing guard (re-sign any unsigned public images)
+        env:
+          COSIGN_YES: 'true'
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          # A signed image X:tag has a sibling tag sha256-<digest>.sig. We detect an
+          # unsigned image by: it has image tags but fewer .sig tags. Then verify
+          # each image tag with cosign and collect the ones that fail.
+          python3 - > /tmp/unsigned.txt <<'PY'
+          import json,urllib.request
+          def api(p):
+              r=urllib.request.Request("https://quay.io/api/v1/"+p); return json.load(urllib.request.urlopen(r,timeout=20))
+          repos=[];page=None
+          while True:
+              d=api("repository?namespace=aarchbio&public=true"+(f"&next_page={page}" if page else ""))
+              repos+=[x["name"] for x in d["repositories"] if x.get("is_public")];page=d.get("next_page")
+              if not page: break
+          for r in sorted(repos):
+              try: tags=[t["name"] for t in api(f"repository/aarchbio/{r}/tag/?onlyActiveTags=true&limit=100").get("tags",[])]
+              except Exception: continue
+              imgs=[t for t in tags if not t.endswith((".sig",".att")) and not t.startswith("sha256-")]
+              sigs=[t for t in tags if t.endswith(".sig")]
+              if imgs and len(sigs) < len(imgs):   # cheap pre-filter; cosign confirms below
+                  for t in imgs: print(f"{r}:{t}")
+          PY
+          n=$(grep -c . /tmp/unsigned.txt || echo 0)
+          if [ "$n" = "0" ]; then echo "::notice::signing guard: all public images signed"; exit 0; fi
+          # cosign-confirm which candidates are truly unsigned, then dispatch a sign run
+          need=""
+          while read -r ref; do
+            [ -z "$ref" ] && continue
+            if ! cosign verify "quay.io/aarchbio/$ref" \
+                 --certificate-identity-regexp 'github.com/playgroundlogic/aarchbio' \
+                 --certificate-oidc-issuer https://token.actions.githubusercontent.com >/dev/null 2>&1; then
+              need="$need $ref"
+            fi
+          done < /tmp/unsigned.txt
+          need="$(echo $need | xargs)"
+          if [ -z "$need" ]; then echo "::notice::signing guard: candidates were all signed (pre-filter only)"; exit 0; fi
+          echo "::warning::signing guard re-signing: $need"
+          gh workflow run sign-existing.yml --repo "$GITHUB_REPOSITORY" -f images="$need"
+
       - name: Summary
         run: |
           echo "Reconcile run: delta=${{ steps.delta.outputs.count }} tools" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           cat /tmp/delta.txt >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
+          if [ -s /tmp/unsigned.txt ]; then
+            echo "**Signing guard** checked $(grep -c . /tmp/unsigned.txt) candidate tag(s)." >> "$GITHUB_STEP_SUMMARY"
+          fi
