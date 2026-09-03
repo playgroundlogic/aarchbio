@@ -134,7 +134,12 @@ jobs:
           print(f"[reconcile] delta: {len(delta[:MAX])} tools (cap {MAX}); "
                 f"skip-list skipped: {skipped_n} (include_stuck={include_stuck})", file=sys.stderr)
           PY
-          count=$(grep -c . /tmp/delta.txt || echo 0)
+          # NOTE: `grep -c` already prints the count AND exits 1 when it is zero, so
+          # `|| echo 0` would append a SECOND line and make $count "0\n0" — which
+          # is not equal to "0" (so the empty-delta guard below fails open and
+          # dispatches an empty build) and is a malformed $GITHUB_OUTPUT line.
+          # Use `|| true` and let grep report the count.
+          count=$(grep -c . /tmp/delta.txt || true)
           echo "count=$count" >> "$GITHUB_OUTPUT"
           echo "tools=$(tr '\n' ' ' < /tmp/delta.txt)" >> "$GITHUB_OUTPUT"
           echo "::notice::reconcile delta = $count tools: $(tr '\n' ' ' < /tmp/delta.txt)"
@@ -179,7 +184,7 @@ jobs:
               if imgs and len(sigs) < len(imgs):   # cheap pre-filter; cosign confirms below
                   for t in imgs: print(f"{r}:{t}")
           PY
-          n=$(grep -c . /tmp/unsigned.txt || echo 0)
+          n=$(grep -c . /tmp/unsigned.txt || true)   # `|| echo 0` would yield "0\n0"
           if [ "$n" = "0" ]; then echo "::notice::signing guard: all public images signed"; exit 0; fi
           # cosign-confirm which candidates are truly unsigned, then dispatch a sign run
           need=""
@@ -264,7 +269,7 @@ jobs:
                   best = max(newer, key=vkey)
                   print("%d|%s|%s|superseded|%s" % (issue["number"], tool, ver, best))
           PY
-          n=$(grep -c . /tmp/reap.txt || echo 0)
+          n=$(grep -c . /tmp/reap.txt || true)   # `|| echo 0` would yield "0\n0"
           if [ "$n" = "0" ]; then echo "::notice::gap reaper: no stale gap issues"; exit 0; fi
           echo "::notice::gap reaper: closing $n stale gap issue(s)"
           while IFS='|' read -r num tool ver why at; do
