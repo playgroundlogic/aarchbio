@@ -32,6 +32,25 @@ Not "20 tools don't work" — four distinct, actionable kinds:
 Examples: `adapterremoval 2.3.2 → 2.3.3` (version-pin), `comebin 1.0.4` (dep-gap),
 `ale`, `tiara`, `msisensor2` (never-arm64).
 
+> **Later correction (2026-09-03) — the `never-arm64` count of 8 was too high, and
+> `dep-gap` was the wrong label for all 3.** This table is kept as the record of
+> what *this run* concluded; [GAPS.md](../GAPS.md#re-diagnosis-of-the-tracked-issues-2026-09-03)
+> has the re-diagnosis. In short:
+> - The **4 `mulled-v2-*` images were not never-arm64.** A mulled name is a one-way
+>   hash, so nothing could say what packages it stood for — unnameable, hence
+>   "unbuildable". [`builder/mulled.py`](../builder/mulled.py) inverts the hash;
+>   3 of the 4 are now built, 2 at the exact pinned tag.
+> - **`tiara` is not never-arm64** either — it's a version-pin gap on `pytorch`
+>   (pinned `>=1.7,<1.8`, from 2020; arm64 exists from 1.12.0 on).
+> - **All 3 `dep-gap`s are version-pin gaps one level down**: the dependency has
+>   arm64, just not at the pinned version. `comebin` needs a `bedtools`/`pplacer`
+>   pin bump, not a port.
+>
+> Only `ale` and `msisensor2` survive as genuine never-arm64 (see GAPS.md for the
+> recipe-level evidence). The run's headline — that **version-pinning** is the
+> real story — held up better than its own categories did: re-diagnosis moved
+> *more* gaps into that bucket, not fewer.
+
 **Version-pinning is the headline nuance:** pipelines pin versions that often
 predate a tool's arm64 enablement. So "is this tool arm64-ready?" (audit, latest
 version) and "does this pipeline run native on arm64 as-pinned?" (this run) are
