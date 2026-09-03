@@ -66,11 +66,15 @@ jobs:
             fi
             tag="$(grep '^tag=' "$out" | cut -d= -f2-)"
             noarch="$(grep '^noarch=' "$out" | cut -d= -f2-)"
-            obj="{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\",\"extra\":\"$extra\"}"
+            # Which channel actually provides the package. A few BioContainers
+            # tools live in conda-forge, not bioconda; the provenance labels must
+            # say so rather than pointing at a bioconda recipe that does not exist.
+            chan="$(grep '^channel=' "$out" | cut -d= -f2-)"; chan="${chan:-bioconda}"
+            obj="{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\",\"extra\":\"$extra\",\"channel\":\"$chan\"}"
             if [ "$noarch" = "1" ]; then
               multi+=("$obj")
-              legs+=("{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\",\"extra\":\"$extra\",\"platform\":\"linux/amd64\",\"runner\":\"ubuntu-24.04\"}")
-              legs+=("{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\",\"extra\":\"$extra\",\"platform\":\"linux/arm64\",\"runner\":\"ubuntu-24.04-arm\"}")
+              legs+=("{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\",\"extra\":\"$extra\",\"channel\":\"$chan\",\"platform\":\"linux/amd64\",\"runner\":\"ubuntu-24.04\"}")
+              legs+=("{\"tool\":\"$pkg\",\"version\":\"$ver\",\"tag\":\"$tag\",\"extra\":\"$extra\",\"channel\":\"$chan\",\"platform\":\"linux/arm64\",\"runner\":\"ubuntu-24.04-arm\"}")
             else
               arm+=("$obj")
             fi
@@ -137,6 +141,7 @@ jobs:
         env:
           PLATFORM: ${{ matrix.leg.platform }}
           EXTRA_PACKAGES: ${{ matrix.leg.extra }}
+          SOURCE_CHANNEL: ${{ matrix.leg.channel }}
         run: |
           set -uo pipefail
           out="$(mktemp)"

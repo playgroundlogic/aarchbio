@@ -26,8 +26,11 @@ PLATFORM="${PLATFORM:-linux/arm64}"
 EXTRA_PACKAGES="${EXTRA_PACKAGES:-}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
-# bioconda recipe URL for the source label (provenance).
+# Provisional source URL for the throwaway probe build; both this and
+# SOURCE_CHANNEL are re-derived in step 3 from what the image actually contains,
+# before the image we publish is built.
 SOURCE_RECIPE="https://github.com/bioconda/bioconda-recipes/tree/master/recipes/${PKG}"
+SOURCE_CHANNEL="bioconda"
 GIT_SHA="$(git -C "$HERE" rev-parse --short HEAD 2>/dev/null || echo unknown)"
 
 # --- 1. Assert the arm64 conda package exists (best-effort pre-check) ------
@@ -87,11 +90,35 @@ if [ -n "$BUILD_HASH" ] && [ "$BUILD_HASH" != "$GOT_HASH" ]; then
   echo "[build] ERROR: pinned build ${BUILD_HASH} but image contains ${GOT_HASH}" >&2; exit 2
 fi
 
-# noarch detection: read the package record's subdir from the conda metadata in
-# the image. noarch packages record "subdir": "noarch" in their conda-meta JSON.
-SUBDIR="$(docker run --rm --platform linux/arm64 "$TMP_IMAGE" sh -c \
-  "cat /opt/conda/conda-meta/${PKG}-${GOT_VER}-${GOT_HASH}.json 2>/dev/null" \
-  | grep -o '\"subdir\"[[:space:]]*:[[:space:]]*\"[^\"]*\"' | head -1 | sed 's/.*\"\([^\"]*\)\"$/\1/')"
+# Read the package record ONCE: it carries both the subdir (noarch detection) and
+# the channel the package actually came from (provenance). Same principle as the
+# tag — read what was installed, never predict it.
+META="$(docker run --rm --platform linux/arm64 "$TMP_IMAGE" sh -c \
+  "cat /opt/conda/conda-meta/${PKG}-${GOT_VER}-${GOT_HASH}.json 2>/dev/null")"
+
+# noarch detection: noarch packages record "subdir": "noarch" in their record.
+SUBDIR="$(printf '%s' "$META" \
+  | grep -o '"subdir"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')"
+
+# Which channel really provided it. A handful of BioContainers tools are packaged
+# in conda-forge, not bioconda (pigz has no bioconda recipe at all), so labelling
+# every image "rebuild of bioconda <pkg>" with a bioconda recipe URL would be
+# false for those. The record's "channel" is a URL of the form
+# https://conda.anaconda.org/<channel>/<subdir>, so the channel is the
+# second-to-last path element. Extracted with awk, NOT a sed alternation —
+# BSD/macOS sed has no `\|`, so the pattern silently never matched and the
+# "channel" came out as "linux-aarch64".
+SOURCE_CHANNEL="$(printf '%s' "$META" \
+  | grep -o '"channel"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+  | sed 's/.*"\([^"]*\)"$/\1/' \
+  | awk -F/ '{ if (NF>=2) print $(NF-1); else print $NF }')"
+: "${SOURCE_CHANNEL:=bioconda}"
+if [ "$SOURCE_CHANNEL" = "bioconda" ]; then
+  SOURCE_RECIPE="https://github.com/bioconda/bioconda-recipes/tree/master/recipes/${PKG}"
+else
+  SOURCE_RECIPE="https://github.com/${SOURCE_CHANNEL}/${PKG}-feedstock"
+fi
+echo "[build] source channel: ${SOURCE_CHANNEL} -> ${SOURCE_RECIPE}"
 if [ "$SUBDIR" = "noarch" ]; then
   IS_NOARCH=1; echo "[build] package is NOARCH -> will publish a MULTI-ARCH manifest (amd64+arm64)"
 else
@@ -127,8 +154,9 @@ if [ "${PUSH:-0}" = "1" ]; then
     --build-arg PKG="$PKG" \
     --build-arg PKG_VERSION="$VER" \
     --build-arg SOURCE_RECIPE="$SOURCE_RECIPE" \
+    --build-arg SOURCE_CHANNEL="$SOURCE_CHANNEL" \
     --build-arg BUILDER_GIT_SHA="$GIT_SHA" \
-  --build-arg EXTRA_PACKAGES="$EXTRA_PACKAGES" \
+    --build-arg EXTRA_PACKAGES="$EXTRA_PACKAGES" \
     -t "$IMAGE" \
     --push \
     "$HERE"

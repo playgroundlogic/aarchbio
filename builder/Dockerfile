@@ -16,6 +16,11 @@ FROM mambaorg/micromamba:${MAMBA_VERSION}
 ARG PKG
 ARG PKG_VERSION
 ARG BIOCONDA_CHANNEL=bioconda
+# Which channel the package ACTUALLY came from. Almost always bioconda, but a few
+# BioContainers tools are packaged in conda-forge instead (pigz has no bioconda
+# recipe at all), and labelling those "rebuild of bioconda pigz" with a bioconda
+# recipe URL that 404s would be a provenance lie. build.sh detects this.
+ARG SOURCE_CHANNEL=bioconda
 
 # Provenance (D6): who/what/where this image was built from. Stamped as OCI
 # labels so any tag is traceable back to its bioconda source + this builder.
@@ -49,12 +54,13 @@ ENV PATH=/opt/conda/bin:$PATH
 LABEL org.opencontainers.image.title="${PKG}" \
       org.opencontainers.image.version="${PKG_VERSION}" \
       org.opencontainers.image.source="${SOURCE_RECIPE}" \
-      org.opencontainers.image.url="https://github.com/scttfrdmn/aarchbio" \
+      org.opencontainers.image.url="https://github.com/playgroundlogic/aarchbio" \
       org.opencontainers.image.revision="${BUILDER_GIT_SHA}" \
       org.opencontainers.image.vendor="Playground Logic" \
-      org.opencontainers.image.description="Native arm64 rebuild of bioconda ${PKG}=${PKG_VERSION}. Unofficial community rebuild by Playground Logic; not affiliated with or endorsed by BioContainers or AWS." \
-      io.aarchbio.bioconda-package="${PKG}" \
-      io.aarchbio.bioconda-version="${PKG_VERSION}" \
+      org.opencontainers.image.description="Native arm64 rebuild of ${SOURCE_CHANNEL} ${PKG}=${PKG_VERSION}. Unofficial community rebuild by Playground Logic; not affiliated with or endorsed by BioContainers or AWS." \
+      io.aarchbio.source-channel="${SOURCE_CHANNEL}" \
+      io.aarchbio.source-package="${PKG}" \
+      io.aarchbio.source-version="${PKG_VERSION}" \
       io.aarchbio.builder-git-sha="${BUILDER_GIT_SHA}" \
       io.aarchbio.build-platform="${BUILD_PLATFORM}" \
       io.aarchbio.publisher="Playground Logic"

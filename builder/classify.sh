@@ -36,18 +36,25 @@ json="$(docker run --rm --platform linux/arm64 "$MAMBA_IMAGE" \
 # JSON is still being written, and under `pipefail` that broken-pipe poisons the
 # command (observed on big solves like metaphlan in CI).
 JSON_TMP="$(mktemp)"; printf '%s' "$json" > "$JSON_TMP"
-read -r SUBDIR BUILD <<<"$("${PY[@]}" -c '
+read -r SUBDIR BUILD CHANNEL <<<"$("${PY[@]}" -c '
 import json,sys
 try:
     d=json.load(open(sys.argv[2]))
 except Exception:
     sys.exit()
-out=("","")
+out=("","","bioconda")
 for a in d.get("actions",{}).get("LINK",[]):
     if a.get("name")==sys.argv[1]:
-        out=(a.get("subdir",""), a.get("build_string") or a.get("build",""))
+        # "channel" is a URL or name; keep just the channel name (last non-subdir
+        # path element) so a conda-forge-packaged tool is labelled truthfully.
+        ch=(a.get("channel") or "bioconda").rstrip("/")
+        parts=[p for p in ch.split("/") if p]
+        if parts and (parts[-1]=="noarch" or parts[-1].split("-")[0] in ("linux","osx","win")):
+            parts=parts[:-1]
+        out=(a.get("subdir",""), a.get("build_string") or a.get("build",""),
+             parts[-1] if parts else "bioconda")
         break
-print(out[0], out[1])
+print(out[0], out[1], out[2])
 ' "$PKG" "$JSON_TMP" 2>/dev/null)"
 rm -f "$JSON_TMP"
 
@@ -66,5 +73,6 @@ emit build     "$BUILD"
 emit noarch    "$NOARCH"
 emit tag       "${VER}--${BUILD}"
 emit platforms "$PLATFORMS"
+emit channel   "${CHANNEL:-bioconda}"
 emit ok        1
-echo "[classify] ${PKG}=${VER}: subdir=${SUBDIR} build=${BUILD} -> $([ "$NOARCH" = 1 ] && echo 'NOARCH/multi-arch' || echo 'arch-specific/arm64-only')"
+echo "[classify] ${PKG}=${VER}: subdir=${SUBDIR} build=${BUILD} channel=${CHANNEL:-bioconda} -> $([ "$NOARCH" = 1 ] && echo 'NOARCH/multi-arch' || echo 'arch-specific/arm64-only')"

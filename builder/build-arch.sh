@@ -19,7 +19,15 @@ REGISTRY="${REGISTRY:-quay.io/aarchbio}"
 EXTRA_PACKAGES="${EXTRA_PACKAGES:-}"   # mulled-image extra "name=version" specs
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
-SOURCE_RECIPE="https://github.com/bioconda/bioconda-recipes/tree/master/recipes/${PKG}"
+# This path pushes by digest with no probe build, so it cannot read the installed
+# record itself — classify.sh already resolved the channel and passes it in.
+# Defaults to bioconda, which is correct for all but a handful of tools.
+SOURCE_CHANNEL="${SOURCE_CHANNEL:-bioconda}"
+if [ "$SOURCE_CHANNEL" = "bioconda" ]; then
+  SOURCE_RECIPE="https://github.com/bioconda/bioconda-recipes/tree/master/recipes/${PKG}"
+else
+  SOURCE_RECIPE="https://github.com/${SOURCE_CHANNEL}/${PKG}-feedstock"
+fi
 GIT_SHA="$(git -C "$HERE" rev-parse --short HEAD 2>/dev/null || echo unknown)"
 if command -v uv >/dev/null 2>&1; then PY=(uv run python); else PY=(python3); fi
 emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_OUTPUT"; return 0; }
@@ -35,6 +43,7 @@ docker buildx build \
   --build-arg PKG="$PKG" \
   --build-arg PKG_VERSION="$VER" \
   --build-arg SOURCE_RECIPE="$SOURCE_RECIPE" \
+  --build-arg SOURCE_CHANNEL="$SOURCE_CHANNEL" \
   --build-arg BUILDER_GIT_SHA="$GIT_SHA" \
   --build-arg EXTRA_PACKAGES="$EXTRA_PACKAGES" \
   --provenance=false \
