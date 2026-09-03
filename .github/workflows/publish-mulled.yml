@@ -1,0 +1,88 @@
+# Build → push → keyless-sign → set-public for legacy hashed BioContainers
+# "mulled-v2" images, under their EXACT upstream name:tag.
+#
+# Separate from publish.yml because mulled images are addressed differently: the
+# repo name and tag are sha1s over the ingredient set (builder/mulled.py), not
+# <pkg> and <version>--<build>. There is no classify step — a fused image is
+# always treated as arch-specific and published arm64-only (D9: the amd64 mulled
+# image already exists upstream at quay.io/biocontainers, so we fill only arm64).
+#
+# Input is the INGREDIENT LIST, never the hash, because the hash is what you have
+# when you don't know the ingredients — resolve it first with:
+#   builder/mulled.py invert mulled-v2-<hash>:<tag>
+
+name: publish-mulled
+
+on:
+  workflow_dispatch:
+    inputs:
+      images:
+        description: 'Semicolon-separated ingredient lists, e.g. "cnvkit=0.9.10,samtools=1.19.2; svdb=2.8.2,bcftools=1.21"'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write   # cosign keyless (OIDC)
+
+env:
+  REGISTRY: quay.io/aarchbio
+
+jobs:
+  # Split the semicolon-separated input into a matrix so one bad combination
+  # can't take the others down (fail-fast: false).
+  plan:
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      images: ${{ steps.p.outputs.images }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: |
+          set -euo pipefail
+          # Ingredient lists are comma-separated, so the OUTER separator must be
+          # something else — ';' — and each entry is trimmed of surrounding space.
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          raw = os.environ["IMAGES"]
+          entries = [e.strip() for e in raw.split(";") if e.strip()]
+          print("images=" + json.dumps([{"specs": e} for e in entries]))
+          PY
+        env:
+          IMAGES: ${{ inputs.images }}
+
+  build:
+    needs: plan
+    if: ${{ needs.plan.outputs.images != '[]' }}
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.plan.outputs.images) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: sigstore/cosign-installer@v3
+      - name: Login
+        run: echo "${{ secrets.QUAY_TOKEN }}" | docker login quay.io -u "${{ secrets.QUAY_USER }}" --password-stdin
+      - name: Build, sign, publish (arm64-only)
+        env:
+          PUSH: '1'
+          COSIGN_YES: 'true'
+          QUAY_OAUTH_TOKEN: ${{ secrets.QUAY_OAUTH_TOKEN }}
+          SPECS: ${{ matrix.image.specs }}
+        run: |
+          set -euo pipefail
+          out="$(mktemp)"
+          # Ingredient lists arrive comma-separated; build-mulled.sh takes them as
+          # separate arguments.
+          IFS=',' read -r -a specs <<< "$SPECS"
+          GITHUB_OUTPUT="$out" ./builder/build-mulled.sh "${specs[@]}"
+          pinned="$(grep '^pinned=' "$out" | cut -d= -f2-)"
+          name="$(grep '^tool=' "$out" | cut -d= -f2-)"
+          [ -n "$pinned" ] || { echo "no digest"; exit 1; }
+          cosign sign --yes "$pinned"
+          curl -s -X POST -H "Authorization: Bearer $QUAY_OAUTH_TOKEN" -H 'Content-Type: application/json' \
+            -d '{"visibility":"public"}' \
+            "https://quay.io/api/v1/repository/aarchbio/${name}/changevisibility"
+          echo "published $(grep '^image=' "$out" | cut -d= -f2-)" >> "$GITHUB_STEP_SUMMARY"

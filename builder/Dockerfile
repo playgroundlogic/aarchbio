@@ -37,6 +37,21 @@ ARG BUILD_PLATFORM=${TARGETPLATFORM}
 # separated "name=version" specs; empty for a normal single-tool image.
 ARG EXTRA_PACKAGES=""
 
+# For legacy hashed mulled-v2 images the repo name is a sha1, not a package name,
+# so the image title can't be ${PKG} (which is only the alphabetically-first
+# ingredient). MULLED_SPECS records the full ingredient list, because that is the
+# one thing a hashed name does NOT tell you — see builder/mulled.py.
+ARG IMAGE_TITLE="${PKG}"
+ARG MULLED_SPECS=""
+# What this image is a rebuild OF, in prose. Split out so the legal disclaimer
+# below stays single-sourced instead of being duplicated by every caller that
+# needs a different subject (a mulled image is not "a rebuild of bioconda X=Y").
+ARG IMAGE_SUBJECT="${SOURCE_CHANNEL} ${PKG}=${PKG_VERSION}"
+# For a fused image no single ingredient's version describes the image, so callers
+# override this with the mulled tag rather than let it read as one ingredient's
+# version (it came out as pigz's "2.6" for a prodigal+pigz image).
+ARG IMAGE_VERSION="${PKG_VERSION}"
+
 USER root
 # Install the primary pinned package plus any extras from bioconda (+ conda-forge
 # for deps) into the base env. --platform is implied by the host arch on a native
@@ -51,13 +66,14 @@ ENV PATH=/opt/conda/bin:$PATH
 
 # Override misleading labels inherited from the micromamba base (its build date,
 # git revision, and project URL would otherwise misrepresent this image's origin).
-LABEL org.opencontainers.image.title="${PKG}" \
-      org.opencontainers.image.version="${PKG_VERSION}" \
+LABEL org.opencontainers.image.title="${IMAGE_TITLE}" \
+      org.opencontainers.image.version="${IMAGE_VERSION}" \
       org.opencontainers.image.source="${SOURCE_RECIPE}" \
       org.opencontainers.image.url="https://github.com/playgroundlogic/aarchbio" \
       org.opencontainers.image.revision="${BUILDER_GIT_SHA}" \
       org.opencontainers.image.vendor="Playground Logic" \
-      org.opencontainers.image.description="Native arm64 rebuild of ${SOURCE_CHANNEL} ${PKG}=${PKG_VERSION}. Unofficial community rebuild by Playground Logic; not affiliated with or endorsed by BioContainers or AWS." \
+      org.opencontainers.image.description="Native arm64 rebuild of ${IMAGE_SUBJECT}. Unofficial community rebuild by Playground Logic; not affiliated with or endorsed by BioContainers or AWS." \
+      io.aarchbio.mulled-specs="${MULLED_SPECS}" \
       io.aarchbio.source-channel="${SOURCE_CHANNEL}" \
       io.aarchbio.source-package="${PKG}" \
       io.aarchbio.source-version="${PKG_VERSION}" \
