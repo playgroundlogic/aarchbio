@@ -13,6 +13,8 @@
 deeparg	wontfix	0	pins lasagne (dead Theano-era DL lib); no arm64 anywhere; already at latest 1.0.4
 deepbgc	wontfix	0	pins keras=2.2.4 (2018, pre-merger); no arm64; already at latest 0.1.31
 p7zip	wontfix	0	bioconda's latest_version is 15.09 (no arm64) but we already publish the NEWER 16.02 on arm64; chasing 15.09 fails daily for zero gain
+ale	wontfix	0	bioconda ALE (Assembly Likelihood Evaluator) is py2-only (skip: true # [py3k]) and needs pymix, a dead Py2 lib with linux-64/osx-64 only; final release 2018 so no bump can help. NOT conda-forge's `ale` (planetary ephemerides), which is a different project entirely
+msisensor2	wontfix	0	recipe source is a PREBUILT x86_64 binary (.../raw/master/msisensor2) with skip: True # [not linux and x86_64]; no source to compile, so no recipe change can yield arm64 — only the tool authors can
 
 # --- stuck: upstream arm64 disabled-with-reason; revisit periodically ---
 blast	stuck	30	recipe arm64 disabled "until CircleCI resolved" since 2.17.0 PR (2025-08); maintainers @christiam @ebete; we publish 2.16.0
