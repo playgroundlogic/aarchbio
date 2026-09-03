@@ -17,4 +17,7 @@ ale	wontfix	0	bioconda ALE (Assembly Likelihood Evaluator) is py2-only (skip: tr
 msisensor2	wontfix	0	recipe source is a PREBUILT x86_64 binary (.../raw/master/msisensor2) with skip: True # [not linux and x86_64]; no source to compile, so no recipe change can yield arm64 — only the tool authors can
 
 # --- stuck: upstream arm64 disabled-with-reason; revisit periodically ---
-blast	stuck	30	recipe arm64 disabled "until CircleCI resolved" since 2.17.0 PR (2025-08); maintainers @christiam @ebete; we publish 2.16.0
+blast	stuck	30	recipe has linux-aarch64 commented out with the reason "CircleCI arm.large runner times out as the build takes too long" — a CI budget limit, not a portability problem (osx-arm64 IS enabled, so the code builds for ARM); maintainers @christiam @ebete; we publish 2.16.0
+metamdbg	stuck	30	arm64 REGRESSION: linux-aarch64 + osx-arm64 both existed at 1.0-1.2 then vanished at 1.3 when the recipe lost its extra.additional-platforms block; we publish 1.2
+myloasm	stuck	30	recipe has "#- linux-aarch64" commented out with no stated reason while osx-arm64 is enabled; maintainer @bluenote-1577; we publish 0.5.1
+galah	stuck	30	recipe's additional-platforms lists only osx-arm64; linux-aarch64 never mentioned; no recipe-maintainers listed; we publish 0.4.2
