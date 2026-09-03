@@ -210,9 +210,20 @@ jobs:
           echo "$GAPS" | jq -c '.[]' | while read -r g; do
             pkg="$(echo "$g" | jq -r .tool)"; ver="$(echo "$g" | jq -r .version)"
             title="arm64-gap: ${pkg}=${ver}"
-            if gh issue list --repo "$GITHUB_REPOSITORY" --state open --label arm64-gap \
-                 --search "in:title $title" --json title --jq '.[].title' | grep -qxF "$title"; then
-              echo "already open: $title"; continue
+            # Dedupe PER PACKAGE, not per pkg=version. A chronically-stuck package
+            # gets a new upstream release every few weeks; deduping on the exact
+            # version filed a fresh issue each time for the same unresolved gap
+            # (galah 0.5.1 then 0.5.2). One open issue per package; comment the
+            # new version onto it instead.
+            existing="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --label arm64-gap \
+                          --search "in:title arm64-gap: ${pkg}=" --json number,title \
+                        | jq -r --arg p "arm64-gap: ${pkg}=" \
+                            'map(select(.title|startswith($p)))|.[0].number // empty')"
+            if [ -n "$existing" ]; then
+              echo "already open for ${pkg}: #${existing} (noting ${ver})"
+              gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" \
+                --body "Still no arm64 solution as of \`${pkg}=${ver}\` (bioconda's latest). Run: ${RUN_URL}" || true
+              continue
             fi
             gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --label arm64-gap \
               --body "Automated: \`${pkg}=${ver}\` has no resolvable linux-aarch64 bioconda solution (the 'hard 15%'). Fix likely belongs upstream in the bioconda recipe (enable linux-aarch64 CI). Run: ${RUN_URL}"

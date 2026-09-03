@@ -12,6 +12,7 @@
 # --- wontfix: tools pinning abandoned deps with no arm64 anywhere ---
 deeparg	wontfix	0	pins lasagne (dead Theano-era DL lib); no arm64 anywhere; already at latest 1.0.4
 deepbgc	wontfix	0	pins keras=2.2.4 (2018, pre-merger); no arm64; already at latest 0.1.31
+p7zip	wontfix	0	bioconda's latest_version is 15.09 (no arm64) but we already publish the NEWER 16.02 on arm64; chasing 15.09 fails daily for zero gain
 
 # --- stuck: upstream arm64 disabled-with-reason; revisit periodically ---
 blast	stuck	30	recipe arm64 disabled "until CircleCI resolved" since 2.17.0 PR (2025-08); maintainers @christiam @ebete; we publish 2.16.0

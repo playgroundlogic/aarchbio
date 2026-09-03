@@ -44,6 +44,7 @@ concurrency:
 permissions:
   contents: read
   actions: write   # to dispatch publish.yml
+  issues: write    # to close gap issues the catalog has since resolved
 
 jobs:
   reconcile:
@@ -195,6 +196,88 @@ jobs:
           echo "::warning::signing guard re-signing: $need"
           gh workflow run sign-existing.yml --repo "$GITHUB_REPOSITORY" -f images="$need"
 
+      # Gap-issue reaper: publish.yml FILES arm64-gap issues but nothing closed
+      # them, so the tracker grew monotonically and misreported the gap count
+      # (45% of open issues were already fixed at first audit). An arm64 gap is
+      # resolved the moment upstream enables linux-aarch64 and the reconciler
+      # publishes it — which happens here, silently. Close those issues.
+      - name: Gap-issue reaper (close gaps the catalog has resolved)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          gh issue list --repo "$GITHUB_REPOSITORY" --state open --label arm64-gap \
+            --limit 200 --json number,title > /tmp/gapissues.json
+          python3 - > /tmp/reap.txt <<'PY'
+          import json, re, urllib.request
+
+          def api(p):
+              r = urllib.request.Request("https://quay.io/api/v1/" + p)
+              return json.load(urllib.request.urlopen(r, timeout=20))
+
+          def published(tool):
+              # None = no such repo (never built); else the set of published versions
+              try:
+                  tags = api("repository/aarchbio/%s/tag/?onlyActiveTags=true&limit=100" % tool).get("tags", [])
+              except Exception:
+                  return None
+              return {t["name"].split("--")[0] for t in tags
+                      if not t["name"].endswith((".sig", ".att")) and not t["name"].startswith("sha256-")}
+
+          def bioconda_latest(tool):
+              try:
+                  u = "https://api.anaconda.org/package/bioconda/%s" % tool
+                  return json.load(urllib.request.urlopen(u, timeout=20)).get("latest_version")
+              except Exception:
+                  return None
+
+          def vkey(v):
+              # Order-safe mixed version key: ints sort before strings, no TypeError.
+              out = []
+              for part in re.split(r"[._-]", v):
+                  out.append((0, int(part), "") if part.isdigit() else (1, 0, part))
+              return tuple(out)
+
+          for issue in json.load(open("/tmp/gapissues.json")):
+              m = re.match(r"arm64-gap:\s+([A-Za-z0-9._+-]+)=([^\s(]+)", issue["title"])
+              if not m:
+                  continue   # legacy mulled-v2 hash images: not a bioconda package, leave open
+              tool, ver = m.group(1), m.group(2)
+              have = published(tool)
+              if not have:
+                  continue   # never built (real never-arm64 or dependency gap): leave open
+              if ver in have:
+                  print("%d|%s|%s|resolved|%s" % (issue["number"], tool, ver, ver))
+                  continue
+              # Do NOT close as superseded while this version is still bioconda's
+              # LATEST: it stays in the daily delta, the build keeps failing, and
+              # the gap filer would just re-file it -- a close/re-file churn loop.
+              # (Caught by p7zip: bioconda latest is 15.09 with no arm64, yet we
+              # publish 16.02, so a naive version compare looked "superseded".)
+              if ver == bioconda_latest(tool):
+                  continue
+              try:
+                  newer = [v for v in have if vkey(v) > vkey(ver)]
+              except Exception:
+                  newer = []
+              if newer:
+                  best = max(newer, key=vkey)
+                  print("%d|%s|%s|superseded|%s" % (issue["number"], tool, ver, best))
+          PY
+          n=$(grep -c . /tmp/reap.txt || echo 0)
+          if [ "$n" = "0" ]; then echo "::notice::gap reaper: no stale gap issues"; exit 0; fi
+          echo "::notice::gap reaper: closing $n stale gap issue(s)"
+          while IFS='|' read -r num tool ver why at; do
+            [ -z "${num:-}" ] && continue
+            if [ "$why" = "resolved" ]; then
+              msg="Resolved automatically — upstream bioconda now has a linux-aarch64 solution and \`${tool}=${ver}\` is published, signed and public: \`quay.io/aarchbio/${tool}\`."
+            else
+              msg="Superseded automatically — \`${tool}\` is published on arm64 at \`${at}\`. The reconciler mirrors bioconda's latest, so an intermediate version is not backfilled; the tool is available native arm64."
+            fi
+            gh issue close "$num" --repo "$GITHUB_REPOSITORY" -c "$msg" \
+              && echo "closed #${num} ${tool}=${ver} (${why})" || echo "::warning::could not close #${num}"
+          done < /tmp/reap.txt
+
       - name: Summary
         run: |
           echo "Reconcile run: delta=${{ steps.delta.outputs.count }} tools" >> "$GITHUB_STEP_SUMMARY"
@@ -203,4 +286,7 @@ jobs:
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           if [ -s /tmp/unsigned.txt ]; then
             echo "**Signing guard** checked $(grep -c . /tmp/unsigned.txt) candidate tag(s)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -s /tmp/reap.txt ]; then
+            echo "**Gap reaper** closed $(grep -c . /tmp/reap.txt) stale gap issue(s)." >> "$GITHUB_STEP_SUMMARY"
           fi
