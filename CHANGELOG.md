@@ -58,6 +58,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   locally** for `minimap2`, `bwa`, `samtools`, `seqkit` on Apple Silicon (M4
   Pro) — all arm64, tag-matches-install, runnable. Proof that the project's core
   premise works. Nothing pushed.
+- `UPSTREAM.md` + `audit/upstream-status.sh` — the ledger of upstream issues filed
+  against bioconda/conda-forge recipes, what was **deliberately not filed**, and a
+  poller that re-solves each gap to tell "upstream fixed it" apart from "the issue
+  got closed". Seven issues filed 2026-09-03 covering four arm64 regressions
+  (`galah`, `myloasm`, `metamdbg`, `gatk4`) and three dependency pin relaxations
+  (`pplacer` for gtdbtk+comebin, `h5py` for pycoqc, `pytorch` for tiara).
 
 ### Fixed
 - Tag/provenance drift: the builder originally predicted the conda build hash via

@@ -53,9 +53,12 @@ to its bioconda recipe maintainers + arm64 status (enabled / disabled-with-reaso
   just a downstream tool pinning a pre-arm64-build version. Self-resolves; the
   reconciler catches it.
 - **`blast`** — recipe arm64 is *deliberately disabled* with a tracked reason
-  (CircleCI infra), pending re-enablement since the 2.17.0 update merged in Aug
-  2025. Not ours to fix; watch the recipe. We keep the latest arm64-having version
-  (2.16.0) published meanwhile.
+  (CircleCI infra). Upstream is actively on it: PR #62276, *"re-add ARM builds"*,
+  **merged 2026-08-22**, restored `osx-arm64` and doubled the ARM build
+  parallelism, but `linux-aarch64` stayed commented out — the `arm.large` runner
+  still times out. The blocker is CI **wall-clock**, not portability. Not ours to
+  fix and **not worth filing** (see [UPSTREAM.md](UPSTREAM.md)); watch the recipe.
+  We keep the latest arm64-having version (2.16.0) published meanwhile.
 - **`deeparg` / `deepbgc` — NOT a "modern ML on arm64" problem** (corrected: their
   earlier "tensorflow" label was wrong — tensorflow *does* have arm64 via
   conda-forge). They pin **abandoned** DL libraries: deeparg needs `lasagne`
@@ -105,7 +108,17 @@ fix than "port a dependency to arm64", and it is a one-line recipe change:
 | `gtdbtk=2.7.2` | `pplacer 1.1.alpha19.*` | ✗ linux-64 only | `alpha20`, `alpha22` | **pplacer pin** |
 | `comebin=1.0.4` | `bedtools 2.30.0.*` | ✗ linux-64 only | `2.31.1` | **bedtools pin** (but see below) |
 | `pycoqc=2.5.2` | `h5py 2.9.0.*` | ✗ linux-64/osx-64/win-64 | `3.3.0`–`3.9.0` | **h5py pin** |
-| `tiara=1.0.3` | `pytorch >=1.7,<1.8` | ✗ none below 1.12.0 | `1.12.0` … `2.13.0` | **pytorch pin** (a 2020 pin) |
+| `tiara=1.0.3` | `pytorch >=1.7.0,<1.8.dev0` | ✗ none below 1.12.0 | `1.12.0` … `2.13.0` | **pytorch pin** (a 2020 pin) |
+
+**`tiara` is a conda-forge package, not bioconda.** There is no `recipes/tiara` in
+bioconda-recipes; it lives at `conda-forge/tiara-feedstock` and is `noarch: python`.
+Earlier notes here implied a bioconda recipe, which would have sent a report to the
+wrong tracker.
+
+**`pycoqc` carries three exact 2019 pins, and only one is a blocker.** Worth
+recording because checking only the first suspicious pin would have produced a
+wrong report: `numpy=1.17.1` and `pandas=0.25.1` both *do* have `linux-aarch64`.
+Only `h5py=2.9.0` lacks it (arm64 from `2.10.0`, and all of 3.x).
 
 Two things worth acting on rather than just recording:
 
@@ -158,17 +171,64 @@ Ingredients recovered, against the tags nf-core/sarek actually pins:
 | `cnvkit=0.9.10, samtools=1.17` | version-pin: built the upstream tag with `samtools=1.19.2` |
 | `dragmap=1.2.1, samtools=1.19.2, pigz=2.3.4` | version-pin: `dragmap 1.2.1` and `pigz 2.3.4` are x86-only |
 
-**`samtools` arm64 starts exactly at 1.19.2** — 1.15 through 1.19.1 have none,
-1.19.2 and everything above do. That single cutoff explains both mulled misses,
+**`samtools`' arm64 history is a gap, not a cutoff** (corrected — the earlier
+"starts exactly at 1.19.2" was drawn from a lexicographically sorted version list,
+which puts `1.9` after `1.19.2`). Actually: `0.1.18`, `0.1.19`, `1.6`, `1.7`, `1.8`
+have `linux-aarch64`, then **nothing from 1.9 through 1.19.1**, then 1.19.2 and
+everything above. So arm64 was present, lost for ten releases, and restored. The
+practical consequence is unchanged — the pinned `1.17` sits inside the dead zone —
 and `dragmap` *1.3.0* does have arm64 while the pinned 1.2.1 does not.
 
-### `gatk4-spark`: an arm64 **regression**, not a gap
+### `gatk4-spark`: an arm64 **regression**, and the cause is a dropped `noarch`
 
-`gatk4-spark` was `noarch` (hence arm64-capable) through `4.6.2.0 build_1` — we
-publish it. At `4.7.0.0` the recipe switched to per-arch `linux-64`/`osx-64`
-outputs and never added `linux-aarch64`, so arm64 "does not exist" at the new
-version. This is upstream *losing* arm64 support, which is worth reporting
-differently from a gap that was never filled.
+`gatk4-spark` was `noarch` (hence arm64-capable) through `4.6.2.0` — we publish it.
+At `4.7.0.0` it is `linux-64`/`osx-64` only, so arm64 "does not exist" at the new
+version.
+
+The mechanism is more specific than "they didn't add `linux-aarch64`", and it
+changes the ask. `recipes/gatk4` **still sets `noarch: generic`** in its top-level
+`build:` section — but conda-build does not propagate a top-level `noarch` into
+`outputs:`; each output needs its own `build: noarch:`. When the recipe was split
+into `gatk4-main` + `gatk4-spark`, both outputs therefore became per-arch:
+
+| package | version | subdirs |
+|---|---|---|
+| `gatk4` | 4.6.2.0 | `noarch` |
+| `gatk4-spark` | 4.6.2.0 | `linux-64`, `noarch`, `osx-64` (transition release) |
+| `gatk4-spark` | 4.7.0.0 | `linux-64`, `osx-64` |
+| `gatk4-main` | 4.7.0.0 | `linux-64`, `osx-64` |
+
+Nothing in the outputs is arch-specific — `build_main.sh` copies the `gatk` wrapper
+plus `gatk-*-local.jar`, `build_spark.sh` copies `gatk-*-spark.jar`. It is a Java
+distribution, and a `noarch: generic` package may depend on per-arch packages like
+`openjdk`. So the fix is *restoring* per-output `noarch`, which also brings back
+ppc64le and anything else, rather than enumerating `linux-aarch64`.
+
+### The four "arm64-disabled" recipes are all regressions too
+
+Checked against published artifacts and recipe git history — none of these is a
+platform that was never enabled. Every one built for `linux-aarch64` and then
+stopped, and in three of the four cases **no reason was recorded**:
+
+| Recipe | arm64 published at | Lost at | How |
+|---|---|---|---|
+| `galah` | 0.4.2 | 0.5.0 (PR #66700) | `- linux-aarch64` deleted; `osx-arm64` kept |
+| `myloasm` | 0.5.1 | 0.6.0 (PR #66876) | commented to `#- linux-aarch64` in a broken-autobump fix |
+| `metamdbg` | 1.0, 1.1, 1.2 | 1.3 (PR #62241) | whole `additional-platforms` block deleted (both ARM platforms) |
+| `blast` | 2.16.0 | 2.17.0 | deliberate, with a stated CI-time reason |
+
+That reframes the upstream ask from "please port this to ARM" to "this used to
+build for ARM; the platform line went missing in a version bump" — a far cheaper
+request, and evidence the code itself is ARM-clean. `osx-arm64` surviving in
+galah/myloasm/blast is the corroboration: those recipes compile for ARM today.
+
+## Upstream filings
+
+See **[UPSTREAM.md](UPSTREAM.md)** for the ledger: what was filed, where, what was
+**deliberately not filed** and why, and the conventions used. Poll live state with
+[`audit/upstream-status.sh`](audit/upstream-status.sh), which re-solves each gap
+rather than checking for a package file — every tool involved is itself `noarch`,
+so a file listing would report all of them as already fixed.
 
 ## How these resolve
 

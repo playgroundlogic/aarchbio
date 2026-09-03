@@ -159,6 +159,7 @@ commercial service. So: a small bot.
 - [**Catalog**](https://quay.io/organization/aarchbio) — browse all 500+ published images on quay.io
 - [DESIGN.md](DESIGN.md) — architecture & decision record
 - [GAPS.md](GAPS.md) — what can't be built yet, and why
+- [UPSTREAM.md](UPSTREAM.md) — upstream issues we've filed, and what we chose *not* to file
 - [audit/](audit/) — the arm64-readiness survey behind the numbers
 - [benchmark/](benchmark/) — the performance methodology & results
 - [CHANGELOG.md](CHANGELOG.md) — [Keep a Changelog](https://keepachangelog.com/) / [SemVer 2.0](https://semver.org/spec/v2.0.0.html)
