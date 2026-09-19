@@ -69,6 +69,33 @@ those are surfaced and attributed in [GAPS.md](GAPS.md), to be fixed upstream
 where they belong. aarchbio does **not** compile packages from source; that would
 make it a second bioconda and break the verifiable-build trust model.
 
+### arm64 support can go backwards
+
+A mirror can only copy what exists. The reason this project has to *watch* rather
+than just mirror is that arm64 support is not monotonic — a tool that built for
+`linux-aarch64` at one release can stop at the next, silently:
+
+> **`galah`** built for arm64 at 0.4.2. A routine 0.5.0 version bump deleted the
+> `linux-aarch64` line from its recipe with no reason recorded. Nothing failed —
+> an unbuilt platform is an absence, not a red ✗. `osx-arm64` kept building, so
+> ARM never looked broken. Graviton users just land on emulation, which is quiet.
+> The one report that surfaced was routed to the tool's own repo, which cannot
+> edit bioconda's build matrix. Nobody in that chain did anything wrong, and the
+> gap persists anyway.
+
+Measured across the catalog ([`audit/arm64-decay.py`](audit/arm64-decay.py)), this
+is **rare — 5 of 520 tools, ~1%**. arm64 is not broadly rotting. But those 5 are
+**half of the open gap backlog**, because the other kinds of gap heal on their own
+(a pipeline bumps a pin, the reconciler notices) while a regression only gets worse
+with each release that inherits the missing line. Rare, and self-perpetuating.
+
+For those tools we publish the last release that *did* build — `galah 0.4.2`,
+`blast 2.16.0`, `metamdbg 1.2`, `myloasm 0.5.1`, `gatk4-spark 4.6.2.0` — because
+there is no arm64 package at the current version for anyone to mirror. See
+[GAPS.md](GAPS.md#arm64-support-decays-and-that-is-the-gap-type-nothing-else-catches)
+for the method, and for the two ways the measurement gets it wrong if you rank
+releases by version string.
+
 ## How it works
 
 ```

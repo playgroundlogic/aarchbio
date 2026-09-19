@@ -255,6 +255,83 @@ also that `beagle` "5.5" is not a resolvable conda version at all — the full s
 `5.5_27Feb25.75f` is required. Anything ranking or reconciling on `latest_version`
 (the reaper's churn guard included) inherits this.
 
+## arm64 support decays, and that is the gap type nothing else catches
+
+Measured with [`audit/arm64-decay.py`](audit/arm64-decay.py) over the whole
+published catalog (2026-09-19): for each tool, is the **most recently uploaded**
+release still arm64-capable?
+
+| | count | |
+|---|------:|---|
+| still fine at the current release | 514 | |
+| **regressed** — arm64 existed, current release dropped it | **5** | 1.0% |
+| flagged, inspected, not a regression | 1 | `phispy` (see below) |
+| never arm64 | 0 | |
+
+| Regressed | last arm64 | current release | we publish |
+|---|---|---|---|
+| `myloasm` | 0.5.1 | 0.7.0 | 0.5.1 |
+| `blast` | 2.16.0 | 2.17.0 | 2.16.0 |
+| `gatk4-spark` | 4.6.2.0 | 4.7.0.0 | 4.6.2.0 |
+| `galah` | 0.4.2 | 0.5.2 | 0.4.2 |
+| `metamdbg` | 1.2 | 1.4 | 1.2 |
+
+**1% is a small number, and the honest reading is that arm64 support is not
+broadly rotting.** But look at the backlog rather than the catalog: those same 5
+tools are **half of the 10 open gap issues**. Regressions are ~1% of packages and
+~50% of the actionable problem.
+
+That asymmetry is the point, and it follows from how the two kinds of gap end:
+
+- A **version-pin gap** self-resolves. Upstream keeps shipping, a pipeline bumps
+  its pin, and the reconciler (D15) picks it up with nobody doing anything. Time
+  fixes it.
+- A **regression** does not. Time makes it worse — each new release inherits the
+  missing platform line. Nothing upstream fails, because an unbuilt platform is an
+  absence, not a red X. `osx-arm64` often keeps building, so ARM never looks
+  broken. And the user-visible symptom on Graviton is silent emulation, not an
+  error anyone reports.
+
+So a regression persists until an outside party notices it, attributes it to a
+specific deleted line, and keeps the last working version pullable meanwhile. That
+is the job this project does that neither bioconda nor a registry mirror can: a
+mirror can only copy what exists, and `galah 0.5.2` arm64 does not exist to copy.
+
+`galah` is the worked example end to end: platform line deleted in a routine 0.5.0
+bump with no reason recorded ([#66700](https://github.com/bioconda/bioconda-recipes/pull/66700)),
+`osx-arm64` retained so ARM looked healthy, nothing failed, and the one report that
+did surface ([#68788](https://github.com/bioconda/bioconda-recipes/issues/68788))
+was routed to `wwood/galah` — a repo that cannot edit bioconda's build matrix.
+Meanwhile 0.4.2 stays pullable from us.
+
+### Measuring this is harder than it looks
+
+Recorded because the first two attempts at this table were wrong, both in ways that
+would have produced a confidently false headline:
+
+1. **Ranking releases by version string does not work.** A hand-rolled sort
+   reported 16 regressions, 11 of them artifacts: `hhsuite`'s `v3.2.0` outranked
+   `3.3.0` (a `v` prefix sorts after digits), `seqtk`'s `r93` outranked `1.5`, and
+   `trinity`'s `date.2011_11_26` outranked `2.15.2`. The API's own
+   `latest_version` is no better — it disagrees with the true newest upload for
+   **12** catalog packages including `beagle`, `plink` and `samtools`. The script
+   now ranks by **upload timestamp** and ignores version grammar entirely.
+2. **Resolving a package to the first channel that has the name does not work.**
+   Doing so judged `gawk`, `p7zip` and `pigz` — which we build from conda-forge —
+   by a same-named bioconda package with no arm64, reporting them as "never
+   arm64". Both channels are now evaluated and the better answer wins, with the
+   `ale` namespace collision noted as the reason a cross-channel match still needs
+   a human glance.
+
+`phispy` survives as the one flagged row and is **not** a regression: `5.0.9`
+(osx-64 only) and `5.0.10` (with arm64) were uploaded the same day, so the
+timestamp tie-break picked the backfill rather than the real current release. The
+`time_vs_sort_differ` flag exists to surface exactly this.
+
+The count is also a **lower bound**: capability here is file-level
+(`linux-aarch64` or `noarch` present), not a solve, so a noarch package blocked by
+an x86-only dependency still counts as "fine" — the `kb-python` case.
+
 ## Upstream filings
 
 See **[UPSTREAM.md](UPSTREAM.md)** for the ledger: what was filed, where, what was
