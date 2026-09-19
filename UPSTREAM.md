@@ -20,11 +20,31 @@ Filed 2026-09-03. Each was checked for an existing duplicate before filing
 | [#25](https://github.com/playgroundlogic/aarchbio/issues/25), [#4](https://github.com/playgroundlogic/aarchbio/issues/4) | [bioconda-recipes#68792](https://github.com/bioconda/bioconda-recipes/issues/68792) | `gtdbtk`, `comebin` | relax `pplacer =1.1.alpha19` (only recent pplacer without arm64) |
 | [#12](https://github.com/playgroundlogic/aarchbio/issues/12) | [bioconda-recipes#68793](https://github.com/bioconda/bioconda-recipes/issues/68793) | `pycoqc` | relax `h5py=2.9.0`; its `numpy`/`pandas` pins are already arm64-fine |
 | [#13](https://github.com/playgroundlogic/aarchbio/issues/13) | [tiara-feedstock#2](https://github.com/conda-forge/tiara-feedstock/issues/2) | `tiara` | relax `pytorch >=1.7.0,<1.8.dev0` (arm64 starts at 1.12.0) |
+| [#59](https://github.com/playgroundlogic/aarchbio/issues/59) | [bioconda-recipes#69397](https://github.com/bioconda/bioconda-recipes/issues/69397) | `pyseq-align` | add `linux-aarch64`; sole blocker for `kb-python` at every version |
 
 Two are **questions, not bug reports** — `pplacer` and `h5py` exact pins may be
 load-bearing for result reproducibility, so both issues ask whether the pin is
 required and commit to recording a permanent gap if the answer is yes. Don't
 re-report them if the answer comes back "the pin stays".
+
+### Status, 2026-09-19 (16 days in)
+
+Six of the first seven had no response yet. One was closed:
+
+- **`galah` #68788 — closed** by @mbhall88: *"This is probably better directed to
+  the Galah repository and their maintainers."* Replied with the counter-evidence
+  rather than re-filing, because galah **0.5.0/0.5.1/0.5.2 all publish
+  `osx-arm64`** — the Rust code compiles and links for ARM64 on every release, so
+  there is nothing for `wwood/galah` to fix. The deleted line is in bioconda's own
+  `additional-platforms` build matrix. The reply offers the one-line PR and
+  explicitly accepts a "no"; if they decline, move `galah` to `wontfix`.
+
+A handle bug was also corrected on **#68793**: it cc'd `@aslide`, which is a real
+but unrelated account, instead of the maintainer **@a-slide**. Cause was
+`audit/provenance.sh` stripping hyphens out of GitHub handles (it also turned
+`Maarten-vd-Sande` into the nonexistent `MaartenvdSande` and `bluenote-1577` into
+`bluenote1577`). Fixed in the script; **always verify a handle with
+`gh api users/<login>` before @-mentioning it.**
 
 ## Deliberately not filed
 
@@ -55,4 +75,9 @@ Filing here would be noise, not signal. Each is tracked locally instead.
   exact 2019 pins; only `h5py` actually lacks arm64. Reporting all three would
   have been wrong.
 - **Ask, don't assert, about exact version pins.** They are frequently deliberate.
+- **Verify every @-mention** with `gh api users/<login>`. A mangled handle can be a
+  real person who has nothing to do with the recipe (`@aslide` vs `@a-slide`).
+- **Say what evidence would change our mind**, and mean it — the `galah` reply
+  offers to drop the request if the maintainers would rather not carry the
+  platform. That is cheaper for everyone than a second report later.
 - **Disclose who we are** and offer to open the PR.

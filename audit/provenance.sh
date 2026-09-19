@@ -69,7 +69,12 @@ for pkg in "$@"; do
     fi
   fi
   # maintainers: the indented list under recipe-maintainers
-  maint="$(printf '%s' "$yaml" | awk '/recipe-maintainers:/{f=1;next} f&&/^[[:space:]]+-/{gsub(/[ -]/,"");print;next} f&&/^[^[:space:]]/{exit} f&&/^[[:space:]]*[a-z]/{exit}' | tr '\n' ',' | sed 's/,$//')"
+  # Strip only the leading "- " list marker and surrounding whitespace. Do NOT
+  # gsub hyphens globally: GitHub handles contain them, and doing so silently
+  # rewrote real maintainers into non-existent users (`Maarten-vd-Sande` ->
+  # `MaartenvdSande`, `bluenote-1577` -> `bluenote1577`) — which then get
+  # @-mentioned in upstream issues, pinging nobody.
+  maint="$(printf '%s' "$yaml" | awk '/recipe-maintainers:/{f=1;next} f&&/^[[:space:]]+-/{sub(/^[[:space:]]*-[[:space:]]*/,"");gsub(/[[:space:]]/,"");print;next} f&&/^[^[:space:]]/{exit} f&&/^[[:space:]]*[a-z]/{exit}' | tr '\n' ',' | sed 's/,$//')"
   # arm64 status
   if printf '%s' "$yaml" | grep -qE "^[[:space:]]*-[[:space:]]*linux-aarch64"; then
     arm="enabled"; note="$(printf '%s' "$yaml" | grep -E "^[[:space:]]+home:" | head -1 | sed 's/.*home:[[:space:]]*//; s/"//g')"

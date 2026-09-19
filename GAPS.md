@@ -72,7 +72,7 @@ to its bioconda recipe maintainers + arm64 status (enabled / disabled-with-reaso
 | Tool (pinned) | arm64 available at | Note |
 |---------------|--------------------|------|
 | isoseq3=4.0.0 | 3.2.0–3.2.1 | PacBio — arm64 only at *older* versions |
-| medaka=2.2.2 | 2.0.1–2.2.1 | bump down one minor |
+| ~~medaka=2.2.2~~ | **resolved upstream** | 2.2.2 now has `linux-aarch64` and solves; built 2026-09-19 |
 | meryl=2013 | 1.4.1 | odd pin (date-version) |
 | paraphase=4.0.0 | 1.1.3–3.5.0 | |
 | pbccs=6.4.0 | 4.0.0 | PacBio |
@@ -221,6 +221,39 @@ That reframes the upstream ask from "please port this to ARM" to "this used to
 build for ARM; the platform line went missing in a version bump" — a far cheaper
 request, and evidence the code itself is ARM-clean. `osx-arm64` surviving in
 galah/myloasm/blast is the corroboration: those recipes compile for ARM today.
+
+### `kb-python` / `pyseq-align`: a dep-gap two noarch levels down (2026-09-19)
+
+Found while triaging container requests, and worth recording as the cleanest
+example yet of why a subdir listing cannot be trusted: **both** packages above the
+blocker are `noarch`, so every file-based check says "architecture-independent".
+
+```
+kb-python (noarch) -> ngs-tools >=1.8.6 (noarch) -> pyseq-align (linux-64, osx-64 only)
+```
+
+The same solve succeeds on `linux/amd64` (240 packages), so it is arm64-specific,
+and it is **not** a version-pin gap — 0.28.2, 0.29.1, 0.29.5, 0.30.1 and 0.30.2 all
+fail identically. `pyseq-align` is a portable Cython + `make` build from a PyPI
+sdist whose only skip is `# [py2k]`, with no `additional-platforms` block at all, so
+it reads as never-enabled rather than deliberately disabled. Filed as
+[bioconda-recipes#69397](https://github.com/bioconda/bioconda-recipes/issues/69397).
+
+### Two traps in bioconda's `latest_version` (2026-09-19)
+
+`latest_version` from the anaconda.org API is **not** a reliable "newest version"
+for packages whose version strings embed dates or letters — it orders them as
+strings:
+
+| package | API `latest_version` | actually newer |
+|---|---|---|
+| `beagle` | `5.4_22Jul22.46e` | `5.5_27Feb25.75f` |
+| `plink` | `1.90b6.21` | `1.90b7.7` |
+
+Both were requested by version and neither matched what the API called latest. Note
+also that `beagle` "5.5" is not a resolvable conda version at all — the full string
+`5.5_27Feb25.75f` is required. Anything ranking or reconciling on `latest_version`
+(the reaper's churn guard included) inherits this.
 
 ## Upstream filings
 
