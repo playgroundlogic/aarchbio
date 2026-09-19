@@ -58,6 +58,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   locally** for `minimap2`, `bwa`, `samtools`, `seqkit` on Apple Silicon (M4
   Pro) — all arm64, tag-matches-install, runnable. Proof that the project's core
   premise works. Nothing pushed.
+- **14 tools published from the demand queue** (catalog 509 → **523 public repos**),
+  fulfilling container requests #47–#61: `cromwell`, `humann`, `beagle`,
+  `ensembl-vep` as multi-arch manifests (noarch, D9) and `alevin-fry`, `medaka`,
+  `nanopolish`, `minimac4`, `plink`, `bwa-mem2` plus the four bioconductor
+  packages (`dada2`, `limma`, `edger`, `deseq2`) as native arm64-only. All 14
+  verified public, cosign-verified against `playgroundlogic/aarchbio`, correct
+  D9 routing, and every ELF in the arch-specific images `e_machine=183`.
 - `UPSTREAM.md` + `audit/upstream-status.sh` — the ledger of upstream issues filed
   against bioconda/conda-forge recipes, what was **deliberately not filed**, and a
   poller that re-solves each gap to tell "upstream fixed it" apart from "the issue
