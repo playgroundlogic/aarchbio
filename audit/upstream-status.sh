@@ -38,6 +38,7 @@ FILED="
 4	bioconda/bioconda-recipes	68792	comebin	1.1.0
 12	bioconda/bioconda-recipes	68793	pycoqc	2.5.2
 13	conda-forge/tiara-feedstock	2	tiara	1.0.3
+59	bioconda/bioconda-recipes	69397	kb-python	0.30.2
 "
 
 printf "aarchbio\tupstream\tissue_state\tarm64_now\ttarget\n"
