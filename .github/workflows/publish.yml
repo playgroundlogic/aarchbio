@@ -48,7 +48,7 @@ jobs:
       - id: c
         run: |
           set -uo pipefail
-          arm=(); multi=(); legs=(); gaps=()
+          arm=(); multi=(); legs=(); gaps=(); infra=()
           # Each token is "pkg=version" or a MULLED spec "pkg=version+extra=ver+...".
           # The primary pkg=version drives classify/tag; '+'-joined extras become
           # EXTRA_PACKAGES (space-separated) for a mulled image (e.g. Wave's
@@ -61,7 +61,17 @@ jobs:
               extra="$(echo "${token#*+}" | tr '+' ' ')"   # "coreutils=9.4 pigz=2.8"
             fi
             out="$(mktemp)"
-            if ! GITHUB_OUTPUT="$out" ./builder/classify.sh "$pkg" "$ver"; then
+            GITHUB_OUTPUT="$out" ./builder/classify.sh "$pkg" "$ver"; crc=$?
+            # exit 2 = the solver ran and found no arm64 solution -> a real gap.
+            # exit 3 = the solver could not run (disk, network, image pull). That
+            #   is OURS, not upstream's, and must never reach the D10 gap filer --
+            #   it would open a public issue blaming an innocent recipe. Fail the
+            #   job loudly instead so it gets seen and retried.
+            if [ "$crc" = "3" ]; then
+              echo "::error title=classify infra error::could not classify ${pkg}=${ver} (solver did not run). Not filing a gap."
+              infra+=("${pkg}=${ver}"); continue
+            fi
+            if [ "$crc" != "0" ]; then
               gaps+=("{\"tool\":\"$pkg\",\"version\":\"$ver\"}"); continue
             fi
             tag="$(grep '^tag=' "$out" | cut -d= -f2-)"
@@ -84,6 +94,14 @@ jobs:
           echo "multiarch=$(join "${multi[@]}")" >> "$GITHUB_OUTPUT"
           echo "legs=$(join "${legs[@]}")"       >> "$GITHUB_OUTPUT"
           echo "gaps=$(join "${gaps[@]}")"       >> "$GITHUB_OUTPUT"
+          # Anything that could not be classified for infra reasons fails the job
+          # AFTER the outputs are written, so the tools that did classify still
+          # build. A silent skip here is what would let a transient failure look
+          # like an upstream gap on the next reconciler pass.
+          if [ "${#infra[@]}" -gt 0 ]; then
+            echo "::error title=classify did not complete::${#infra[@]} tool(s) could not be classified: ${infra[*]}"
+            exit 1
+          fi
 
   # ---------------------------------------------------------------------------
   # 2. arch-specific tools: single native arm64 build → push (tagged) → sign →

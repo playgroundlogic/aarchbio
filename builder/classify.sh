@@ -28,8 +28,38 @@ if command -v uv >/dev/null 2>&1; then PY=(uv run python); else PY=(python3); fi
 emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_OUTPUT"; return 0; }
 
 # Solve the arm64 environment (dry-run) and read the package record.
+#
+# stderr is CAPTURED, not discarded, and the exit status is inspected, because
+# "the solver says there is no arm64 build" and "the solver never ran" are
+# different facts that used to look identical. Discarding both turned any infra
+# failure into `ok=0`, and publish.yml routes `ok=0` straight to the D10 gap filer
+# -- so a full disk or a failed image pull would file a public arm64-gap issue
+# blaming an innocent recipe. (Hit for real: a local Docker VM with no space left
+# reported piscem=0.23.0 as having no arm64 solution, when it solves fine.)
+#
+# Fail-safe direction: only a RECOGNISED solver verdict is allowed to mean "gap".
+# Anything else is an infra error, which exits 3 and must not be read as a gap.
+ERR_TMP="$(mktemp)"
 json="$(docker run --rm --platform linux/arm64 "$MAMBA_IMAGE" \
-        micromamba create -n _c --dry-run --json -c bioconda -c conda-forge "${PKG}=${VER}" 2>/dev/null)"
+        micromamba create -n _c --dry-run --json -c bioconda -c conda-forge "${PKG}=${VER}" 2>"$ERR_TMP")"
+RC=$?
+err="$(cat "$ERR_TMP")"; rm -f "$ERR_TMP"
+
+if [ "$RC" -ne 0 ]; then
+  case "$err$json" in
+    *"Could not solve for environment specs"*|*"nothing provides"*|\
+    *"is not installable"*|*"PackagesNotFoundError"*|*"packages are not available"*|\
+    *"no candidates were found"*)
+      : ;;   # a real solver verdict -> fall through to the ok=0 gap path
+    *)
+      echo "[classify] INFRA ERROR: the solver did not run for ${PKG}=${VER}" >&2
+      echo "[classify] docker exit=$RC; stderr follows (NOT an arm64 gap):" >&2
+      printf '%s\n' "$err" | tail -5 >&2
+      emit tool "$PKG"; emit version "$VER"; emit ok error
+      exit 3
+      ;;
+  esac
+fi
 
 # Pass the solve JSON via a temp file, NOT a pipe: the parser finishing early
 # (it stops at the matching package) would close a pipe while micromamba's large
@@ -59,6 +89,16 @@ print(out[0], out[1], out[2])
 rm -f "$JSON_TMP"
 
 if [ -z "${BUILD:-}" ]; then
+  # Reachable two ways: the solver rendered an unsatisfiable verdict (RC!=0, and
+  # the case above let it through), or it succeeded but the package was absent
+  # from the LINK actions. The latter is not a solver verdict about arm64, so it
+  # is reported as an error rather than a gap -- same fail-safe rule as above.
+  if [ "$RC" -eq 0 ]; then
+    echo "[classify] INFRA ERROR: solve for ${PKG}=${VER} succeeded but '${PKG}' was not in its LINK actions" >&2
+    echo "[classify] (a parse problem or an unexpected package name -- NOT an arm64 gap)" >&2
+    emit tool "$PKG"; emit version "$VER"; emit ok error
+    exit 3
+  fi
   echo "[classify] ERROR: could not resolve ${PKG}=${VER} for linux-aarch64 (no arm64 solution)" >&2
   emit tool "$PKG"; emit version "$VER"; emit ok 0
   exit 2
