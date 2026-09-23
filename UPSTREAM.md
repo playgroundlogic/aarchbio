@@ -13,7 +13,7 @@ Filed 2026-09-03. Each was checked for an existing duplicate before filing
 
 | aarchbio | Upstream | Tool | Ask |
 |---|---|---|---|
-| [#40](https://github.com/playgroundlogic/aarchbio/issues/40) | [bioconda-recipes#68788](https://github.com/bioconda/bioconda-recipes/issues/68788) | `galah` | restore `linux-aarch64`, dropped in the 0.5.0 bump (#66700) |
+| [#40](https://github.com/playgroundlogic/aarchbio/issues/40) | [bioconda-recipes#68788](https://github.com/bioconda/bioconda-recipes/issues/68788) → **PR [#69532](https://github.com/bioconda/bioconda-recipes/pull/69532)** | `galah` | restore `linux-aarch64`, dropped in the 0.5.0 bump (#66700) |
 | [#39](https://github.com/playgroundlogic/aarchbio/issues/39) | [bioconda-recipes#68789](https://github.com/bioconda/bioconda-recipes/issues/68789) | `myloasm` | un-comment `linux-aarch64`, commented out in the 0.6.0 bump (#66876) |
 | [#26](https://github.com/playgroundlogic/aarchbio/issues/26) | [bioconda-recipes#68790](https://github.com/bioconda/bioconda-recipes/issues/68790) | `metamdbg` | restore the `additional-platforms` block deleted at 1.3 (#62241) |
 | [#44](https://github.com/playgroundlogic/aarchbio/issues/44) | [bioconda-recipes#68791](https://github.com/bioconda/bioconda-recipes/issues/68791) | `gatk4` | declare `noarch: generic` per output (the split dropped it) |
@@ -42,8 +42,12 @@ Six of the first seven had no response yet. One was closed:
 #### Update 2026-09-22: galah reopened, PR invited
 
 @mbhall88 **reopened** #68788 and asked for the patch — *"Yeah give that a try"*.
-**Next action is ours.** Two lines, because re-enabling a platform on an unchanged
-version needs a build-number bump to trigger the rebuild:
+Submitted as **[bioconda-recipes#69532](https://github.com/bioconda/bioconda-recipes/pull/69532)**
+(1 file, +2/−1, `Closes #68788`). This is the project's **first upstream PR**, so
+the mechanics are written down below for the next one.
+
+The patch is two lines, because re-enabling a platform on an unchanged version
+needs a build-number bump to trigger the rebuild:
 
 ```diff
  build:
@@ -56,10 +60,47 @@ version needs a build-number bump to trigger the rebuild:
      - osx-arm64
 ```
 
+The PR says plainly that **we have not compiled galah for aarch64** — the evidence
+is that the platform built at 0.4.2 and that `osx-arm64` still builds — and states
+that if CI disagrees, the genuinely useful outcome is a comment in the recipe
+recording *why* the platform is off, so nobody re-reports it. bioconda runs a
+`build and test (ARM)` check on the PR, so their CI settles the question either
+way; claiming more confidence than that would be dishonest, since D10 means we
+never build it ourselves.
+
 The general lesson, worth applying to the other six: a maintainer's "this isn't
 ours to fix" is often a scope misread rather than a refusal, and one short factual
 reply that hands them evidence plus an easy way to decline can convert a
 closed-as-out-of-scope issue into an invited fix. It cost one comment here.
+
+### Opening an upstream PR (mechanics, so the next one is quick)
+
+No local clone — bioconda-recipes is far too large to clone for a two-line edit.
+All of it via the API:
+
+```bash
+gh api -X POST repos/bioconda/bioconda-recipes/forks            # ~6s to appear
+UP=$(gh api repos/bioconda/bioconda-recipes/git/ref/heads/master --jq .object.sha)
+gh api -X POST repos/<you>/bioconda-recipes/git/refs \
+  -f ref=refs/heads/<branch> -f sha="$UP"                       # branch at UPSTREAM head
+gh api -X PUT repos/<you>/bioconda-recipes/contents/recipes/<pkg>/meta.yaml \
+  -f message="$(cat msg)" -f content="$(base64 -i new.yaml|tr -d '\n')" \
+  -f sha=<blob sha ON THE BRANCH> -f branch=<branch>
+gh pr create --repo bioconda/bioconda-recipes --head <you>:<branch> --base master ...
+```
+
+Three things that matter:
+
+- **Branch from upstream's master head, not the fork's default branch.** A fork
+  can lag, and branching from a stale head puts unrelated commits in the PR.
+- **Re-read the blob sha on the branch before the PUT**, not the one fetched
+  earlier. A stale sha either fails or overwrites someone else's change. Diff the
+  branch content against the file you edited from and abort if it differs.
+- **Verify with `compare` before opening the PR**: expect `files changed: 1`,
+  `commits: 1`, `behind_by=0`. It is the only cheap way to be sure a fork-based PR
+  is not dragging extra commits along.
+
+bioconda convention: PR titles start with `Add` or `Update`.
 
 kb-python/`pyseq-align` #69397 has had no response in 3 days, and `pyseq-align` is
 still `linux-64`/`osx-64` only, so that gap stands unchanged.
