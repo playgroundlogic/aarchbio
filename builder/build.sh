@@ -129,13 +129,69 @@ TAG="${GOT_VER}--${GOT_HASH}"
 IMAGE="${REGISTRY}/${PKG}:${TAG}"
 
 # --- 4. Smoke test (arm64 probe) -------------------------------------------
+# This test GATES the publish. It used to warn and continue on failure, which let
+# a completely unusable image reach the registry: scanpy 1.7.2 (issue #63) shipped
+# with `import scanpy` raising ImportError, because bioconda's scanpy is frozen at
+# a 2021 release whose loose deps let the solver pair it with a 2025 anndata and
+# Python 3.14. Three probes that all ask "is there a runnable CLI named $PKG?"
+# cannot see that: scanpy is a LIBRARY, so every probe was vacuous and the build
+# published on "inconclusive".
+#
+# So: if the package installs Python modules, those modules MUST import. Module
+# names come from the package's own conda-meta file list rather than being guessed
+# from the package name — the two often differ (pycoqc -> pycoQC, scikit-learn ->
+# sklearn), and guessing would reintroduce the same false pass.
 echo "[build] smoke test (arm64) ..."
-if docker run --rm --platform linux/arm64 "$TMP_IMAGE" "$PKG" --version >/dev/null 2>&1 \
+
+PY_MODS="$(docker run --rm --platform linux/arm64 "$TMP_IMAGE" sh -c '
+  command -v python >/dev/null 2>&1 || exit 0
+  python - '"$PKG"' <<'"'"'PY'"'"' 2>/dev/null
+import glob, json, os, re, sys
+pkg = sys.argv[1].lower()
+mods = set()
+for rec in glob.glob(f"/opt/conda/conda-meta/{pkg}-*.json"):
+    try:
+        files = json.load(open(rec)).get("files", [])
+    except Exception:
+        continue
+    for f in files:
+        m = re.match(r"lib/python[0-9.]+/site-packages/([A-Za-z_][A-Za-z0-9_]*)/__init__\.py$", f)
+        if m:
+            mods.add(m.group(1)); continue
+        m = re.match(r"lib/python[0-9.]+/site-packages/([A-Za-z_][A-Za-z0-9_]*)\.py$", f)
+        if m and not m.group(1).startswith("_"):
+            mods.add(m.group(1))
+print(" ".join(sorted(mods)))
+PY
+' 2>/dev/null | tr -d '\r')"
+
+SMOKE_OK=0
+if [ -n "${PY_MODS// /}" ]; then
+  echo "[build] python modules installed by ${PKG}: ${PY_MODS}"
+  if docker run --rm --platform linux/arm64 "$TMP_IMAGE" sh -c \
+       "for m in ${PY_MODS}; do python -c \"import \$m\" || exit 1; done" >/dev/null 2>&1; then
+    echo "[build] smoke test PASSED (all ${PKG} modules import on arm64)"
+    SMOKE_OK=1
+  else
+    echo "[build] ERROR: ${PKG} installs python modules that FAIL to import on arm64:" >&2
+    docker run --rm --platform linux/arm64 "$TMP_IMAGE" sh -c \
+      "for m in ${PY_MODS}; do python -c \"import \$m\" 2>&1 | tail -3; done" >&2 || true
+    echo "[build] refusing to publish an image whose own package cannot be imported." >&2
+    echo "[build] (a broken image is worse than an absent one — it looks available and fails after a pull)" >&2
+  fi
+elif docker run --rm --platform linux/arm64 "$TMP_IMAGE" "$PKG" --version >/dev/null 2>&1 \
    || docker run --rm --platform linux/arm64 "$TMP_IMAGE" "$PKG" --help >/dev/null 2>&1 \
    || docker run --rm --platform linux/arm64 "$TMP_IMAGE" sh -c "command -v $PKG" >/dev/null 2>&1; then
   echo "[build] smoke test PASSED ($PKG present and runnable on arm64)"
+  SMOKE_OK=1
 else
-  echo "[build] WARNING: smoke test inconclusive — verify $PKG manually" >&2
+  echo "[build] ERROR: no runnable ${PKG} CLI and no importable python module found." >&2
+  echo "[build] Cannot demonstrate the image works, so not publishing it." >&2
+fi
+
+if [ "$SMOKE_OK" != "1" ]; then
+  docker rmi "$TMP_IMAGE" >/dev/null 2>&1 || true
+  exit 4
 fi
 docker rmi "$TMP_IMAGE" >/dev/null 2>&1 || true
 
