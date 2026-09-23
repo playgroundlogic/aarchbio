@@ -58,5 +58,29 @@ if [ -z "${digest:-}" ]; then
 fi
 
 echo "[build-arch] ${PLATFORM} pushed by digest: ${digest}"
+
+# --- Smoke test THIS leg before it can become part of a published manifest ---
+# This path had no verification at all, which is precisely how two broken noarch
+# images reached the registry (scanpy 1.7.2, issue #63, and humann 3.9). Every
+# noarch tool publishes through here, so an unchecked leg means an unchecked tag.
+#
+# Testing after the digest push is deliberate and safe: a digest carries no tag, so
+# nothing can pull it by name. The `merge` step is what publishes the
+# <version>--<build> tag, and failing here means merge never runs — so a bad build
+# is never reachable under a tag. The alternative (build --load, test, then rebuild
+# to push) would build every leg twice.
+#
+# Each leg runs on its own NATIVE runner, so this tests the real interpreter for
+# the real architecture — no emulation, and an arm64-only defect cannot hide behind
+# a passing amd64 leg.
+HERE_ARCH="$(cd "$(dirname "$0")" && pwd)"
+echo "[build-arch] smoke test (${PLATFORM}) ..."
+if ! "$HERE_ARCH/smoke.sh" "${REGISTRY}/${PKG}@${digest}" "$PKG" "$PLATFORM"; then
+  echo "[build-arch] ERROR: ${PKG}=${VER} failed verification on ${PLATFORM}." >&2
+  echo "[build-arch] The digest stays untagged and unreachable; not emitting it, so" >&2
+  echo "[build-arch] the manifest merge cannot publish this build." >&2
+  exit 4
+fi
+
 emit arch_digest "$digest"
 emit platform    "$PLATFORM"
