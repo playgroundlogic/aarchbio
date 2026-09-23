@@ -39,6 +39,31 @@ Six of the first seven had no response yet. One was closed:
   `additional-platforms` build matrix. The reply offers the one-line PR and
   explicitly accepts a "no"; if they decline, move `galah` to `wontfix`.
 
+#### Update 2026-09-22: galah reopened, PR invited
+
+@mbhall88 **reopened** #68788 and asked for the patch — *"Yeah give that a try"*.
+**Next action is ours.** Two lines, because re-enabling a platform on an unchanged
+version needs a build-number bump to trigger the rebuild:
+
+```diff
+ build:
+-  number: 0
++  number: 1
+
+ extra:
+   additional-platforms:
++    - linux-aarch64
+     - osx-arm64
+```
+
+The general lesson, worth applying to the other six: a maintainer's "this isn't
+ours to fix" is often a scope misread rather than a refusal, and one short factual
+reply that hands them evidence plus an easy way to decline can convert a
+closed-as-out-of-scope issue into an invited fix. It cost one comment here.
+
+kb-python/`pyseq-align` #69397 has had no response in 3 days, and `pyseq-align` is
+still `linux-64`/`osx-64` only, so that gap stands unchanged.
+
 A handle bug was also corrected on **#68793**: it cc'd `@aslide`, which is a real
 but unrelated account, instead of the maintainer **@a-slide**. Cause was
 `audit/provenance.sh` stripping hyphens out of GitHub handles (it also turned
