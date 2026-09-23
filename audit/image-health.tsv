@@ -1,0 +1,521 @@
+abacas	1.3.1--pl5321hdfd78af_3	FAIL	rc=3; [smoke] FAIL — could not demonstrate abacas works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+abyss	2.3.10--h64bf0ea_3	FAIL	rc=3; [smoke] FAIL — could not demonstrate abyss works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+adapterremoval	2.3.3--pl5321hf9a8d21_3	FAIL	rc=3; [smoke] FAIL — could not demonstrate adapterremoval works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+adapterremovalfixprefix	0.0.5--hdfd78af_2	FAIL	rc=3; [smoke] FAIL — could not demonstrate adapterremovalfixprefix works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+anndata	0.6.22.post1--py_0	FAIL	rc=3; [smoke] FAIL — anndata installs python modules that do not import on linux/arm64: | ModuleNotFoundError: No module named 'pandas.core.index' | active python: Python 3.14.5 | site-packages: /opt/conda/lib/python3.14/site-packages
+annotsv	3.5.10--hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate annotsv works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+art	2016.06.05--h63f49d7_13	FAIL	rc=3; [smoke] FAIL — could not demonstrate art works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+ascat	3.2.0--r44hdfd78af_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate ascat works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+bamclipper	1.0.0--hdfd78af_2	FAIL	rc=3; [smoke] FAIL — could not demonstrate bamclipper works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+bamutil	1.0.15--h0aa3852_7	FAIL	rc=3; [smoke] FAIL — could not demonstrate bamutil works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+bandage	0.9.0--h163da20_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate bandage works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+bbmap	39.81--heff9fa3_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate bbmap works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+bftools	8.0.0--hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate bftools works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+biobambam	2.0.185--h9ca79bb_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate biobambam works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+bioconductor-dada2	1.38.0--r45h663ae34_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate bioconductor-dada2 works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+bioconductor-deseq2	1.50.2--r45h663ae34_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate bioconductor-deseq2 works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+bioconductor-edger	4.8.2--r45h3c8180c_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate bioconductor-edger works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+bioconductor-limma	3.66.0--r45hbd662d2_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate bioconductor-limma works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+bioconductor-summarizedexperiment	1.32.0--r43hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate bioconductor-summarizedexperiment works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+bioconductor-tximeta	1.20.1--r43hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate bioconductor-tximeta works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+blast	2.16.0--h6a93c2d_5	FAIL	rc=3; [smoke] FAIL — could not demonstrate blast works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+circularmapper	1.93.5--h2a3209d_3	FAIL	rc=3; [smoke] FAIL — could not demonstrate circularmapper works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+clair3	2.0.1--py311hd08e9f5_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate clair3 works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+clonalframeml	1.20--h1b9dc22_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate clonalframeml works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+control-freec	11.6b--hdc89528_3	FAIL	rc=3; [smoke] FAIL — could not demonstrate control-freec works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+das_tool	1.1.7--r44hdfd78af_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate das_tool works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+decoupler	1.5.0--pyhdfd78af_0	FAIL	rc=3; [smoke] FAIL — decoupler installs python modules that do not import on linux/arm64: | ModuleNotFoundError: No module named 'pandas.core.index' | active python: Python 3.9.23 | site-packages: /opt/conda/lib/python3.9/site-packages
+dragmap	1.3.0--h0aa3852_7	FAIL	rc=3; [smoke] FAIL — could not demonstrate dragmap works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+eigenstratdatabasetools	1.1.0--hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate eigenstratdatabasetools works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+eklipse	1.8--hdfd78af_6	FAIL	rc=3; [smoke] FAIL — could not demonstrate eklipse works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+emboss	6.6.0--h4b5f196_14	FAIL	rc=3; [smoke] FAIL — could not demonstrate emboss works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+ensembl-vep	116.2--pl5321h2a3209d_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate ensembl-vep works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+evigene	23.7.15--hdfd78af_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate evigene works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+expansionhunter	5.0.0--he8b94f4_5	FAIL	rc=3; [smoke] FAIL — could not demonstrate expansionhunter works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+expansionhunterdenovo	0.9.0--hece5f1d_11	FAIL	rc=3; [smoke] FAIL — could not demonstrate expansionhunterdenovo works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+faqcs	2.12--r44h1e84f2d_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate faqcs works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+fastani	1.34--h07fb39f_7	FAIL	rc=3; [smoke] FAIL — could not demonstrate fastani works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+fastk	1.2--h1743689_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate fastk works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+gangstr	2.5.0--h5756de4_10	FAIL	rc=3; [smoke] FAIL — could not demonstrate gangstr works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+gatk	3.8--hdfd78af_12	FAIL	rc=3; [smoke] FAIL — could not demonstrate gatk works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+gatk4	4.6.2.0--py310hdfd78af_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate gatk4 works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+gatk4-spark	4.6.1.0--hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate gatk4-spark works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+glnexus	1.4.1--h83404e3_5	FAIL	rc=3; [smoke] FAIL — could not demonstrate glnexus works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+gzrt	0.9.1--h0cbc5ad_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate gzrt works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+helitronscanner	1.0--hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate helitronscanner works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+hhsuite	3.3.0--h80f0ee0_15	FAIL	rc=3; [smoke] FAIL — could not demonstrate hhsuite works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+hmmcopy	0.1.1--hdab5457_12	FAIL	rc=3; [smoke] FAIL — could not demonstrate hmmcopy works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+hmmer	3.4--hfe13ca0_4	FAIL	rc=3; [smoke] FAIL — could not demonstrate hmmer works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+htslib	1.23.1--h58d2225_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate htslib works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+infernal	1.1.5--pl5321h661a7b0_4	FAIL	rc=3; [smoke] FAIL — could not demonstrate infernal works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+jasminesv	1.1.5--hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate jasminesv works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+juicertools	2.20.00--hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate juicertools works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+knotannotsv	1.1.5--hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate knotannotsv works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+kofamscan	1.3.0--hdfd78af_2	FAIL	rc=3; [smoke] FAIL — could not demonstrate kofamscan works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+krakentools	1.2.1--pyh7e72e81_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate krakentools works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+krona	2.8.1--pl5321hdfd78af_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate krona works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+links	2.0.1--h4ba1498_8	FAIL	rc=3; [smoke] FAIL — could not demonstrate links works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+malt	0.61--hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate malt works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+manta	1.6.0--py27h163da20_6	FAIL	rc=3; [smoke] FAIL — could not demonstrate manta works on linux/arm64: | SyntaxError: invalid syntax | [smoke] WARNING: module detection wrote to stderr: | [smoke] no importable python module, no runnable CLI, no functional check.
+maxbin2	2.2.7--h80f0ee0_8	FAIL	rc=3; [smoke] FAIL — could not demonstrate maxbin2 works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+megan	6.25.10--h23ed54d_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate megan works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+merqury	1.3--hdfd78af_4	FAIL	rc=3; [smoke] FAIL — could not demonstrate merqury works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+merquryfk	1.2--h1743689_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate merquryfk works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+metamdbg	1.2--h1e84f2d_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate metamdbg works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+methyldackel	0.6.1--h0cbc5ad_9	FAIL	rc=3; [smoke] FAIL — could not demonstrate methyldackel works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+mindagap	0.0.2--pyhdfd78af_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate mindagap works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+mirdeep2	2.0.1.3--hdfd78af_2	FAIL	rc=3; [smoke] FAIL — could not demonstrate mirdeep2 works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+mirtop	0.4.30--pyh7e72e81_0	FAIL	rc=3; [smoke] FAIL — mirtop installs python modules that do not import on linux/arm64: | ModuleNotFoundError: No module named 'pkg_resources' | active python: Python 3.12.13 | site-packages: /opt/conda/lib/python3.1/site-packages /opt/conda/lib/python3.12/site-packages
+muse	2.1.2--hd44150b_3	FAIL	rc=3; [smoke] FAIL — could not demonstrate muse works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+mykrobe	0.13.0--py312h25ee9f3_5	FAIL	rc=3; [smoke] FAIL — mykrobe installs python modules that do not import on linux/arm64: | ModuleNotFoundError: No module named 'pkg_resources' | active python: Python 3.12.13 | site-packages: /opt/conda/lib/python3.1/site-packages /opt/conda/lib/python3.12/site-packages
+ngmerge	0.5--hf0d9179_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate ngmerge works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+ngscheckmate	1.0.1--py312pl5321h0cbc5ad_4	FAIL	rc=3; [smoke] FAIL — could not demonstrate ngscheckmate works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+oncocnv	7.0--pl5321r44hdfd78af_2	FAIL	rc=3; [smoke] FAIL — could not demonstrate oncocnv works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+openms	3.5.0--h1ce2723_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate openms works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+p7zip	16.02--h01db608_1001	FAIL	rc=3; [smoke] FAIL — could not demonstrate p7zip works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+peka	1.0.2--pyhdfd78af_0	FAIL	rc=3; [smoke] FAIL — peka installs python modules that do not import on linux/arm64: | ModuleNotFoundError: No module named 'webcolors' | active python: Python 3.12.13 | site-packages: /opt/conda/lib/python3.1/site-packages /opt/conda/lib/python3.12/site-packages
+phantompeakqualtools	1.2.2--hdfd78af_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate phantompeakqualtools works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+pirate	1.0.5--hdfd78af_3	FAIL	rc=3; [smoke] FAIL — could not demonstrate pirate works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+plasmidfinder	2.1.6--py314hdfd78af_2	FAIL	rc=3; [smoke] FAIL — could not demonstrate plasmidfinder works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+plasmidid	1.6.5--hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate plasmidid works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+poolsnp	1.0.1--py312h7e72e81_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate poolsnp works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+prinseq-plus-plus	1.2.4--h1e84f2d_8	FAIL	rc=3; [smoke] FAIL — could not demonstrate prinseq-plus-plus works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+relion	5.1.0--h4615e1f_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate relion works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+repeatmasker	4.2.3--pl5321hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate repeatmasker works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+repeatmodeler	2.0.8--pl5321hdfd78af_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate repeatmodeler works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+ribowaltz	2.0--r44hdfd78af_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate ribowaltz works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+rmats	4.3.0--py312h570e2b1_5	FAIL	rc=3; [smoke] FAIL — could not demonstrate rmats works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+rsem	1.3.3--pl5321h1e84f2d_12	FAIL	rc=3; [smoke] FAIL — could not demonstrate rsem works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+rust-bio-tools	0.42.2--h9f9ed5d_3	FAIL	rc=3; [smoke] FAIL — could not demonstrate rust-bio-tools works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+s4pred	1.2.1--pyhdfd78af_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate s4pred works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+seacr	1.3--hdfd78af_2	FAIL	rc=3; [smoke] FAIL — could not demonstrate seacr works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+segemehl	0.3.4--h89409d7_13	FAIL	rc=3; [smoke] FAIL — could not demonstrate segemehl works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+semibin	2.3.0--pyhdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate semibin works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+seqcluster	1.2.9--pyh5e36f6f_0	FAIL	rc=3; [smoke] FAIL — seqcluster installs python modules that do not import on linux/arm64: | ModuleNotFoundError: No module named 'pkg_resources' | active python: Python 3.12.13 | site-packages: /opt/conda/lib/python3.1/site-packages /opt/conda/lib/python3.12/site-packages
+shigapass	1.5.0--hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate shigapass works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+smncopynumbercaller	1.1.2--py312h7e72e81_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate smncopynumbercaller works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+snpeff	5.4.0c--hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate snpeff works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+snpsift	5.4.0c--hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate snpsift works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+spades	4.2.0--h3e01217_2	FAIL	rc=3; [smoke] FAIL — could not demonstrate spades works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+sra-tools	3.4.1--habe25ba_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate sra-tools works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+stacks	2.68--h1e84f2d_3	FAIL	rc=3; [smoke] FAIL — could not demonstrate stacks works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+star	2.7.11b--h0aa3852_8	FAIL	rc=3; [smoke] FAIL — could not demonstrate star works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+strdust	0.16.0--h095e6a0_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate strdust works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+strelka	2.9.10--hdfd78af_2	FAIL	rc=3; [smoke] FAIL — could not demonstrate strelka works on linux/arm64: | SyntaxError: invalid syntax | [smoke] WARNING: module detection wrote to stderr: | [smoke] no importable python module, no runnable CLI, no functional check.
+strvctvre	1.10--pyh7e72e81_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate strvctvre works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+subread	2.0.6--h0cbc5ad_3	FAIL	rc=3; [smoke] FAIL — could not demonstrate subread works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+survivor	1.0.7--h1e84f2d_7	FAIL	rc=3; [smoke] FAIL — could not demonstrate survivor works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+svtk	0.0.20190615--py312h187bc89_7	FAIL	rc=3; [smoke] FAIL — svtk installs python modules that do not import on linux/arm64: | ModuleNotFoundError: No module named 'pkg_resources' | active python: Python 3.12.13 | site-packages: /opt/conda/lib/python3.1/site-packages /opt/conda/lib/python3.12/site-packages
+t1k	1.0.10--hba0d0ff_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate t1k works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+transdecoder	6.0.0--pl5321hdfd78af_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate transdecoder works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+trinity	2.15.2--pl5321h1e84f2d_6	FAIL	rc=3; [smoke] FAIL — could not demonstrate trinity works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+tsebra	1.1.2.5--pyhca03a8a_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate tsebra works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+ucsc-bedclip	377--h59a00ea_4	FAIL	rc=3; [smoke] FAIL — could not demonstrate ucsc-bedclip works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+ucsc-bedgraphtobigwig	469--h9fe62a2_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate ucsc-bedgraphtobigwig works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+vcf2db	2020.02.24--pl5321hdfd78af_3	FAIL	rc=3; [smoke] FAIL — could not demonstrate vcf2db works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+vcf2maf	1.6.22--hdfd78af_2	FAIL	rc=3; [smoke] FAIL — could not demonstrate vcf2maf works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+vcflib	1.0.15--h033866a_1	FAIL	rc=3; [smoke] FAIL — could not demonstrate vcflib works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+yara	1.0.5--h3f0cd99_0	FAIL	rc=3; [smoke] FAIL — could not demonstrate yara works on linux/arm64: | [smoke] no importable python module, no runnable CLI, no functional check.
+abra2	2.24--h7f4e536_3	PASS	
+abricate	1.4.0--h05cac1d_0	PASS	
+abritamr	1.3.0--pyh5707d69_0	PASS	
+agat	1.7.0--pl5321hdfd78af_0	PASS	
+alevin-fry	0.9.0--h2c59f48_1	PASS	
+alignoth	1.10.0--hb267aa8_0	PASS	
+ampcombi	3.0.0--pyhdfd78af_0	PASS	
+amulety	2.1.3--pyh8506780_0	PASS	
+angsd	0.940--h63bafd0_4	PASS	
+antismash	8.0.4--pyhdfd78af_1	PASS	
+any2fasta	0.8.1--hdfd78af_0	PASS	
+argnorm	1.1.0--pyhdfd78af_0	PASS	
+arriba	2.5.1--h6cedb8e_0	PASS	
+artic	1.10.2--pyhdfd78af_0	PASS	
+ashlar	1.20.0--pyhdfd78af_0	PASS	
+ataqv	1.3.1--py312h0ad2b02_5	PASS	
+atlas	2.0.3--h5bbc00c_0	PASS	
+autocycler	0.6.2--h60bb4c3_0	PASS	
+bacphlip	0.9.6--py_0	PASS	
+bamaligncleaner	0.3--pyhdfd78af_0	PASS	
+bamcmp	2.2--h163da20_7	PASS	
+bamtools	2.5.3--h86c93f2_0	PASS	
+barrnap	1.10.6--pl5321hdfd78af_0	PASS	
+bcftools	1.23.1--h89c24a7_0	PASS	
+beagle	5.5_27Feb25.75f--hdfd78af_0	PASS	
+bedops	2.4.42--h7645e38_1	PASS	
+bedtools	2.31.1--h63bafd0_3	PASS	
+bigslice	2.0.2--pyh8ed023e_0	PASS	
+bio2zarr	0.2.1--pyhdfd78af_0	PASS	
+bioawk	1.0--h0cbc5ad_13	PASS	
+biscuit	1.10.0.20260724--h411c767_0	PASS	
+bismark	0.25.1--hdfd78af_0	PASS	
+blobtk	0.8.0--py313h7bfe218_0	PASS	
+bowtie	1.3.1--h7658330_11	PASS	
+bowtie2	2.5.5--hf3d0eb7_0	PASS	
+bracken	3.1p1--h1b9dc22_0	PASS	
+bwa	0.7.18--h0cbc5ad_2	PASS	
+bwa-mem2	2.3--h1e84f2d_0	PASS	
+bwameth	0.2.10--pyh106432d_0	PASS	
+caalm	1.0.0--pyhdfd78af_0	PASS	
+canu	2.3--hfc89944_2	PASS	
+cat	6.0.1--hdfd78af_1	PASS	
+cellbender	0.3.2--pyhdfd78af_0	PASS	
+centrifuge	1.0.4.2--h1e84f2d_1	PASS	
+centrifuger	1.1.2--h84a7dbf_0	PASS	
+checkqc	4.0.7--pyhdfd78af_0	PASS	
+checkv	1.1.1--pyh106432d_0	PASS	
+chewbbaca	3.5.4--pyh106432d_0	PASS	
+chopper	0.13.0--ha2fee11_0	PASS	
+chromap	0.3.2--h1e84f2d_0	PASS	
+chromograph	1.3.1--pyhdfd78af_2	PASS	
+circexplorer2	2.3.8--pyh864c0ab_1	PASS	
+civicpy	5.4.0--pyhdfd78af_1	PASS	
+clame	1.0--h80f0ee0_3	PASS	
+clipkit	2.12.0--pyhdfd78af_0	PASS	
+clustalo	1.2.4--h80f0ee0_10	PASS	
+clusty	1.2.2--h23ed54d_0	PASS	
+cmaple	1.1.0--h80f0ee0_1	PASS	
+cmseq	1.0.4--pyhb7b1952_0	PASS	
+cnvkit	0.9.10--pyhdfd78af_0	PASS	
+cnvnator	0.4.1--py313hb659247_12	PASS	
+cnvpytor	1.3.2--pyhdfd78af_0	PASS	
+cobs	0.3.1--h7f4e536_1	PASS	
+concoct	1.1.0--py312hc1ac19e_9	PASS	
+conifer	1.0.3--h0cbc5ad_0	PASS	
+cooler	0.10.4--pyhdfd78af_0	PASS	
+cooltools	0.7.1--py312h6ad6c05_3	PASS	
+coptr	1.1.4--pyhdfd78af_1	PASS	
+coverm	0.7.0--h3ad02e1_4	PASS	
+crabs	1.14.0--pyhdfd78af_0	PASS	
+cramino	1.3.0--h30f2c0e_0	PASS	
+crispresso2	2.3.4--py313h1a40087_0	PASS	
+cromwell	0.40--1	PASS	
+csvtk	0.31.0--h23ed54d_0	PASS	
+cutadapt	5.2--py313h7ebdf71_1	PASS	
+cutesv	2.1.3--pyhdfd78af_0	PASS	
+damageprofiler	1.1--hdfd78af_2	PASS	
+deacon	0.15.0--hacc9189_0	PASS	
+dedup	0.12.9--hdfd78af_0	PASS	
+deeptools	3.5.6--pyhdfd78af_0	PASS	
+delly	2.0.0--ha658904_0	PASS	
+demuxem	0.1.8--pyhdfd78af_0	PASS	
+diamond	2.1.12--h877b1ff_3	PASS	
+doubletdetection	4.3.0.post1--pyhdfd78af_0	PASS	
+dragonflye	1.2.1--hdfd78af_0	PASS	
+drep	3.6.2--pyhdfd78af_0	PASS	
+dysgu	1.8.8--py313hd3ce107_0	PASS	
+ectyper	2.0.0--pyhdfd78af_4	PASS	
+elprep	5.1.3--h8865c2f_2	PASS	
+emu	3.6.2--hdfd78af_0	PASS	
+endorspy	1.4--hdfd78af_0	PASS	
+epic2	0.0.54--py312hc072545_0	PASS	
+fairy	0.5.8--h3af2550_0	PASS	
+falco	1.2.3--h7f4e536_1	PASS	
+famsa	2.4.1--h23ed54d_0	PASS	
+fast2q	2.8.1--pyh7e72e81_0	PASS	
+fastcov	0.1.3--hdfd78af_0	PASS	
+fastdup	1.0.0--hbaa2b13_0	PASS	
+fastme	2.1.6.3--h661a7b0_1	PASS	
+fastp	0.23.4--haf58d86_5	PASS	
+fastplong	0.4.1--ha7486ba_0	PASS	
+fastqc	0.12.1--hdfd78af_0	PASS	
+fastqe	0.5.2--pyhdfd78af_0	PASS	
+fasttree	2.2.0--h661a7b0_1	PASS	
+ffq	0.3.1--pyhdfd78af_0	PASS	
+fgbio	4.1.0--hdfd78af_0	PASS	
+fgumi	0.3.0--h389c417_0	PASS	
+filtlong	0.2.1--h7f4e536_4	PASS	
+finaletoolkit	0.11.1--pyhdfd78af_0	PASS	
+flye	2.9.6--py313h30571f8_1	PASS	
+foldcomp	1.0.0--h94579f3_0	PASS	
+foldmason	2.7bd21ed--pl5321h3af90e8_0	PASS	
+foldseek	8.ef4e960--pl5321hd5e968b_1	PASS	
+fq	0.12.0--h23ed54d_0	PASS	
+fqtk	0.3.1--h415ceb9_3	PASS	
+freebayes	1.3.10--h1c6109c_0	PASS	
+freyja	2.0.1--pyhdfd78af_0	PASS	
+galah	0.4.2--h3af2550_2	PASS	
+ganon	2.1.0--py312h5a2988e_3	PASS	
+gappa	0.9.0--h1e84f2d_0	PASS	
+gapseq	2.1.0--hdfd78af_0	PASS	
+gawk	5.3.0--h930d8bc_0	PASS	
+gecco	0.10.3--pyhdfd78af_1	PASS	
+gedi	1.0.6a--hdfd78af_1	PASS	
+genin2	2.1.6--pyhdfd78af_0	PASS	
+genmap	1.3.0--h163da20_4	PASS	
+genmod	3.10.2--pyh7e72e81_0	PASS	
+genomad	1.12.0--pyhdfd78af_0	PASS	
+genomescope2	2.1.0--py313r44hdfd78af_0	PASS	
+geofetch	0.12.11--pyhdfd78af_0	PASS	
+getorganelle	1.7.7.1--pyhdfd78af_0	PASS	
+gfaffix	0.2.2--hb05d258_0	PASS	
+gfastats	1.3.11--h1e84f2d_0	PASS	
+gfatools	0.5.5--h0cbc5ad_0	PASS	
+gffcompare	0.12.10--h163da20_0	PASS	
+gffread	0.12.7--h1e84f2d_6	PASS	
+gget	0.29.0--pyhdfd78af_0	PASS	
+goatools	1.2.3--pyh7cba7a3_2	PASS	
+goleft	0.2.6--h8865c2f_1	PASS	
+grabix	0.1.8--h1e84f2d_12	PASS	
+graphtyper	2.7.7--h49ede26_1	PASS	
+gridss	2.13.2--h0b41a95_6	PASS	
+grimer	1.1.0--pyhdfd78af_0	PASS	
+gsea	4.3.2--hdfd78af_0	PASS	
+gtdbtk	2.5.2--pyh1f0d9b5_0	PASS	
+gtfsort	0.2.4--heafea3b_0	PASS	
+gubbins	3.4.3--py310h1f8e937_1	PASS	
+gunc	1.1.1--pyhdfd78af_0	PASS	
+hamronization	1.2.1--pyhdfd78af_0	PASS	
+haplocheck	1.3.3--h2a3209d_2	PASS	
+haplogrep3	3.2.2--hdfd78af_1	PASS	
+hicap	1.0.4--pyhdfd78af_2	PASS	
+hicexplorer	3.7.6--pyhdfd78af_0	PASS	
+hifiasm	0.25.0--h0aa3852_0	PASS	
+hisat2	2.2.2--h80f0ee0_0	PASS	
+hmtnote	0.7.2--pyhdfd78af_1	PASS	
+homer	5.1--pl5321h1b9dc22_1	PASS	
+hostile	2.0.2--pyhdfd78af_0	PASS	
+htseq	2.1.2--py313h5c29864_2	PASS	
+humann	3.9--py312hdfd78af_0	PASS	
+hypo	1.0.3--h1cdfba5_3	PASS	
+idemux	0.1.6--pyhdfd78af_0	PASS	
+idr	2.0.4.2--py39h8a409c4_12	PASS	
+igv	2.19.8--h33ea123_0	PASS	
+iqtree	3.1.2--h2705416_0	PASS	
+irescue	1.2.0--pyhdfd78af_0	PASS	
+islandpath	1.0.6--hdfd78af_0	PASS	
+ismapper	2.0.2--pyhdfd78af_1	PASS	
+ivar	1.4.4--h1e84f2d_0	PASS	
+jvarkit	2024.08.25--hdfd78af_2	PASS	
+kaiju	1.10.1--h0aa3852_3	PASS	
+kallisto	0.51.1--h215a090_2	PASS	
+khmer	3.0.0a3--py311h67431bb_8	PASS	
+kma	1.6.11--he84ed4f_0	PASS	
+kmcp	0.9.4--h23ed54d_1	PASS	
+kmergenie	1.7051--py27r40h1e84f2d_11	PASS	
+kraken2	2.1.3--pl5321h1e84f2d_4	PASS	
+krakenuniq	1.0.4--pl5321h1268609_4	PASS	
+last	1651--hba0d0ff_0	PASS	
+learnmsa	2.0.16--pyhdfd78af_0	PASS	
+leviosam2	0.5.0--h163da20_1	PASS	
+liftoff	1.6.3--pyhdfd78af_0	PASS	
+lofreq	2.1.5--py312h134d72b_15	PASS	
+longphase	2.0.2--h02b7777_0	PASS	
+longstitch	1.0.5--hdfd78af_2	PASS	
+macs2	2.2.9.1--py311he810f1b_5	PASS	
+macs3	3.0.4--py313hf237484_0	PASS	
+macse	2.07--hdfd78af_0	PASS	
+macsyfinder	2.1.6--pyhdfd78af_0	PASS	
+mafft	7.525--h8a409c4_1	PASS	
+mageck	0.5.9.5--py312h42fd94b_8	PASS	
+mapad	0.45.0--h0ab2542_1	PASS	
+mapdamage2	2.2.3--py312h821f18e_0	PASS	
+mash	2.3--heca2785_10	PASS	
+mashmap	3.1.3--pl5321hdf7b3cb_2	PASS	
+mashtree	1.4.6--pl5321hdba15ac_4	PASS	
+maxquant	2.0.3.0--py310hdfd78af_0	PASS	
+mcroni	1.0.4--pyh5e36f6f_0	PASS	
+mdust	2006.10.17--h661a7b0_7	PASS	
+medaka	2.2.2--py312hd37d28c_0	PASS	
+megahit	1.2.9--h3f0cd99_8	PASS	
+melon	0.2.5--pyhdfd78af_0	PASS	
+memote	0.17.0--pyhdfd78af_0	PASS	
+merfin	1.1--h4ba1498_0	PASS	
+metabat2	2.17--h3b906d2_1	PASS	
+metabuli	1.2.0--pl5321hd0c913a_0	PASS	
+metacache	2.5.0--h1e84f2d_0	PASS	
+metaeuk	6.a5d39d9--pl5321h76f4f2e_4	PASS	
+metaphlan	4.1.0--pyhca03a8a_0	PASS	
+methurator	2.1.1--pyhdfd78af_0	PASS	
+mgikit	2.1.1--hab7b2bf_0	PASS	
+mifaser	1.64--pyh106432d_0	PASS	
+minia	3.2.6--h87f936d_6	PASS	
+miniasm	0.3--h0cbc5ad_5	PASS	
+minimac4	4.1.6--h3413df4_2	PASS	
+minimap2	2.28--h0cbc5ad_4	PASS	
+miniprot	0.18--h0cbc5ad_0	PASS	
+miranda	3.3a--h661a7b0_9	PASS	
+mirtrace	1.0.1--hdfd78af_1	PASS	
+mlst	2.33.1--hdfd78af_0	PASS	
+mosdepth	0.3.10--h7991e5a_1	PASS	
+motus	4.0.4--pyhdfd78af_0	PASS	
+msisensor	0.5--h54ec578_7	PASS	
+msisensor-pro	1.3.0--h61043a5_1	PASS	
+mtnucratio	0.7.1--hdfd78af_0	PASS	
+multiqc	1.21--pyhdfd78af_0	PASS	
+multivcfanalyzer	0.89.0--hdfd78af_0	PASS	
+mummer	3.23--pl5321h80f0ee0_21	PASS	
+muscle	5.3--h163da20_3	PASS	
+mygene	3.2.2--pyh5e36f6f_0	PASS	
+myloasm	0.5.1--h6789a04_1	PASS	
+nail	0.5.0--hba26009_0	PASS	
+nanocomp	1.25.6--pyhdfd78af_0	PASS	
+nanofilt	2.8.0--py_0	PASS	
+nanolyse	1.2.0--py_0	PASS	
+nanomonsv	0.9.0--pyhdfd78af_0	PASS	
+nanoplot	1.46.1--pyhdfd78af_0	PASS	
+nanopolish	0.14.0--h0aa3852_6	PASS	
+nanoq	0.10.0--h3af2550_4	PASS	
+nextclade	3.21.2--h23ed54d_0	PASS	
+ngmaster	2.0.0--pyhdfd78af_0	PASS	
+nonpareil	3.5.5--r44h1e84f2d_2	PASS	
+octopusv	0.3.3--pyhdfd78af_0	PASS	
+odgi	0.9.4--h1e84f2d_0	PASS	
+opt	0.0.1--pyhdfd78af_0	PASS	
+optitype	1.5.0--pyhdfd78af_0	PASS	
+orfipy	0.0.4--py312h42fd94b_5	PASS	
+pairix	0.3.9--py312h821f18e_0	PASS	
+pairtools	1.1.3--py312hf52ee45_0	PASS	
+panacus	0.4.2--h389c417_0	PASS	
+pangolin	4.4--pyhdfd78af_1	PASS	
+paraclu	10--h1e84f2d_6	PASS	
+pasty	2.2.1--hdfd78af_0	PASS	
+pbptyper	2.0.0--hdfd78af_0	PASS	
+pcne	3.3.1--hdfd78af_0	PASS	
+pear	0.9.11--h36408cf_0	PASS	
+peddy	0.4.8--pyh5e36f6f_0	PASS	
+perbase	1.4.0--h2b90a6b_0	PASS	
+percolator	3.7.1--h0ab4d64_2	PASS	
+perl	5.26.2--hb9de7d4_1008	PASS	
+pharokka	1.10.0--pyhdfd78af_0	PASS	
+phispy	5.0.10--py313h1984961_0	PASS	
+picard	3.4.0--hdfd78af_0	PASS	
+pigz	2.8--h1abf092_2	PASS	
+pilon	1.24--hdfd78af_0	PASS	
+pindel	0.2.5b9--h1e84f2d_12	PASS	
+piscem	0.23.0--h09c244b_0	PASS	
+plink	1.90b7.7--h0bcb338_1	PASS	
+plotsr	1.1.1--pyh7cba7a3_0	PASS	
+pmdtools	0.60--hdfd78af_5	PASS	
+polypolish	0.6.1--hab7b2bf_0	PASS	
+popscle	0.1--hfd3d8ae_1	PASS	
+porechop	0.2.4--py312h42fd94b_9	PASS	
+porechop_abi	0.5.0post1--py312h645634a_0	PASS	
+portcullis	1.2.4--py313h79e472c_5	PASS	
+preseq	3.2.0--h7f4e536_6	PASS	
+president	0.6.8--pyhdfd78af_0	PASS	
+presto	0.7.9--pyhdfd78af_0	PASS	
+pridepy	0.0.16--pyhdfd78af_0	PASS	
+prodigal	2.6.3--h0cbc5ad_11	PASS	
+prokka	1.15.6--pl5321hdfd78af_0	PASS	
+proovframe	0.9.7--hdfd78af_1	PASS	
+proteinortho	6.3.6--ha69ce42_0	PASS	
+pureclip	1.3.1--r44h23ed54d_2	PASS	
+pychopper	2.7.10--pyhdfd78af_0	PASS	
+pydamage	1.0--pyhdfd78af_0	PASS	
+pypgx	0.26.0--pyh7e72e81_0	PASS	
+pypolca	0.4.0--pyhdfd78af_0	PASS	
+pyrodigal	3.7.1--py313h7ebdf71_1	PASS	
+python	3.10.4--h5016f1d_0_cpython	PASS	
+qcat	1.1.0--pyh864c0ab_1	PASS	
+qcatch	0.2.12--pyhdfd78af_0	PASS	
+qualimap	2.3--hdfd78af_0	PASS	
+quast	5.3.0--py313pl5321h0aa3852_2	PASS	
+racon	1.5.0--h1e84f2d_8	PASS	
+ragtag	2.1.0--pyhdfd78af_2	PASS	
+rapidnj	2.3.3--h4ba1498_0	PASS	
+rastair	2.1.1--he23d54a_0	PASS	
+rasusa	4.1.0--hb05d258_0	PASS	
+rattle	1.0--h0aa3852_0	PASS	
+raxml-ng	2.0.2--h6e375b3_0	PASS	
+regtools	1.0.0--h1e84f2d_5	PASS	
+resfinder	4.7.2--pyhdfd78af_0	PASS	
+rgi	6.0.8--pyh05cac1d_0	PASS	
+rhocall	0.5.1--py312h187bc89_5	PASS	
+ribodetector	0.3.3--pyhdfd78af_0	PASS	
+ribotish	0.2.8--pyhdfd78af_0	PASS	
+ribotricer	1.5.0--pyhdfd78af_0	PASS	
+riker	0.2.0--h2013a2e_0	PASS	
+rpbp	4.0.1--py313haca9121_1	PASS	
+rseqc	5.0.4--pyhdfd78af_1	PASS	
+rustqc	0.2.1--h23ed54d_0	PASS	
+salmon	1.10.3--h6e0737c_5	PASS	
+sam2lca	1.1.4--pyhdfd78af_1	PASS	
+sambamba	1.0.1--h631fa95_4	PASS	
+samblaster	0.1.26--h163da20_7	PASS	
+samclip	0.4.0--hdfd78af_1	PASS	
+samshee	0.2.14--pyhdfd78af_0	PASS	
+samtools	1.21--h0b41a95_1	PASS	
+savana	1.3.7--pyhdfd78af_0	PASS	
+scanpy	1.12.4--pyhd8ed1ab_1	PASS	
+segul	0.23.2--h3af2550_0	PASS	
+sentieon	202503.03--h9a91658_0	PASS	
+seqfu	1.26.0--h0bbf5d2_0	PASS	
+seqkit	2.11.0--h8865c2f_0	PASS	
+seqtk	1.4--h0cbc5ad_3	PASS	
+sequali	1.0.2--py313h7ebdf71_1	PASS	
+seqwish	0.7.11--h0aa3852_1	PASS	
+severus	1.7--pyhdfd78af_0	PASS	
+sexdeterrmine	1.1.2--hdfd78af_1	PASS	
+sgdemux	1.2.0--hab7b2bf_4	PASS	
+shigatyper	2.0.5--pyhdfd78af_0	PASS	
+shigeifinder	1.3.5--pyhdfd78af_0	PASS	
+sickle	0.7.0--pyh9f0ad1d_0	PASS	
+simpleaf	0.25.0--h6789a04_0	PASS	
+ska	1.0--h1e84f2d_7	PASS	
+skani	0.3.2--h60bb4c3_0	PASS	
+skesa	2.5.1--h1e84f2d_3	PASS	
+smoothxg	0.8.2--h3cbedc2_1	PASS	
+snakemake	9.22.0--hdfd78af_0	PASS	
+sniffles	2.8.0--pyhdfd78af_0	PASS	
+somalier	0.3.2--hed5566f_0	PASS	
+sortmerna	4.3.7--h7021222_1	PASS	
+sourcepredict	0.5.1--pyhdfd78af_0	PASS	
+sourmash	4.9.4--hdfd78af_0	PASS	
+spatyper	0.3.3--pyhdfd78af_3	PASS	
+spring	1.1.1--h78569d1_3	PASS	
+stainwarpy	0.2.4--pyhdfd78af_0	PASS	
+staphscan	0.3.1--pyhdfd78af_0	PASS	
+staramr	0.12.2--pyhdfd78af_0	PASS	
+stecfinder	1.1.2--pyhdfd78af_0	PASS	
+stranger	0.10.2--pyhdfd78af_0	PASS	
+stringtie	2.2.1--hf1d9491_6	PASS	
+strobealign	0.17.0--h0aa3852_0	PASS	
+svaba	1.2.0--h11fa803_1	PASS	
+svdb	2.10.2--py313h1a40087_0	PASS	
+svim	2.0.0--pyhdfd78af_0	PASS	
+sylph	0.7.0--h415ceb9_2	PASS	
+sylph-tax	1.2.0--pyhdfd78af_0	PASS	
+syri	1.7.1--py311h271088c_1	PASS	
+tabix	1.11--hdfd78af_0	PASS	
+tagbam	0.1.0--hab7b2bf_0	PASS	
+taxonkit	0.20.0--h23ed54d_1	PASS	
+taxpasta	0.7.0--pyhdfd78af_1	PASS	
+td2	1.1.0--pyhdfd78af_0	PASS	
+tesorter	1.5.1--pyhdfd78af_0	PASS	
+tiddit	3.6.1--py312h29e8720_2	PASS	
+tidk	0.2.65--h30f2c0e_0	PASS	
+tmb	1.6.0--pyhdfd78af_1	PASS	
+topas	1.0.1--hdfd78af_1	PASS	
+toulligqc	2.8.4--pyhdfd78af_1	PASS	
+traitar	3.0.1--pyhdfd78af_1	PASS	
+trimal	1.5.1--h163da20_0	PASS	
+trimmomatic	0.39--hdfd78af_2	PASS	
+trust4	1.1.10--hba0d0ff_0	PASS	
+truvari	5.4.0--pyhdfd78af_0	PASS	
+trycycler	0.5.6--pyhdfd78af_0	PASS	
+ultra	1.2.1--h163da20_0	PASS	
+ultraplex	1.2.10--py39hd1b7a2b_0	PASS	
+umicollapse	1.1.0--hdfd78af_0	PASS	
+umitools	0.3.4--py_2	PASS	
+unicycler	0.5.1--py312hc072545_5	PASS	
+upd	0.1.1--pyhdfd78af_0	PASS	
+varscan	2.4.6--hdfd78af_0	PASS	
+vcf2cytosure	0.10.0--pyh106432d_0	PASS	
+vcfanno	0.3.8--h434876b_0	PASS	
+vcfexpress	0.3.4--hab7b2bf_0	PASS	
+vcftools	0.1.16--pl5321h1e84f2d_12	PASS	
+vclust	1.3.1--py312h42fd94b_1	PASS	
+vembrane	2.6.0--pyhdfd78af_0	PASS	
+vg	1.73.0--h23ed54d_0	PASS	
+viennarna	2.7.2--py313pl5321h303c5bc_1	PASS	
+virusrecom	1.4.0--pyhdfd78af_0	PASS	
+vrhyme	1.1.0--pyhdfd78af_1	PASS	
+vsearch	2.31.0--hd0c913a_0	PASS	
+wfmash	0.24.2--h545c2f8_1	PASS	
+wgsim	1.0--h0cbc5ad_10	PASS	
+whatshap	2.8--py312h42fd94b_0	PASS	
+wipertools	1.1.5--pyhdfd78af_0	PASS	
+wisecondorx	1.3.2--pyhdfd78af_0	PASS	
+xengsort	2.2.1--pyhdfd78af_0	PASS	
+yahs	1.2.2--h0cbc5ad_1	PASS	
+yak	0.1--h0cbc5ad_6	PASS	
