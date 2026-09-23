@@ -74,6 +74,7 @@ LABEL org.opencontainers.image.title="${IMAGE_TITLE}" \
       org.opencontainers.image.vendor="Playground Logic" \
       org.opencontainers.image.description="Native arm64 rebuild of ${IMAGE_SUBJECT}. Unofficial community rebuild by Playground Logic; not affiliated with or endorsed by BioContainers or AWS." \
       io.aarchbio.mulled-specs="${MULLED_SPECS}" \
+      io.aarchbio.extra-packages="${EXTRA_PACKAGES}" \
       io.aarchbio.source-channel="${SOURCE_CHANNEL}" \
       io.aarchbio.source-package="${PKG}" \
       io.aarchbio.source-version="${PKG_VERSION}" \

@@ -54,10 +54,36 @@ print(" ".join(sorted(mods)))
 PY
 ' 2>/dev/null | tr -d '\r')"
 
+# An optional per-tool FUNCTIONAL check, for tools where importing proves too
+# little. Convention: builder/functional/<pkg>.py, run inside the image if present.
+#
+# Needed because import is a weak proxy. aarchbio#63 round two: scanpy imported
+# fine, loaded data, normalised, ran PCA and built a neighbour graph, and only
+# failed at sc.tl.leiden because the clustering backends were missing. The generic
+# builder cannot synthesise a meaningful workload per tool, so the tools that
+# warrant one get a hand-written file, and everything else keeps the import gate.
+HERE_SMOKE="$(cd "$(dirname "$0")" && pwd)"
+FUNC="${HERE_SMOKE}/functional/${PKG}.py"
+
+functional_check() {
+  [ -f "$FUNC" ] || return 0
+  echo "[smoke] running functional check: functional/${PKG}.py"
+  if docker run --rm -i --platform "$PLATFORM" "$IMAGE" python - < "$FUNC" 2>&1 \
+       | sed 's/^/[smoke]   /'; then
+    return 0
+  fi
+  echo "[smoke] FAIL — ${PKG} imports but its functional check did not pass." >&2
+  echo "[smoke] The package loads and then fails in real use, which an import" >&2
+  echo "[smoke] test cannot see. Not publishing." >&2
+  return 1
+}
+
 if [ -n "${MODS// /}" ]; then
   echo "[smoke] ${PKG} installs python modules: ${MODS}"
   if run sh -c "for m in ${MODS}; do python -c \"import \$m\" || exit 1; done" >/dev/null 2>&1; then
-    echo "[smoke] PASS — every ${PKG} module imports on ${PLATFORM}"
+    echo "[smoke] imports OK on ${PLATFORM}"
+    if ! functional_check; then exit 3; fi
+    echo "[smoke] PASS — ${PKG} verified on ${PLATFORM}"
     exit 0
   fi
   echo "[smoke] FAIL — ${PKG} installs python modules that do not import on ${PLATFORM}:" >&2
