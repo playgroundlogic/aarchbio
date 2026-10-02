@@ -49,6 +49,32 @@ if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   fi
 fi
 
+# --- level 0: architecture integrity (MANDATORY, before anything else) -------
+# The project's entire premise is "native, never emulated", and until the catalog
+# audit nothing enforced it: 7 images shipped x86-64 binaries and 5 passed the gate.
+# This runs first because it is the one check that cannot be satisfied by accident,
+# and because behaviour is not evidence here — Docker Desktop's Rosetta handler
+# runs static x86-64 binaries happily on a Mac while they cannot execute on
+# Graviton. Read the ELF header, don't trust the exit code.
+case "$PLATFORM" in
+  linux/arm64) EXPECT_MACHINE=183 ;;
+  linux/amd64) EXPECT_MACHINE=62  ;;
+  *) echo "[smoke] FAIL — unknown platform ${PLATFORM}; refusing to guess its ELF machine." >&2; exit 3 ;;
+esac
+echo "[smoke] checking ELF architecture (expect e_machine=${EXPECT_MACHINE} for ${PLATFORM}) ..."
+ARCH_OUT="$(docker run --rm -i --platform "$PLATFORM" "$IMAGE" sh -s -- "$EXPECT_MACHINE" \
+            < "${HERE_SMOKE}/arch-check.sh" 2>&1)"
+if printf '%s' "$ARCH_OUT" | grep -q '^ARCH_RESULT FAIL'; then
+  echo "[smoke] FAIL — image contains binaries for the WRONG ARCHITECTURE:" >&2
+  printf '%s\n' "$ARCH_OUT" | grep '^ARCH_BAD' | head -20 | sed 's/^ARCH_BAD /[smoke]   /' >&2
+  n_bad="$(printf '%s' "$ARCH_OUT" | sed -n 's/^ARCH_RESULT FAIL //p')"
+  echo "[smoke]   (${n_bad} mismatched of $(printf '%s' "$ARCH_OUT" | sed -n 's/^ARCH_CHECKED //p') ELF files)" >&2
+  echo "[smoke] These may appear to run on an Apple Silicon Mac via Rosetta and" >&2
+  echo "[smoke] CANNOT execute on an aarch64 Linux host. Not publishing." >&2
+  exit 3
+fi
+echo "[smoke] arch OK ($(printf '%s' "$ARCH_OUT" | sed -n 's/^ARCH_CHECKED //p') ELF files, all ${PLATFORM})"
+
 HAS_PY=0
 if run sh -c 'command -v python >/dev/null 2>&1' >/dev/null 2>&1; then HAS_PY=1; fi
 
@@ -106,13 +132,74 @@ elif [ "$HAS_PY" = "1" ]; then
   echo "[smoke] note: ${PKG} has no top-level python module in its conda-meta record"
 fi
 
-# --- level 1: CLI (only needed if imports didn't already prove it) -----------
+# --- level 2b: R libraries, the R analogue of the import check ---------------
+# R/bioconductor packages ship no CLI and no python module, so every level above
+# was blind to them — 8 of the audit's false FAILs were exactly this. The library
+# directory name is read from conda-meta (DESeq2, ASCAT, riboWaltz), because it is
+# capitalised differently from the conda package name (bioconductor-deseq2).
 if [ "$PROVEN" = "0" ]; then
-  if run "$PKG" --version >/dev/null 2>&1 \
-     || run "$PKG" --help >/dev/null 2>&1 \
-     || run sh -c "command -v $PKG" >/dev/null 2>&1; then
-    echo "[smoke] ${PKG} CLI present and runnable on ${PLATFORM}"
-    PROVEN=1
+  RLIBS="$(run sh -c '
+    rec=$(ls /opt/conda/conda-meta/'"$PKG"'-*.json 2>/dev/null | head -1)
+    [ -n "$rec" ] || exit 0
+    grep -o "\"lib/R/library/[^/\"]*/" "$rec" | sed "s|\"lib/R/library/||; s|/$||" | sort -u | head -10
+  ' 2>/dev/null | tr -d '\r')"
+  if [ -n "${RLIBS// /}" ]; then
+    echo "[smoke] ${PKG} ships R library/libraries: ${RLIBS}"
+    if run sh -c "for l in ${RLIBS}; do Rscript --vanilla -e \"library(\$l)\" >/dev/null 2>&1 || exit 1; done" >/dev/null 2>&1; then
+      echo "[smoke] R library/libraries load on ${PLATFORM}"
+      PROVEN=1
+    else
+      echo "[smoke] FAIL — ${PKG} ships R libraries that do not load on ${PLATFORM}:" >&2
+      run sh -c "for l in ${RLIBS}; do Rscript --vanilla -e \"library(\$l)\" 2>&1 | tail -3; done" >&2 || true
+      exit 3
+    fi
+  fi
+fi
+
+# --- level 1: entry points, derived from conda-meta and actually EXECUTED -----
+# Two fixes over the old `$PKG --version || --help || command -v $PKG`:
+#
+# 1. The binary is usually not named after the package. That produced 95 false
+#    FAILs in the catalog audit — abyss ships abyss-pe, star ships STAR, gatk4
+#    ships gatk, emboss ships 442 binaries. Entry points now come from the
+#    package's own conda-meta file list.
+# 2. `command -v` proves a path exists, not that it runs. transdecoder's three
+#    PATH entries are dangling symlinks into a directory that no longer has those
+#    names; evigene puts everything under opt/ with nothing on PATH; glnexus's
+#    binary is x86-64. All three "passed" existence.
+#
+# Acceptance is "it executed", not "it exited 0": plenty of bioinformatics tools
+# exit non-zero on --version or print usage to stderr. Shells report 127 for
+# not-found and 126 for found-but-not-executable, which is exactly the distinction
+# that matters, so those two codes are the failure signal.
+if [ "$PROVEN" = "0" ]; then
+  ENTRIES="$(run sh -c '
+    rec=$(ls /opt/conda/conda-meta/'"$PKG"'-*.json 2>/dev/null | head -1)
+    [ -n "$rec" ] || exit 0
+    grep -o "\"\(bin\|libexec\)/[^\"]*\"" "$rec" | tr -d "\"" | head -40
+  ' 2>/dev/null | tr -d '\r')"
+
+  if [ -z "${ENTRIES// /}" ]; then
+    echo "[smoke] note: ${PKG} owns no bin/ or libexec/ entry point in its conda-meta record"
+  else
+    n_entries="$(printf '%s\n' "$ENTRIES" | grep -c . || true)"
+    echo "[smoke] ${PKG} owns ${n_entries} entry point(s); checking they execute ..."
+    RAN=0
+    for e in $ENTRIES; do
+      rc="$(run sh -c "/opt/conda/${e} --version >/dev/null 2>&1; echo \$?" 2>/dev/null | tr -d '\r')"
+      case "$rc" in
+        126|127|"") ;;                       # not found / not executable -> no proof
+        *) echo "[smoke] ${e} executes (exit ${rc})"; RAN=1; break ;;
+      esac
+    done
+    if [ "$RAN" = "1" ]; then
+      PROVEN=1
+    else
+      echo "[smoke] FAIL — ${PKG} owns ${n_entries} entry point(s) and NONE of them execute:" >&2
+      printf '%s\n' "$ENTRIES" | head -8 | sed 's|^|[smoke]   /opt/conda/|' >&2
+      echo "[smoke] (exit 127 = missing target, e.g. a dangling symlink; 126 = not executable)" >&2
+      exit 3
+    fi
   fi
 fi
 
