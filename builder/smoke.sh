@@ -8,16 +8,24 @@
 # Both scanpy 1.7.2 (#63) and humann 3.9 are noarch, so they went through the
 # unchecked path. Duplicating the logic would let them drift apart again.
 #
-# Three levels, in increasing strength, because each level caught a real defect the
-# level above it missed:
+# Five levels, in increasing strength. Each exists because the level above it let a
+# real defect through, so none of them is redundant:
 #
-#   1. CLI probe      — `$PKG --version|--help`, or the binary existing. Vacuous
-#      for a library, which is how scanpy 1.7.2 shipped unusable.
-#   2. Import         — every python module the package installs must import.
-#      Caught humann 3.9, published as subdir=noarch but with a py312 build string
-#      and only `python >=3`, its files baked at lib/python3.12/site-packages, so
-#      against python 3.13 they sat where python never looks.
-#   3. Functional     — optional builder/functional/<pkg>.py, run inside the image.
+#   0. Arch        — e_machine of every ELF (arch-check.sh). 7 images shipped
+#      x86-64 payloads under an arm64 tag and 5 passed everything else; pureclip's
+#      own primary binary is x86-64. On-PATH mismatches are fatal; vendored ones
+#      warn, because riboWaltz ships an x86-64 `pak` library and still works.
+#   1. Entry point — the binaries the package owns, per conda-meta, EXECUTED.
+#      `command -v $PKG` was wrong twice: the binary is usually not named after the
+#      package (abyss->abyss-pe, star->STAR: 95 false FAILs), and existence is not
+#      execution (transdecoder's entry points are dangling symlinks).
+#   2. Import      — every python module the package installs must import. Caught
+#      humann 3.9, published as subdir=noarch with a py312 build string and only
+#      `python >=3`, its files baked at lib/python3.12/site-packages, so against
+#      python 3.13 they sat where python never looks.
+#   2b. R library  — Rscript library(). R/bioconductor packages have no CLI and no
+#      python module, so nothing could ever prove them: 8 more false FAILs.
+#   3. Functional  — optional builder/functional/<pkg>.py, run inside the image.
 #      Caught scanpy round two: it imported, loaded data, normalised, ran PCA and
 #      built a neighbour graph, and only failed at sc.tl.leiden because the
 #      clustering backends were absent. Import is a weak proxy for "works".
@@ -65,15 +73,28 @@ echo "[smoke] checking ELF architecture (expect e_machine=${EXPECT_MACHINE} for 
 ARCH_OUT="$(docker run --rm -i --platform "$PLATFORM" "$IMAGE" sh -s -- "$EXPECT_MACHINE" \
             < "${HERE_SMOKE}/arch-check.sh" 2>&1)"
 if printf '%s' "$ARCH_OUT" | grep -q '^ARCH_RESULT FAIL'; then
-  echo "[smoke] FAIL — image contains binaries for the WRONG ARCHITECTURE:" >&2
-  printf '%s\n' "$ARCH_OUT" | grep '^ARCH_BAD' | head -20 | sed 's/^ARCH_BAD /[smoke]   /' >&2
-  n_bad="$(printf '%s' "$ARCH_OUT" | sed -n 's/^ARCH_RESULT FAIL //p')"
-  echo "[smoke]   (${n_bad} mismatched of $(printf '%s' "$ARCH_OUT" | sed -n 's/^ARCH_CHECKED //p') ELF files)" >&2
+  echo "[smoke] FAIL — image has WRONG-ARCHITECTURE binaries on PATH:" >&2
+  printf '%s\n' "$ARCH_OUT" | grep '^ARCH_BAD CRITICAL' | head -20 | sed 's/^ARCH_BAD CRITICAL /[smoke]   /' >&2
+  echo "[smoke]   ($(printf '%s' "$ARCH_OUT" | sed -n 's/^ARCH_RESULT FAIL //p'), of $(printf '%s' "$ARCH_OUT" | sed -n 's/^ARCH_CHECKED //p') ELF files checked)" >&2
   echo "[smoke] These may appear to run on an Apple Silicon Mac via Rosetta and" >&2
   echo "[smoke] CANNOT execute on an aarch64 Linux host. Not publishing." >&2
   exit 3
 fi
-echo "[smoke] arch OK ($(printf '%s' "$ARCH_OUT" | sed -n 's/^ARCH_CHECKED //p') ELF files, all ${PLATFORM})"
+# Vendored mismatches do not block: the tool itself may never load them, and the
+# remaining levels still have to prove the package works. They ARE surfaced,
+# because "mostly native" is a claim users deserve to see rather than discover.
+if printf '%s' "$ARCH_OUT" | grep -q '^ARCH_RESULT WARN'; then
+  echo "[smoke] WARNING: non-native binaries present, none on PATH:" >&2
+  printf '%s\n' "$ARCH_OUT" | grep '^ARCH_BAD VENDORED' | head -8 | sed 's/^ARCH_BAD VENDORED /[smoke]   /' >&2
+  n_v="$(printf '%s\n' "$ARCH_OUT" | grep -c '^ARCH_BAD VENDORED' || true)"
+  [ "$n_v" -gt 8 ] && echo "[smoke]   ... and $((n_v - 8)) more" >&2
+  echo "[smoke] Not blocking: these are vendored sub-libraries, not the tool's own" >&2
+  echo "[smoke] entry points. The levels below must still prove the package works." >&2
+fi
+if printf '%s' "$ARCH_OUT" | grep -q '^ARCH_SKIP'; then
+  echo "[smoke] (skipped $(printf '%s\n' "$ARCH_OUT" | grep -c '^ARCH_SKIP') deliberate multi-arch payload(s) with a native sibling)"
+fi
+echo "[smoke] arch checked: $(printf '%s' "$ARCH_OUT" | sed -n 's/^ARCH_CHECKED //p') ELF files for ${PLATFORM}"
 
 HAS_PY=0
 if run sh -c 'command -v python >/dev/null 2>&1' >/dev/null 2>&1; then HAS_PY=1; fi
@@ -180,7 +201,33 @@ if [ "$PROVEN" = "0" ]; then
   ' 2>/dev/null | tr -d '\r')"
 
   if [ -z "${ENTRIES// /}" ]; then
-    echo "[smoke] note: ${PKG} owns no bin/ or libexec/ entry point in its conda-meta record"
+    # Metapackages own NO files at all (`"files": []`) and exist only to pull in
+    # dependencies that provide the actual program — tabix is a metapackage whose
+    # binary comes from htslib, and gatk4-spark's launcher comes from gatk4. Since
+    # there is nothing of its own to test, fall back to executing the package name
+    # itself. This is the one case where that is the right check rather than a lazy
+    # one, and it is still execution, not mere existence.
+    echo "[smoke] note: ${PKG} owns no bin/ or libexec/ entry point (metapackage?); trying the name itself"
+    # Some metapackages provide a binary under a different name again, which no
+    # amount of inference can discover: gatk4-spark ships only a .jar and is run
+    # by `gatk` from its gatk4 dependency. Those get an explicit one-line override
+    # in builder/entrypoints/<pkg> rather than a guess.
+    CANDIDATES="$PKG"
+    if [ -f "${HERE_SMOKE}/entrypoints/${PKG}" ]; then
+      extra_names="$(grep -v '^[[:space:]]*#' "${HERE_SMOKE}/entrypoints/${PKG}" | tr '\n' ' ')"
+      CANDIDATES="$PKG $extra_names"
+      echo "[smoke] entrypoint override: ${extra_names}"
+    fi
+    for cand in $CANDIDATES; do
+    for probe in --version --help; do
+      rc="$(run sh -c "command -v '$cand' >/dev/null 2>&1 && $cand $probe >/dev/null 2>&1; echo \$?" 2>/dev/null | tr -d '\r')"
+      case "$rc" in
+        126|127|"") ;;
+        *) echo "[smoke] ${cand} executes (exit ${rc})"; PROVEN=1; break ;;
+      esac
+    done
+    [ "$PROVEN" = "1" ] && break
+    done
   else
     n_entries="$(printf '%s\n' "$ENTRIES" | grep -c . || true)"
     echo "[smoke] ${PKG} owns ${n_entries} entry point(s); checking they execute ..."

@@ -1,0 +1,4 @@
+# Binary names to try when the package provides no program of its own name.
+# gatk4-spark ships only share/.../gatk-package-*-spark.jar; the launcher that
+# runs it is `gatk`, from its gatk4 dependency. One line per candidate.
+gatk
