@@ -41,7 +41,16 @@ IMAGE="${1:?usage: smoke.sh <image-ref> <pkg> [platform]}"
 PKG="${2:?usage: smoke.sh <image-ref> <pkg> [platform]}"
 PLATFORM="${3:-linux/arm64}"
 HERE_SMOKE="$(cd "$(dirname "$0")" && pwd)"
-FUNC="${HERE_SMOKE}/functional/${PKG}.py"
+# A functional check may be python (.py, run with `python -`) or shell (.sh, run
+# with `sh -s`). evigene needs shell: it has no python and is driven through
+# $EVIGENEHOME rather than a binary on PATH.
+FUNC=""
+FUNC_RUNNER=""
+if [ -f "${HERE_SMOKE}/functional/${PKG}.py" ]; then
+  FUNC="${HERE_SMOKE}/functional/${PKG}.py"; FUNC_RUNNER="python -"
+elif [ -f "${HERE_SMOKE}/functional/${PKG}.sh" ]; then
+  FUNC="${HERE_SMOKE}/functional/${PKG}.sh"; FUNC_RUNNER="sh -s"
+fi
 
 run() { docker run --rm --platform "$PLATFORM" "$IMAGE" "$@"; }
 
@@ -254,9 +263,9 @@ fi
 # Deliberately outside the branches above. It was previously nested inside the
 # module branch, so whenever detection came back empty the functional check was
 # skipped too — the one case where it is most needed.
-if [ -f "$FUNC" ]; then
-  echo "[smoke] running functional check: functional/${PKG}.py"
-  if docker run --rm -i --platform "$PLATFORM" "$IMAGE" python - < "$FUNC" 2>&1 \
+if [ -n "$FUNC" ]; then
+  echo "[smoke] running functional check: $(basename "$FUNC")"
+  if docker run --rm -i --platform "$PLATFORM" "$IMAGE" $FUNC_RUNNER < "$FUNC" 2>&1 \
        | sed 's/^/[smoke]   /'; then
     echo "[smoke] functional check passed"
     PROVEN=1

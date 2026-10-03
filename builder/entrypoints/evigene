@@ -1,0 +1,9 @@
+# evigene exposes itself through an environment variable, not PATH. Its recipe
+# ships etc/conda/activate.d/evigene-<ver>.sh setting EVIGENEHOME, and all 891 of
+# its files live under opt/evigene-<ver>/ with nothing in bin/. That is upstream's
+# deliberate design, not a packaging bug — EVIGENEHOME IS set in our images, and
+# the scripts run from $EVIGENEHOME/scripts/.
+#
+# So there is no binary to name here. This file exists to record WHY the gate
+# cannot prove evigene the usual way, so nobody re-reports it as broken; the
+# functional check below is what actually proves it.
