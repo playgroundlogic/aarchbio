@@ -173,6 +173,20 @@ if [ "$PROVEN" = "0" ]; then
     [ -n "$rec" ] || exit 0
     grep -o "\"lib/R/library/[^/\"]*/" "$rec" | sed "s|\"lib/R/library/||; s|/$||" | sort -u | head -10
   ' 2>/dev/null | tr -d '\r')"
+  if [ -z "${RLIBS// /}" ]; then
+    # Data packages fetch their R library in a post-link script, so conda-meta
+    # lists no files at all (minfidata's record has zero). Fall back to looking for
+    # an installed library whose name matches the package minus its channel prefix,
+    # case-insensitively: bioconductor-minfidata -> minfiData.
+    RLIBS="$(run sh -c '
+      want=$(echo "'"$PKG"'" | sed "s/^bioconductor-//; s/^r-//" | tr "[:upper:]" "[:lower:]")
+      for d in /opt/conda/lib/R/library/*/; do
+        b=$(basename "$d")
+        [ "$(echo "$b" | tr "[:upper:]" "[:lower:]")" = "$want" ] && echo "$b"
+      done
+    ' 2>/dev/null | tr -d "\r")"
+    [ -n "${RLIBS// /}" ] && echo "[smoke] (R library found on disk, not in conda-meta: ${RLIBS})"
+  fi
   if [ -n "${RLIBS// /}" ]; then
     echo "[smoke] ${PKG} ships R library/libraries: ${RLIBS}"
     if run sh -c "for l in ${RLIBS}; do Rscript --vanilla -e \"library(\$l)\" >/dev/null 2>&1 || exit 1; done" >/dev/null 2>&1; then
@@ -206,7 +220,12 @@ if [ "$PROVEN" = "0" ]; then
   ENTRIES="$(run sh -c '
     rec=$(ls /opt/conda/conda-meta/'"$PKG"'-*.json 2>/dev/null | head -1)
     [ -n "$rec" ] || exit 0
-    grep -o "\"\(bin\|libexec\)/[^\"]*\"" "$rec" | tr -d "\"" | head -40
+    # Exclude conda machinery: post-link / pre-unlink hooks are install-time
+    # scripts, not user-facing programs. bioconductor-minfidata "passed" by
+    # executing bin/.bioconductor-minfidata-post-link.sh (exit 1 counts as
+    # "it ran"), which proves nothing — and every bioconductor package ships one.
+    grep -o "\"\(bin\|libexec\)/[^\"]*\"" "$rec" | tr -d "\"" \
+      | grep -v "/\." | grep -vE "(post-link|pre-unlink|post-unlink|pre-link)" | head -40
   ' 2>/dev/null | tr -d '\r')"
 
   if [ -z "${ENTRIES// /}" ]; then
