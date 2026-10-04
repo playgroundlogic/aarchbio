@@ -61,7 +61,16 @@ jobs:
               extra="$(echo "${token#*+}" | tr '+' ' ')"   # "coreutils=9.4 pigz=2.8"
             fi
             out="$(mktemp)"
-            GITHUB_OUTPUT="$out" ./builder/classify.sh "$pkg" "$ver"; crc=$?
+            # `|| crc=$?` is load-bearing, not style. GitHub runs `run:` steps with
+            # `bash -e`, and the step's own `set -uo pipefail` cannot turn that off.
+            # Written as `classify.sh ...; crc=$?` the step ABORTS the moment
+            # classify.sh exits non-zero, so the first genuine gap killed the whole
+            # job and every tool after it in the list was silently never built — the
+            # reconciler's daily run failed on plink=1.90b6.21 for over a week.
+            # A command on the left of `||` is exempt from -e; the original code was
+            # safe only because it sat inside `if ! ...; then`.
+            crc=0
+            GITHUB_OUTPUT="$out" ./builder/classify.sh "$pkg" "$ver" || crc=$?
             # exit 2 = the solver ran and found no arm64 solution -> a real gap.
             # exit 3 = the solver could not run (disk, network, image pull). That
             #   is OURS, not upstream's, and must never reach the D10 gap filer --
