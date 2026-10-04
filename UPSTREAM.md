@@ -112,6 +112,47 @@ but unrelated account, instead of the maintainer **@a-slide**. Cause was
 `bluenote1577`). Fixed in the script; **always verify a handle with
 `gh api users/<login>` before @-mentioning it.**
 
+### Status, 2026-10-04
+
+One resolved, one of ours withdrawn as wrong, the rest waiting.
+
+- **`transdecoder` #69853 — FIXED, same day.** @mencian merged
+  [PR #69863](https://github.com/bioconda/bioconda-recipes/pull/69863) applying the
+  suggested patch verbatim: the consolidated `TransDecoder` symlink, an unquoted
+  glob loop for `util/*.pl`, a build-number bump, and the self-defeating test
+  replaced with `TransDecoder --version`. We publish the fixed build
+  `6.0.0--pl5321hcbfc158_1`; verified `TransDecoder` on PATH and 26 util scripts
+  linked. Note the gate *refused* the first rebuild attempt, because the solver was
+  still serving the old `_0` build — bioconda's repodata lagged the upload by a day,
+  so the file existed per the API while the solver said "does not exist".
+- **`galah` PR #69532 — closed by us, premise wrong.** CI's `linux-aarch64` leg
+  failed while `osx-arm64` passed. The blocker is not galah's Rust: galah requires
+  `checkm2` at **runtime**, `checkm2` pins `tensorflow` to ranges with no aarch64
+  build, so the platform genuinely cannot be satisfied. Dropping `linux-aarch64` at
+  0.5.0 was effectively correct and we misread it as an accident. Closed with the
+  full diagnosis and a request for only the useful residue: a comment in the recipe
+  recording the reason.
+- **`checkm2` #69866 — filed, then evidenced.** The leverage point for both checkm2
+  and galah. Corrected our own framing: 1.1.0 has two builds, and only `_1`
+  (python `>3.12`, tensorflow `2.17.*`, modern deps) matters — for which tensorflow
+  is the *only* blocker. Tested it rather than leaving the maintainer to guess:
+  the dep set solves on aarch64 with tensorflow 2.18, and checkm2's bundled
+  `specific_model_COMP.keras` **loads under tensorflow 2.18.0**. Stated the limit
+  honestly — model load with `compile=False`, not an end-to-end `predict`, which
+  needs the DIAMOND database.
+- **`pyseq-align` #69397 — evidenced.** Built the unmodified recipe for
+  `linux-aarch64`: succeeds in **73 s**, and a Needleman-Wunsch alignment returns a
+  correct score. So only `additional-platforms` is missing. Said explicitly that we
+  are not shipping that build — D10 stands; it exists only to answer "would it work
+  if you enabled the platform?". 73 s also rules out the CI-budget objection that
+  keeps `linux-aarch64` off `blast`.
+
+Pattern worth keeping: the one issue that got fixed came with a verified root
+cause, the exact patch, **and** an explanation of why CI had not caught it. The
+silent ones are mostly "please relax this pin", which asks a maintainer for a
+judgement call rather than an obvious fix — hence the shift to supplying the
+experiment alongside the request.
+
 ## Deliberately not filed
 
 Filing here would be noise, not signal. Each is tracked locally instead.
