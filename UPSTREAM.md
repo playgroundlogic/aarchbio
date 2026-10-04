@@ -20,7 +20,7 @@ Filed 2026-09-03. Each was checked for an existing duplicate before filing
 | [#25](https://github.com/playgroundlogic/aarchbio/issues/25), [#4](https://github.com/playgroundlogic/aarchbio/issues/4) | [bioconda-recipes#68792](https://github.com/bioconda/bioconda-recipes/issues/68792) | `gtdbtk`, `comebin` | relax `pplacer =1.1.alpha19` (only recent pplacer without arm64) |
 | [#12](https://github.com/playgroundlogic/aarchbio/issues/12) | [bioconda-recipes#68793](https://github.com/bioconda/bioconda-recipes/issues/68793) | `pycoqc` | relax `h5py=2.9.0`; its `numpy`/`pandas` pins are already arm64-fine |
 | [#13](https://github.com/playgroundlogic/aarchbio/issues/13) | [tiara-feedstock#2](https://github.com/conda-forge/tiara-feedstock/issues/2) | `tiara` | relax `pytorch >=1.7.0,<1.8.dev0` (arm64 starts at 1.12.0) |
-| [#59](https://github.com/playgroundlogic/aarchbio/issues/59) | [bioconda-recipes#69397](https://github.com/bioconda/bioconda-recipes/issues/69397) | `pyseq-align` | add `linux-aarch64`; sole blocker for `kb-python` at every version |
+| [#59](https://github.com/playgroundlogic/aarchbio/issues/59) | [bioconda-recipes#69397](https://github.com/bioconda/bioconda-recipes/issues/69397) → **PR [#69869](https://github.com/bioconda/bioconda-recipes/pull/69869)** | `pyseq-align` | add `linux-aarch64`; sole blocker for `kb-python` at every version |
 
 Two are **questions, not bug reports** — `pplacer` and `h5py` exact pins may be
 load-bearing for result reproducibility, so both issues ask whether the pin is
@@ -152,6 +152,39 @@ cause, the exact patch, **and** an explanation of why CI had not caught it. The
 silent ones are mostly "please relax this pin", which asks a maintainer for a
 judgement call rather than an obvious fix — hence the shift to supplying the
 experiment alongside the request.
+
+### pyseq-align PR #69869 and the pre-existing-lint trap
+
+Opened 2026-10-04: `additional-platforms: [linux-aarch64]` plus a build-number
+bump, verified by building the recipe for aarch64 twice (unmodified from master,
+and with the exact diff) — ~72 s each, and the built package returns correct
+Needleman-Wunsch alignments.
+
+**Lint fails, and it is not our change.** bioconda enforces current standards on
+any recipe a PR touches, so a recipe predating those rules fails the moment you
+edit one line of it:
+
+```
+missing_run_exports      Recipe should have a run_exports statement
+compiler_needs_stdlib_c  requests a compiler but does not have stdlib
+```
+
+Expect this on any "enable the platform" PR against an older recipe, and budget
+for it. We attempted both fixes and backed them out:
+
+- `{{ stdlib('c') }}` cannot be resolved outside bioconda's build config — locally
+  it expands to a non-existent `c_linux-aarch64`. Supplying `c_stdlib: sysroot` /
+  `c_stdlib_version: "2.17"` cleared the solve but the C build then failed, and we
+  could not attribute it confidently without replicating their whole variant
+  setup. Shipping an unverifiable change would have been worse than leaving the
+  debt.
+- `run_exports` pin width is a maintainer decision, not ours: it constrains every
+  downstream consumer, and `ngs-tools` depends on this package.
+
+So the PR stays at the minimal verified diff with the situation explained, and the
+offer to add whatever form they prefer or have them push to the branch. **The
+general rule: verify what you propose, and when you cannot, say so and hand the
+decision back rather than guessing.**
 
 ## Deliberately not filed
 
