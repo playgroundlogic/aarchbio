@@ -12,10 +12,79 @@ from 1 image to 10,000.
 - `build.sh` — the idempotent builder (D3): assert arm64 conda package exists →
   build `--platform linux/arm64` (native, no QEMU on an arm64 host) → **tag from
   what was actually installed** → smoke-test → optionally push.
+- `build-arch.sh` — builds **one platform** of a noarch tool and pushes it by
+  digest; `merge.sh` assembles the multi-arch manifest under the real tag.
+- `smoke.sh` — the **verification gate**. Both publish paths call it, and a
+  non-zero exit means the image is not published. See below.
+- `arch-check.sh` — runs inside an image and reads `e_machine` from every ELF.
+  Shell and `od` only, no interpreter, because the tools that most need it have
+  none.
+- `functional/<pkg>.{py,sh}` — optional per-tool "does it actually work" check.
+- `entrypoints/<pkg>` — optional binary-name hints for packages that provide no
+  program of their own name.
 - `mulled.py` — computes, and **inverts**, the hashed coordinates of legacy
   BioContainers `mulled-v2-*` multi-package images.
 - `build-mulled.sh` — rebuilds one of those fused images for arm64 under its
   **exact upstream `name:tag`**.
+
+## The verification gate (`smoke.sh`)
+
+A broken image is worse than an absent one: it looks available in the namespace
+and fails only after a pull. So nothing publishes unless the gate can *demonstrate*
+it works. Every level below exists because the level above it let a real defect
+reach the registry — a catalog-wide audit found 15, and 5 of those had passed the
+checks as they then stood.
+
+| level | proves | caught |
+|---|---|---|
+| 0 **arch** | `e_machine` of every ELF in `bin/`, `libexec/`, `lib/**.so` | `pureclip` — its *own* primary binary is x86-64 |
+| 1 **entry point** | the binaries the package owns, per conda-meta, **executed** | `transdecoder` — three dangling symlinks |
+| 2 **import** | every Python module the package installs | `humann` — files under `python3.12`, interpreter 3.13 |
+| 2b **R library** | `Rscript -e library(X)` | 8 R packages nothing could prove at all |
+| 3 **functional** | optional per-tool workload | `scanpy` — imported fine, could not cluster |
+
+Hard-won details, each of which was a bug at some point:
+
+- **Behaviour is not evidence for architecture.** Docker Desktop on Apple Silicon
+  has a Rosetta handler, so a statically linked x86-64 binary runs happily on a Mac
+  while being unrunnable on Graviton. Read the ELF header.
+- **On-PATH mismatches are fatal; vendored ones warn.** `riboWaltz` ships an
+  x86-64 `pak` private library and works perfectly; blocking it would withhold a
+  working tool. But a foreign binary in `bin/` means the tool cannot run.
+- **A foreign-arch *filename* with a native sibling is deliberate.** The ONT
+  `vbz_hdf_plugin` ships `..._x86_64.so` beside `..._aarch64.so` and selects at
+  runtime. Three images were falsely accused before this was handled.
+- **Module names come from conda-meta, never from the package name.** `pycoqc`
+  ships `pycoQC`, `scikit-learn` ships `sklearn`.
+- **Binary names likewise.** `abyss` ships `abyss-pe`, `star` ships `STAR`,
+  `emboss` ships 442 binaries. Guessing produced 95 false failures.
+- **Existence is not execution.** `command -v` is satisfied by a dangling symlink
+  and by a binary of the wrong architecture.
+- **Exit codes 126/127 are the failure signal**, not "non-zero" — plenty of these
+  tools exit non-zero on `--version`.
+- **Conda's own hooks are not entry points.** `.*-post-link.sh` ran, which once
+  "proved" `bioconductor-minfidata` while proving nothing.
+- **Pull as its own step.** Letting the first probe also pull meant a cold image
+  returned no modules and the gate silently fell through to its weakest check —
+  and every image in CI is cold.
+
+### Adding a functional check
+
+Write `functional/<pkg>.py` (run with `python -`) or `functional/<pkg>.sh` (run
+with `sh -s`) — whichever the image can execute; `evigene` has no Python at all.
+Exit non-zero to block the publish. Synthesise inputs rather than downloading
+them, and assert on the *result*, so a tool that runs but returns nonsense fails:
+`functional/cnvkit.py` requires segmentation to find exactly the 3 clusters its
+synthetic input contains.
+
+Keep a known-broken sub-feature *reported* rather than asserted when the tool is
+otherwise usable — cnvkit's `flasso` backend is unavailable because of an upstream
+x86-64 `.so`, and failing the whole image over it would withhold a working tool.
+Phrase the message so it flips when upstream fixes it.
+
+**Verify a new check in both directions.** A check that cannot fail is worth
+nothing: break the thing deliberately (hide the dependency) and confirm the gate
+goes red.
 
 ## Legacy `mulled-v2-*` images
 
