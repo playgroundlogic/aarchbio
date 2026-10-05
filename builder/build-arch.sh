@@ -38,6 +38,16 @@ emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_O
 # buildx's metadata file (robust — not scraped from logs).
 echo "[build-arch] building ${PKG}=${VER} for ${PLATFORM} (native, no emulation) ..."
 META="$(mktemp)"
+# A few upstream packages bundle, and thereby clobber, their dependencies'
+# binaries. builder/postinstall/<pkg> lists what to re-install afterwards so the
+# real packages' files win. See the Dockerfile's REPAIR_PACKAGES comment.
+REPAIR_PACKAGES=""
+_repair_file="$(cd "$(dirname "$0")" && pwd)/postinstall/${PKG}"
+if [ -f "$_repair_file" ]; then
+  REPAIR_PACKAGES="$(grep -v '^[[:space:]]*#' "$_repair_file" | tr '\n' ' ')"
+  echo "[build] postinstall repair for ${PKG}: ${REPAIR_PACKAGES}"
+fi
+
 docker buildx build \
   --platform "$PLATFORM" \
   --build-arg PKG="$PKG" \
@@ -46,6 +56,7 @@ docker buildx build \
   --build-arg SOURCE_CHANNEL="$SOURCE_CHANNEL" \
   --build-arg BUILDER_GIT_SHA="$GIT_SHA" \
   --build-arg EXTRA_PACKAGES="$EXTRA_PACKAGES" \
+  --build-arg REPAIR_PACKAGES="$REPAIR_PACKAGES" \
   --provenance=false \
   --metadata-file "$META" \
   --output "type=image,name=${REGISTRY}/${PKG},push-by-digest=true,name-canonical=true,push=true" \

@@ -33,6 +33,16 @@ SOURCE_RECIPE="https://github.com/bioconda/bioconda-recipes/tree/master/recipes/
 SOURCE_CHANNEL="bioconda"
 GIT_SHA="$(git -C "$HERE" rev-parse --short HEAD 2>/dev/null || echo unknown)"
 
+# A few upstream packages bundle, and thereby clobber, their dependencies'
+# binaries. builder/postinstall/<pkg> lists what to re-install afterwards so the
+# real packages' files win. See the Dockerfile's REPAIR_PACKAGES comment.
+REPAIR_PACKAGES=""
+_repair_file="$(cd "$(dirname "$0")" && pwd)/postinstall/${PKG}"
+if [ -f "$_repair_file" ]; then
+  REPAIR_PACKAGES="$(grep -v '^[[:space:]]*#' "$_repair_file" | tr '\n' ' ')"
+  echo "[build] postinstall repair for ${PKG}: ${REPAIR_PACKAGES}"
+fi
+
 # --- 1. Assert the arm64 conda package exists (best-effort pre-check) ------
 # This is an EARLY failure check only. The authoritative gate is the in-container
 # `micromamba install` in step 2 — if no linux-aarch64 package exists, that fails
@@ -65,6 +75,7 @@ docker buildx build \
   --build-arg SOURCE_RECIPE="$SOURCE_RECIPE" \
   --build-arg BUILDER_GIT_SHA="$GIT_SHA" \
   --build-arg EXTRA_PACKAGES="$EXTRA_PACKAGES" \
+  --build-arg REPAIR_PACKAGES="$REPAIR_PACKAGES" \
   -t "$TMP_IMAGE" \
   --load \
   "$HERE"
@@ -158,6 +169,7 @@ if [ "${PUSH:-0}" = "1" ]; then
     --build-arg SOURCE_CHANNEL="$SOURCE_CHANNEL" \
     --build-arg BUILDER_GIT_SHA="$GIT_SHA" \
     --build-arg EXTRA_PACKAGES="$EXTRA_PACKAGES" \
+  --build-arg REPAIR_PACKAGES="$REPAIR_PACKAGES" \
     -t "$IMAGE" \
     --push \
     "$HERE"

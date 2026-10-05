@@ -1,0 +1,11 @@
+# Packages to re-install after the main transaction, one per line.
+#
+# humann 3.9 is noarch yet bundles its own bin/diamond and bin/bowtie2-* as
+# x86-64 blobs, overwriting the correct linux-aarch64 binaries that its OWN
+# declared dependencies (diamond, bowtie2) install. Verified: three conda records
+# claim the same paths, and only humann's copies are x86-64.
+#
+# Reported upstream in bioconda-recipes#69811; reported to us as aarchbio#66.
+# Re-installing these restores the binaries their own recipes built.
+diamond
+bowtie2

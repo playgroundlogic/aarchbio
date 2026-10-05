@@ -37,6 +37,31 @@ ARG BUILD_PLATFORM=${TARGETPLATFORM}
 # separated "name=version" specs; empty for a normal single-tool image.
 ARG EXTRA_PACKAGES=""
 
+# Packages to RE-install in a second transaction, after the main one.
+#
+# For the rare upstream package that bundles its own copies of its dependencies'
+# binaries and thereby overwrites them. humann 3.9 is the case this exists for: it
+# is `noarch`, yet it ships bin/diamond and bin/bowtie2-* as x86-64 blobs. conda
+# installs dependencies BEFORE the package that needs them, so the correct
+# linux-aarch64 diamond and bowtie2 land first and humann then clobbers them --
+# three packages end up owning the same paths. The image looks fine (python is
+# aarch64, the tool imports) and dies the moment an aligner is executed.
+#
+# Re-installing the real packages afterwards restores the binaries their own
+# recipes built, which is also exactly what humann's declared dependencies ask
+# for -- that part changes no package's contents, only which transaction wrote the
+# file last.
+#
+# It is not quite sufficient on its own. humann also bundles bowtie2's *-debug
+# variants, which the real linux-aarch64 bowtie2 does not ship at all (9 bin
+# entries, no debug builds), so re-installing cannot overwrite them and they
+# survive as x86-64 files on PATH. So when REPAIR_PACKAGES is set we additionally
+# DELETE any remaining foreign-architecture ELF in bin/ or libexec/. Narrow and
+# deliberate: such a file is provided by no package built for this platform and
+# cannot execute here, so removing it loses nothing and is the difference between
+# a usable image and none. Both actions are recorded in a label.
+ARG REPAIR_PACKAGES=""
+
 # For legacy hashed mulled-v2 images the repo name is a sha1, not a package name,
 # so the image title can't be ${PKG} (which is only the alphabetically-first
 # ingredient). MULLED_SPECS records the full ingredient list, because that is the
@@ -61,6 +86,26 @@ RUN micromamba install -y -n base \
         "${PKG}=${PKG_VERSION}" ${EXTRA_PACKAGES} \
     && micromamba clean --all --yes
 
+# Must be a SEPARATE transaction: within one transaction conda orders by
+# dependency, so the clobbering package always wins regardless of argument order.
+RUN if [ -n "${REPAIR_PACKAGES}" ]; then \
+        echo "[repair] re-installing ${REPAIR_PACKAGES} so their own binaries win" && \
+        micromamba install -y -n base -c ${BIOCONDA_CHANNEL} -c conda-forge \
+            --force-reinstall ${REPAIR_PACKAGES} && \
+        micromamba clean --all --yes && \
+        echo "[repair] pruning any remaining foreign-architecture binaries" && \
+        want=$( [ "$(uname -m)" = "aarch64" ] && echo 183 || echo 62 ) && \
+        for f in /opt/conda/bin/* /opt/conda/libexec/*; do \
+            [ -f "$f" ] || continue ; \
+            [ "$(od -An -tx1 -N4 "$f" 2>/dev/null | tr -d ' \n')" = "7f454c46" ] || continue ; \
+            m=$(od -An -tu1 -j18 -N1 "$f" 2>/dev/null | tr -d ' ') ; \
+            if [ "$m" != "$want" ]; then \
+                echo "[repair]   removing $(basename "$f") (e_machine=$m, cannot execute here)" ; \
+                rm -f "$f" ; \
+            fi ; \
+        done ; \
+    fi
+
 # Make the env's binaries the default PATH (matches biocontainers UX).
 ENV PATH=/opt/conda/bin:$PATH
 
@@ -75,6 +120,7 @@ LABEL org.opencontainers.image.title="${IMAGE_TITLE}" \
       org.opencontainers.image.description="Native arm64 rebuild of ${IMAGE_SUBJECT}. Unofficial community rebuild by Playground Logic; not affiliated with or endorsed by BioContainers or AWS." \
       io.aarchbio.mulled-specs="${MULLED_SPECS}" \
       io.aarchbio.extra-packages="${EXTRA_PACKAGES}" \
+      io.aarchbio.repaired-packages="${REPAIR_PACKAGES}" \
       io.aarchbio.source-channel="${SOURCE_CHANNEL}" \
       io.aarchbio.source-package="${PKG}" \
       io.aarchbio.source-version="${PKG_VERSION}" \
