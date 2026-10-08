@@ -99,6 +99,17 @@ jobs:
       - run: echo "::notice::catalog-health will verify ${{ steps.p.outputs.total }} images"
 
   # ---------------------------------------------------------------------------
+  # 1b. Does the catalog still match what the docs claim about it?
+  #     Cheap (registry metadata only, no pulls) and independent of the shards.
+  # ---------------------------------------------------------------------------
+  scope:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scope claims vs. published reality
+        run: python3 audit/scope-check.py
+
+  # ---------------------------------------------------------------------------
   # 2. Verify one shard. Native arm64 runner: the import, entry-point, R and
   #    functional levels are only meaningful if the code actually executes here.
   # ---------------------------------------------------------------------------
