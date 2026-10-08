@@ -69,6 +69,39 @@ those are surfaced and attributed in [GAPS.md](GAPS.md), to be fixed upstream
 where they belong. aarchbio does **not** compile packages from source; that would
 make it a second bioconda and break the verifiable-build trust model.
 
+### bioconda is the usual source, not the definition
+
+The row above says *bioinformatics tool containers*, and that is the layer —
+**bioconda is where those packages normally come from, not what defines the
+scope.** Where bioconda has no recipe, or carries one frozen years behind a
+package that has moved to conda-forge, aarchbio builds from **conda-forge**
+instead and labels the image with where it actually came from
+(`io.aarchbio.source-channel`). Currently that applies to `pigz` (no bioconda
+recipe at all), and to `scanpy`, `anndata` and `decoupler-py`, whose bioconda
+copies are frozen at versions that no longer import.
+
+The rule is "whichever channel actually provides a working package", because the
+promise is a usable drop-in for a `quay.io/biocontainers/<tool>` reference. A
+faithful rebuild of a package that cannot import is not useful to anyone.
+
+### Boundary with aarchsci: artifact shape, not domain or channel
+
+[aarchsci](https://aarch.science) is the sister project, and the division is
+**one tool per image vs. a whole working environment** — not who owns which
+science, and not which channel a package lives in:
+
+| | aarchbio | aarchsci |
+|---|---|---|
+| artifact | **one tool per image**, tagged `<version>--<build>` to mirror a BioContainers ref | **a domain environment** with many packages solved together |
+| use | drop-in substitute for `quay.io/biocontainers/<tool>`, e.g. via a registry override | `docker run` and start working in a field |
+| examples | `samtools`, `scanpy`, `gatk4` — 500+ of them | `single-cell`, `neuroimaging`, `geospatial`, `md` |
+
+They are complementary rather than overlapping, and the same tool can legitimately
+appear on both sides in different shapes: `scanpy` is a single-tool image here
+*and* a component of aarchsci's `single-cell` environment. Wanting a pinned
+replacement for one biocontainers reference is this project; wanting a
+ready-to-use analysis stack is aarchsci.
+
 ### arm64 support can go backwards
 
 A mirror can only copy what exists. The reason this project has to *watch* rather
