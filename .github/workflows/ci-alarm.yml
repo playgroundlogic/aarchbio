@@ -1,0 +1,140 @@
+# ci-alarm — notice when a build or reconcile run fails, and say so somewhere a
+# human will look.
+#
+# Why this exists: `publish` failed every single day from roughly 25 Sept to 4 Oct
+# and nobody noticed. A failing `classify` job skips every downstream job, so the
+# scheduled reconciler produced NOTHING for nine days while showing a red mark on
+# a page nobody was reading. The repo had no failure notification of any kind.
+#
+# Design notes, each the result of getting it wrong somewhere else in this project:
+#
+#  * Watched via `workflow_run`, not an `if: failure()` job inside each workflow.
+#    One place to maintain, and it still fires when a workflow dies so early that
+#    an in-workflow notifier would never run.
+#
+#  * `publish` is watched even though it is only `workflow_dispatch`. The nine-day
+#    outage WAS publish, dispatched by the reconciler — watching only scheduled
+#    workflows would have missed the exact failure that motivated this file.
+#
+#  * One open issue per workflow, not per run. The gap-issue tracker already
+#    taught us that per-occurrence filing produces a backlog nobody reads
+#    (45% of open issues were stale at first audit). Repeat failures become
+#    comments on the existing issue, so a nine-day run of failures reads as one
+#    thread with nine entries rather than nine issues.
+#
+#  * It CLOSES the issue when the same workflow next succeeds. An alarm that only
+#    ever fires accumulates exactly the rot it was meant to surface. Recovery is
+#    part of the signal.
+#
+#  * Only `failure` alarms. `cancelled` is excluded on purpose — runs get
+#    cancelled deliberately (one was cancelled during this work after dispatching
+#    against a stale commit) and that is not a defect.
+name: ci-alarm
+
+on:
+  workflow_run:
+    workflows: [reconcile, publish, publish-mulled, sign-existing]
+    types: [completed]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  alarm:
+    # Skip the overwhelmingly common case (success with no open alarm) cheaply.
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Open, update or close the alarm issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          WF: ${{ github.event.workflow_run.name }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          TRIGGER: ${{ github.event.workflow_run.event }}
+        run: |
+          set -uo pipefail
+          TITLE="ci-failure: ${WF}"
+
+          # Find open alarms for THIS workflow. Matching on the exact title keeps
+          # one thread per workflow.
+          #
+          # ALL matches are collected, not just one, because GitHub's issue list is
+          # eventually consistent: a self-test filed two alarms seconds apart
+          # because the second lookup read a list that did not yet contain the
+          # first. Real failures are minutes or days apart so that race is
+          # unlikely, but rather than pretend it cannot happen, duplicates are made
+          # self-healing below — keep the oldest thread, close the rest.
+          mapfile -t alarms < <(gh issue list --repo "$REPO" --state open --label ci-failure \
+                        --limit 50 --json number,title \
+                        --jq ".[] | select(.title == \"${TITLE}\") | .number" | sort -n)
+          existing="${alarms[0]:-}"
+          if [ "${#alarms[@]}" -gt 1 ]; then
+            for dup in "${alarms[@]:1}"; do
+              gh issue close "$dup" --repo "$REPO" --reason "not planned" --comment \
+                "Duplicate alarm for the same workflow; consolidating into #${existing}." >/dev/null 2>&1 || true
+              echo "::notice::consolidated duplicate alarm #${dup} into #${existing}"
+            done
+          fi
+
+          if [ "$CONCLUSION" = "success" ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --repo "$REPO" --reason completed --comment \
+                "Recovered: \`${WF}\` succeeded in [run ${RUN_ID}](${RUN_URL}).
+
+            Closing automatically. If it fails again a fresh alarm will open — so an
+            open alarm always means *currently* broken, not *once* broken."
+              echo "::notice::closed ci-failure alarm #${existing} for ${WF} (recovered)"
+            fi
+            exit 0
+          fi
+
+          # --- failure path -------------------------------------------------
+          # Name the jobs that actually failed. The run URL alone means someone has
+          # to go digging, and the whole problem here was nobody digging.
+          failed="$(gh api "repos/${REPO}/actions/runs/${RUN_ID}/jobs" --paginate \
+                      --jq '.jobs[] | select(.conclusion=="failure") | "- `" + .name + "`"' \
+                    2>/dev/null | head -20)"
+          [ -z "$failed" ] && failed="- (no individual job reported failure; the run itself failed)"
+
+          body="$(printf '%s\n' \
+            "\`${WF}\` failed." \
+            "" \
+            "| | |" \
+            "|---|---|" \
+            "| run | [${RUN_ID}](${RUN_URL}) |" \
+            "| attempt | ${ATTEMPT} |" \
+            "| triggered by | \`${TRIGGER}\` |" \
+            "" \
+            "Failed jobs:" \
+            "" \
+            "${failed}" \
+            "" \
+            "This issue closes itself when \`${WF}\` next succeeds, so an open alarm" \
+            "means it is broken *now*.")"
+
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$REPO" --body "$body"
+            echo "::notice::appended to existing ci-failure alarm #${existing} for ${WF}"
+          else
+            # Create the label on first use rather than requiring manual setup.
+            gh label create ci-failure --repo "$REPO" --color B60205 \
+              --description "A scheduled or dispatched workflow is currently failing" \
+              >/dev/null 2>&1 || true
+            # `gh issue create` has no --json; it prints the issue URL. Parse the
+            # trailing number from that, and do NOT retry on failure: a fallback
+            # `create` would risk filing the same alarm twice.
+            url="$(gh issue create --repo "$REPO" --title "$TITLE" \
+                     --label ci-failure --body "$body")" || {
+              echo "::error title=ci-alarm could not file::${WF} failed (run ${RUN_URL}) and the alarm issue could not be created"
+              exit 1
+            }
+            num="${url##*/}"
+            echo "::notice::opened ci-failure alarm #${num} for ${WF}"
+          fi
