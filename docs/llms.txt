@@ -28,10 +28,30 @@ cosign verify quay.io/aarchbio/<tool>:<tag> \
 
 ## Scope
 
-In scope: bioinformatics tool containers (the BioContainers / bioconda layer).
+In scope: bioinformatics tool containers, one tool per image, tagged
+<version>--<build> to mirror a quay.io/biocontainers reference.
+
+bioconda is where those packages usually come from, but it is NOT what defines the
+scope. Where bioconda has no recipe (pigz) or carries one frozen years behind a
+package that has moved to conda-forge (scanpy, anndata, decoupler-py), aarchbio
+builds from conda-forge instead and records the real source in the image's
+io.aarchbio.source-channel label. The rule is whichever channel actually provides
+a working package.
+
 Out of scope (already arm64 or owned elsewhere): distro base images (Docker
-Official), language/framework packages like tensorflow (conda-forge), and vendor
-ML containers. aarchbio does not compile from source.
+Official), vendor ML containers, and whole-environment images. aarchbio does not
+compile from source.
+
+Sister project: aarchsci (https://aarch.science) publishes domain ENVIRONMENTS —
+many packages solved together (single-cell, neuroimaging, geospatial, md,
+comp-chem). The split is artifact shape, not scientific field and not channel:
+one pinned tool per image here, a ready-to-run environment there. The same tool
+can appear on both sides in different shapes — scanpy is a single-tool image in
+aarchbio and a component of aarchsci's single-cell environment.
+
+Looking for a package? If you need a drop-in replacement for one
+quay.io/biocontainers/<tool> reference, look here. If you need an environment for
+a field, look at aarchsci.
 
 ## Key links
 

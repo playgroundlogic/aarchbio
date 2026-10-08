@@ -75,6 +75,7 @@
                 <a href="#gap">The gap</a>
                 <a href="#how">How it works</a>
                 <a href="#use">Use it</a>
+                <a href="#scope">Which project?</a>
                 <a href="#trust">Trust</a>
                 <a href="https://github.com/playgroundlogic/aarchbio" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in new tab)">GitHub</a>
                 <button class="btn-theme" id="theme-toggle" aria-label="Toggle color theme">
@@ -259,6 +260,22 @@ docker pull <span class="k">quay.io/aarchbio</span>/seqkit:2.11.0--h8865c2f_0
                   checks each tool against the latest bioconda release and rebuilds what's
                   changed — and retries past gaps in case upstream has since added arm64.
                 </p>
+            </div>
+        </section>
+
+        <!-- Which project: the aarchbio / aarchsci split -->
+        <section id="scope">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Looking for a package? Which project</h2>
+                    <p>aarchbio has a sister project, <a href="https://aarch.science" style="color:var(--accent-teal)">aarchsci</a>. The split is the <em>shape</em> of what you get &mdash; one tool, or a whole environment &mdash; not which field of science it belongs to.</p>
+                </div>
+                <div class="prose">
+                    <p><strong>You want one tool, pinned to a version.</strong> That is here. Every image is a single package tagged <code>&lt;version&gt;--&lt;build&gt;</code> to mirror a BioContainers reference, so it drops straight into a pipeline or a registry override: <code>quay.io/aarchbio/samtools:1.22.1--h96c455f_0</code>.</p>
+                    <p><strong>You want a working environment for a field.</strong> That is <a href="https://aarch.science" style="color:var(--accent-teal)">aarchsci</a> &mdash; many packages solved together and ready to run: <code>single-cell</code>, <code>neuroimaging</code>, <code>geospatial</code>, <code>md</code>, <code>comp-chem</code>.</p>
+                    <p>The two overlap on purpose. <code>scanpy</code> is a single-tool image here <em>and</em> a component of aarchsci&rsquo;s <code>single-cell</code> environment &mdash; different artifacts for different jobs, and both should exist.</p>
+                    <p>One clarification, because older wording here implied otherwise: <strong>bioconda is where these packages usually come from, not what defines the scope.</strong> Where bioconda has no recipe, or one frozen years behind a package that has moved to conda-forge, aarchbio builds from conda-forge instead and records the real source in the image&rsquo;s <code>io.aarchbio.source-channel</code> label. The rule is whichever channel actually provides a <em>working</em> package &mdash; a faithful rebuild of something that cannot even import is useful to nobody.</p>
+                </div>
             </div>
         </section>
 
