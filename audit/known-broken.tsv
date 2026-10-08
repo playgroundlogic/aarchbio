@@ -1,0 +1,39 @@
+# Published image:tag combinations that are KNOWN to fail verification, with the
+# reason and who can fix it. The scheduled catalog-health check reports these
+# separately and excludes them from the failure count that opens its issue.
+#
+# This file exists so that a permanent, understood condition does not keep an
+# alarm open forever. An issue that never closes gets ignored, and then a NEW
+# failure hides in it — the exact rot the gap tracker suffered (45% of its open
+# issues were already resolved at first audit).
+#
+# Two categories, and the distinction matters:
+#
+#   superseded  A newer, working tag is published alongside it. The broken tag is
+#               kept rather than deleted so anyone pinning it still resolves, but
+#               it is not what the catalog offers. Nothing to fix here.
+#   upstream    No fix available to us: the defect is in the upstream conda
+#               package. Tracked in UPSTREAM.md; the images stay published pending
+#               a decision on whether to withdraw them.
+#
+# NOTE this file is the explicit record of an inconsistency we have not resolved:
+# the README says "a broken image is worse than an absent one", and the `upstream`
+# rows below contradict that. Either withdraw them or accept them deliberately —
+# but do not let them sit here unexamined.
+#
+# Columns (tab-separated):  repo  tag  category  reason
+# Remove a row the moment its cause is fixed; the check will then enforce it again.
+
+# --- superseded: a working tag exists in the same repo ---
+anndata	0.6.22.post1--py_0	superseded	bioconda froze anndata at 0.6.22 (2019); `pandas.core.index` was removed in pandas 2.x so it cannot import. Superseded by 0.13.4--pyhd8ed1ab_0 from conda-forge.
+scanpy	1.7.2--pyhdfd78af_0	superseded	bioconda froze scanpy at 1.7.2 (2021); `from anndata import read` no longer exists. Superseded by 1.12.4--pyhd8ed1ab_1 from conda-forge. Reported as aarchbio#63.
+transdecoder	6.0.0--pl5321hdfd78af_0	superseded	upstream build _0 shipped three dangling bin/ symlinks; fixed upstream in bioconda-recipes#69863. Superseded by 6.0.0--pl5321hcbfc158_1.
+decoupler	1.5.0--pyhdfd78af_0	superseded	bioconda's newest decoupler IS this broken build (`pandas.core.index` gone). The maintained project moved to conda-forge as decoupler-py; we publish decoupler-py:2.1.6. Different repo name, so not a drop-in replacement for this ref.
+
+# --- upstream: not fixable here, see UPSTREAM.md ---
+pureclip	1.3.1--r44h23ed54d_2	upstream	bioconda publishes pureclip 1.3.1 under subdir linux-aarch64 while its own bin/pureclip and bin/winextract are x86-64. bioconda-recipes#69811.
+glnexus	1.4.1--h83404e3_5	upstream	same class: subdir linux-aarch64, bin/glnexus_cli is x86-64. bioconda-recipes#69811.
+prokka	1.15.6--pl5321hdfd78af_0	upstream	bin/real-tbl2asn is x86-64, from tbl2asn-forever 25.7.2f (mislabeled linux-aarch64). Prokka itself works; GenBank submission output does not. bioconda-recipes#69811.
+plasmidid	1.6.5--hdfd78af_0	upstream	same tbl2asn-forever x86-64 binary as prokka. bioconda-recipes#69811.
+maxquant	2.0.3.0--py310hdfd78af_0	upstream	noarch package with vendored x86-64 .NET interop libraries (libSQLite.Interop*.so, libbaf2sql_c.so, libtimsdata.so). bioconda-recipes#69811.
+oncocnv	7.0--pl5321r44hdfd78af_2	upstream	R dependency r-cghseg is noarch yet ships an x86-64 cghseg.so, so library(cghseg) cannot load. bioconda-recipes#69811.

@@ -1,0 +1,241 @@
+# catalog-health — re-verify every published image on a schedule.
+#
+# The publish gate (builder/smoke.sh) only runs at build time, so an image is
+# checked once and then never again. That is not good enough, because the things
+# it checks drift underneath us:
+#
+#   * upstream regressions. arm64 support is not monotonic — measured across this
+#     catalog, ~1% of tools have lost it (audit/arm64-decay.py), and those are half
+#     the open gap backlog because a regression never self-heals.
+#   * upstream packaging faults found long after publication, e.g. r-cghflasso and
+#     humann shipping x86-64 binaries inside noarch packages.
+#   * the gate itself improving. The one-off audit in audit/image-health.tsv is
+#     already stale: anndata, transdecoder, tabix, medaka, dragonflye, toulligqc,
+#     ribowaltz and cnvkit are recorded there as failures and now pass.
+#
+# Runs weekly rather than daily: ~530 image pulls is not a thing to do every day,
+# and the drift being watched for is measured in weeks.
+#
+# Deliberately uses builder/smoke.sh, the SAME gate that guards publication, rather
+# than a second implementation. If the scheduled check and the publish gate could
+# disagree, one of them would be lying about what "verified" means.
+name: catalog-health
+
+on:
+  schedule:
+    - cron: '41 5 * * 1'        # Mondays 05:41 UTC (off the hour; cron congestion)
+  workflow_dispatch:
+    inputs:
+      shards:
+        description: 'How many parallel shards (default 12)'
+        required: false
+        default: '12'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Enumerate the public catalog and split it into shards.
+  # ---------------------------------------------------------------------------
+  plan:
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      shards: ${{ steps.p.outputs.shards }}
+      total: ${{ steps.p.outputs.total }}
+    steps:
+      - id: p
+        env:
+          N: ${{ github.event.inputs.shards || '12' }}
+        run: |
+          set -uo pipefail
+          python3 - "$N" <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, sys, urllib.request
+
+          n_shards = max(1, int(sys.argv[1]))
+
+          names, page = [], None
+          while True:
+              u = "https://quay.io/api/v1/repository?namespace=aarchbio&public=true&limit=100"
+              if page:
+                  u += "&next_page=" + page
+              d = json.load(urllib.request.urlopen(u, timeout=30))
+              names += [r["name"] for r in d.get("repositories", [])]
+              page = d.get("next_page")
+              if not page:
+                  break
+
+          # mulled-v2-* repo names are sha1 hashes, not package names, so the gate
+          # (which keys off the package name) cannot apply to them.
+          names = sorted(x for x in names if not x.startswith("mulled-v2-"))
+
+          # Resolve each repo's tag here, once, so the shards do no API work and a
+          # rate limit cannot half-fill a shard with blanks.
+          pairs = []
+          for repo in names:
+              try:
+                  t = json.load(urllib.request.urlopen(
+                      f"https://quay.io/v2/aarchbio/{repo}/tags/list", timeout=25))
+              except Exception:
+                  continue
+              tags = [x for x in t.get("tags", [])
+                      if not x.startswith("sha256-") and not x.endswith(".sig")]
+              # EVERY tag, not just one. 142 repos carry more than one, and which
+              # one you happen to check changes the answer: anndata holds both the
+              # broken 0.6.22 and the working 0.13.4. Checking an arbitrary tag
+              # would make the report depend on quay's ordering.
+              pairs += [f"{repo}:{tag}" for tag in tags]
+
+          # Round-robin rather than contiguous blocks: image sizes cluster by name
+          # (all the bioconductor-* are large), so contiguous shards would finish at
+          # wildly different times.
+          shards = [pairs[i::n_shards] for i in range(n_shards)]
+          shards = [s for s in shards if s]
+          print("total=%d" % len(pairs))
+          print("shards=%s" % json.dumps([{"id": i, "images": " ".join(s)}
+                                          for i, s in enumerate(shards)]))
+          PY
+      - run: echo "::notice::catalog-health will verify ${{ steps.p.outputs.total }} images"
+
+  # ---------------------------------------------------------------------------
+  # 2. Verify one shard. Native arm64 runner: the import, entry-point, R and
+  #    functional levels are only meaningful if the code actually executes here.
+  # ---------------------------------------------------------------------------
+  verify:
+    needs: plan
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify images in this shard
+        env:
+          IMAGES: ${{ matrix.shard.images }}
+          SHARD: ${{ matrix.shard.id }}
+        run: |
+          set -uo pipefail
+          out="health-${SHARD}.tsv"; : > "$out"
+          for spec in $IMAGES; do
+            repo="${spec%%:*}"; tag="${spec#*:}"
+            ref="quay.io/aarchbio/${repo}:${tag}"
+            err="$(mktemp)"
+            # `|| rc=$?` and not `; rc=$?` — a `run:` step is `bash -e`, so the
+            # unguarded form aborts the whole shard on the first failing image.
+            # That exact mistake silently cost the reconciler nine days of output.
+            rc=0
+            ./builder/smoke.sh "$ref" "$repo" linux/arm64 >/dev/null 2>"$err" || rc=$?
+            if [ "$rc" = "0" ]; then
+              printf '%s\t%s\tPASS\t\t\n' "$repo" "$tag" >> "$out"
+            else
+              # Which level failed, so the report groups by cause rather than
+              # listing 20 identical-looking rows.
+              level=other
+              grep -q 'WRONG-ARCHITECTURE' "$err" && level=arch
+              grep -q 'do not import' "$err" && level=import
+              grep -q 'R libraries that do not load' "$err" && level=rlib
+              grep -q 'NONE of them execute' "$err" && level=entrypoint
+              grep -q 'fails in real use' "$err" && level=functional
+              grep -q 'could not pull' "$err" && level=pull
+              grep -q 'could not demonstrate' "$err" && level=nothing-provable
+              diag="$(grep -m1 -E '^\[smoke\] +(/|[A-Za-z].*(x86-64|Error|error|undefined))' "$err" \
+                      | cut -c1-200 | tr -d '\t' || true)"
+              [ -z "$diag" ] && diag="$(grep -m1 'FAIL' "$err" | cut -c1-200 | tr -d '\t')"
+              printf '%s\t%s\tFAIL\t%s\t%s\n' "$repo" "$tag" "$level" "$diag" >> "$out"
+            fi
+            rm -f "$err"
+            # Reclaim the disk before the next pull. A runner has ~14GB free and
+            # some of these images are >2GB, so this is not optional. The settle
+            # also avoids the containerd ingest race seen locally.
+            docker image rm -f "$ref" >/dev/null 2>&1 || true
+            sleep 2
+          done
+          echo "::notice::shard ${SHARD}: $(grep -c PASS "$out" || true) pass, $(grep -c FAIL "$out" || true) fail"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: health-${{ matrix.shard.id }}
+          path: health-${{ matrix.shard.id }}.tsv
+          retention-days: 14
+
+  # ---------------------------------------------------------------------------
+  # 3. Combine and report.
+  # ---------------------------------------------------------------------------
+  report:
+    needs: [plan, verify]
+    # `always()` so a shard dying still produces a report from the rest; a partial
+    # answer beats none, and the missing count is visible in the totals.
+    if: always()
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: health-*
+          merge-multiple: true
+      - name: Combine, then open/update/close the catalog-health issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EXPECTED: ${{ needs.plan.outputs.total }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -uo pipefail
+          sort -o combined.tsv health-*.tsv 2>/dev/null || : > combined.tsv
+          tested="$(grep -c . combined.tsv || true)"
+
+          # Split failures into "already known and accepted" and "new". Only the
+          # NEW ones drive the issue: an alarm that permanently lists understood
+          # conditions gets ignored, and then a real regression hides inside it.
+          : > known.txt
+          [ -f audit/known-broken.tsv ] && \
+            awk -F'\t' '!/^#/ && NF>=3 {print $1"\t"$2}' audit/known-broken.tsv > known.txt
+          awk -F'\t' 'NR==FNR{k[$1"\t"$2]=1; next} $3=="FAIL" && (($1"\t"$2) in k)' \
+            known.txt combined.tsv > accepted.tsv
+          awk -F'\t' 'NR==FNR{k[$1"\t"$2]=1; next} $3=="FAIL" && !(($1"\t"$2) in k)' \
+            known.txt combined.tsv > new-fails.tsv
+          fails="$(grep -c . new-fails.tsv || true)"
+          accepted="$(grep -c . accepted.tsv || true)"
+          echo "::notice::accepted/known failures excluded from the alarm: ${accepted}"
+          echo "::notice::catalog-health: ${tested}/${EXPECTED} tested, ${fails} failing"
+
+          TITLE="catalog-health: published images failing verification"
+          existing="$(gh issue list --repo "$REPO" --state open --label catalog-health \
+                        --limit 20 --json number,title \
+                        --jq ".[] | select(.title == \"${TITLE}\") | .number" | sort -n | head -1)"
+
+          if [ "$fails" = "0" ] && [ "$tested" -gt 0 ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --repo "$REPO" --reason completed \
+                --comment "No unexpected failures across ${tested} published images ([run](${RUN_URL})); ${accepted} known/accepted ones remain recorded in \`audit/known-broken.tsv\`. Closing; a fresh issue opens if anything regresses."
+            fi
+            exit 0
+          fi
+          [ "$tested" = "0" ] && { echo "::error::no shard results — the checker itself failed, not the images"; exit 1; }
+
+          {
+            printf '%s of %s published images fail verification unexpectedly ([run](%s)).\n\n' "$fails" "$tested" "$RUN_URL"
+            printf 'A further %s fail for reasons already recorded in `audit/known-broken.tsv` and are excluded here.\n\n' "$accepted"
+            printf 'Grouped by which gate level failed:\n\n'
+            awk -F'\t' '{print $4}' new-fails.tsv | sort | uniq -c | sort -rn \
+              | while read -r c l; do printf -- '- **%s** — %s\n' "${l:-other}" "$c"; done
+            printf '\n| image | tag | level | diagnostic |\n|---|---|---|---|\n'
+            awk -F'\t' '{printf "| `%s` | `%s` | %s | %s |\n", $1, $2, $4, $5}' new-fails.tsv
+            printf '\nUpdated weekly. Closes itself when these pass.\n'
+            printf 'If one of these turns out to be permanent and understood, add it to\n'
+            printf '`audit/known-broken.tsv` with a reason rather than leaving this issue open.\n'
+          } > body.md
+
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$REPO" --body-file body.md
+          else
+            gh label create catalog-health --repo "$REPO" --color 0E8A16 \
+              --description "Published images failing scheduled verification" >/dev/null 2>&1 || true
+            gh issue create --repo "$REPO" --title "$TITLE" --label catalog-health --body-file body.md
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: catalog-health-combined
+          path: combined.tsv
+          retention-days: 90
