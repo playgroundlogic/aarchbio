@@ -298,7 +298,6 @@ gffcompare	0.12.10--h163da20_0	PASS
 gffread	0.12.7--h1e84f2d_6	PASS		
 gffread	0.12.9--h1cdfba5_0	PASS		
 gget	0.29.0--pyhdfd78af_0	PASS		
-glnexus	1.4.1--h83404e3_5	FAIL	arch	[smoke]   /opt/conda/bin/glnexus_cli x86-64
 goatools	1.2.3--pyh7cba7a3_2	PASS		
 goleft	0.2.6--h8865c2f_1	PASS		
 grabix	0.1.8--h1e84f2d_12	PASS		
@@ -555,7 +554,6 @@ prodigal	2.6.3--h0cbc5ad_11	PASS
 prokka	1.15.6--pl5321hdfd78af_0	FAIL	arch	[smoke]   /opt/conda/bin/real-tbl2asn x86-64
 proovframe	0.9.7--hdfd78af_1	PASS		
 proteinortho	6.3.6--ha69ce42_0	PASS		
-pureclip	1.3.1--r44h23ed54d_2	FAIL	arch	[smoke]   /opt/conda/bin/pureclip x86-64
 pychopper	2.7.10--pyhdfd78af_0	PASS		
 pydamage	1.0--pyhdfd78af_0	PASS		
 pypgx	0.26.0--pyh7e72e81_0	PASS		

@@ -16,6 +16,9 @@
 #               package. Tracked in UPSTREAM.md; the images stay published pending
 #               a decision on whether to withdraw them.
 #
+# Withdrawn images are NOT listed here — once a repo is deleted there is nothing
+# left to verify, and a row for it would go permanently stale. See audit/withdrawn.tsv.
+#
 # NOTE this file is the explicit record of an inconsistency we have not resolved:
 # the README says "a broken image is worse than an absent one", and the `upstream`
 # rows below contradict that. Either withdraw them or accept them deliberately —
@@ -31,8 +34,6 @@ transdecoder	6.0.0--pl5321hdfd78af_0	superseded	upstream build _0 shipped three 
 decoupler	1.5.0--pyhdfd78af_0	superseded	bioconda's newest decoupler IS this broken build (`pandas.core.index` gone). The maintained project moved to conda-forge as decoupler-py; we publish decoupler-py:2.1.6. Different repo name, so not a drop-in replacement for this ref.
 
 # --- upstream: not fixable here, see UPSTREAM.md ---
-pureclip	1.3.1--r44h23ed54d_2	upstream	bioconda publishes pureclip 1.3.1 under subdir linux-aarch64 while its own bin/pureclip and bin/winextract are x86-64. bioconda-recipes#69811.
-glnexus	1.4.1--h83404e3_5	upstream	same class: subdir linux-aarch64, bin/glnexus_cli is x86-64. bioconda-recipes#69811.
 prokka	1.15.6--pl5321hdfd78af_0	upstream	bin/real-tbl2asn is x86-64, from tbl2asn-forever 25.7.2f (mislabeled linux-aarch64). Prokka itself works; GenBank submission output does not. bioconda-recipes#69811.
 plasmidid	1.6.5--hdfd78af_0	upstream	same tbl2asn-forever x86-64 binary as prokka. bioconda-recipes#69811.
 maxquant	2.0.3.0--py310hdfd78af_0	upstream	noarch package with vendored x86-64 .NET interop libraries (libSQLite.Interop*.so, libbaf2sql_c.so, libtimsdata.so). bioconda-recipes#69811.
