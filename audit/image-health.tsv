@@ -491,7 +491,6 @@ octopusv	0.4.2--pyhdfd78af_0	PASS
 octopusv	0.4.3--pyhdfd78af_0	PASS		
 octopusv	1.0.0--pyhdfd78af_0	PASS		
 odgi	0.9.4--h1e84f2d_0	PASS		
-oncocnv	7.0--pl5321r44hdfd78af_2	FAIL	rlib	[smoke]   /opt/conda/lib/R/library/cghseg/libs/cghseg.so x86-64
 openms	3.5.0--h1ce2723_0	PASS		
 opt	0.0.1--pyhdfd78af_0	PASS		
 optitype	1.5.0--pyhdfd78af_0	PASS		

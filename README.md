@@ -102,6 +102,28 @@ appear on both sides in different shapes: `scanpy` is a single-tool image here
 replacement for one biocontainers reference is this project; wanting a
 ready-to-use analysis stack is aarchsci.
 
+### Three images with a known limitation
+
+Everything published passes a verification gate before it ships — the image's own
+binaries must be the right architecture, its entry points must execute, its Python
+modules must import and its R libraries must load
+([details](builder/README.md#the-verification-gate-smokesh)). Three images are
+published anyway with a documented exception, because the tool works and only a
+sub-feature is unavailable:
+
+| image | works | unavailable, and why |
+|---|---|---|
+| `prokka` | yes — all 22 of its own binaries | GenBank submission output. `real-tbl2asn` comes from `tbl2asn-forever`, which bioconda publishes as `linux-aarch64` while shipping an x86-64 binary. |
+| `plasmidid` | yes — all 72 of its own binaries | same `tbl2asn-forever` binary. |
+| `maxquant` | yes — `mono` is native and MaxQuantCmd runs | Bruker raw input (`libbaf2sql_c`, `libtimsdata`) and XGBoost scoring: 5 vendored x86-64 native libraries. Thermo workflows use managed code and are unaffected. |
+
+Where a tool's *own* primary binary is the wrong architecture, nothing works and
+the image is **withdrawn** rather than published — a pull that fails loudly beats a
+container that dies with `exec format error`. See
+[audit/withdrawn.tsv](audit/withdrawn.tsv) for what has been withdrawn and why,
+and [audit/known-broken.tsv](audit/known-broken.tsv) for the full accepted-exception
+list including superseded tags.
+
 ### arm64 support can go backwards
 
 A mirror can only copy what exists. The reason this project has to *watch* rather

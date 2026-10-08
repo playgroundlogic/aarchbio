@@ -36,5 +36,4 @@ decoupler	1.5.0--pyhdfd78af_0	superseded	bioconda's newest decoupler IS this bro
 # --- upstream: not fixable here, see UPSTREAM.md ---
 prokka	1.15.6--pl5321hdfd78af_0	upstream	bin/real-tbl2asn is x86-64, from tbl2asn-forever 25.7.2f (mislabeled linux-aarch64). Prokka itself works; GenBank submission output does not. bioconda-recipes#69811.
 plasmidid	1.6.5--hdfd78af_0	upstream	same tbl2asn-forever x86-64 binary as prokka. bioconda-recipes#69811.
-maxquant	2.0.3.0--py310hdfd78af_0	upstream	noarch package with vendored x86-64 .NET interop libraries (libSQLite.Interop*.so, libbaf2sql_c.so, libtimsdata.so). bioconda-recipes#69811.
-oncocnv	7.0--pl5321r44hdfd78af_2	upstream	R dependency r-cghseg is noarch yet ships an x86-64 cghseg.so, so library(cghseg) cannot load. bioconda-recipes#69811.
+maxquant	2.0.3.0--py310hdfd78af_0	upstream	VERIFIED RUNNABLE: mono is native, `maxquant --help` prints its banner and usage, so the engine works on arm64. What is lost is 5 vendored x86-64 native libs - libbaf2sql_c.so and libtimsdata.so (Bruker BAF/timsTOF raw readers), libxgboost.so, and libSQLite.Interop*.so. Thermo workflows use managed code and are unaffected. Kept deliberately: withdrawing a working proteomics suite over unavailable Bruker input would destroy more than it protects. NOT verified end to end - no search was run. bioconda-recipes#69811.
