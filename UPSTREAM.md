@@ -20,6 +20,7 @@ Filed 2026-09-03. Each was checked for an existing duplicate before filing
 | [#25](https://github.com/playgroundlogic/aarchbio/issues/25), [#4](https://github.com/playgroundlogic/aarchbio/issues/4) | [bioconda-recipes#68792](https://github.com/bioconda/bioconda-recipes/issues/68792) | `gtdbtk`, `comebin` | relax `pplacer =1.1.alpha19` (only recent pplacer without arm64) |
 | [#12](https://github.com/playgroundlogic/aarchbio/issues/12) | [bioconda-recipes#68793](https://github.com/bioconda/bioconda-recipes/issues/68793) | `pycoqc` | relax `h5py=2.9.0`; its `numpy`/`pandas` pins are already arm64-fine |
 | [#13](https://github.com/playgroundlogic/aarchbio/issues/13) | [tiara-feedstock#2](https://github.com/conda-forge/tiara-feedstock/issues/2) | `tiara` | relax `pytorch >=1.7.0,<1.8.dev0` (arm64 starts at 1.12.0) |
+| [#68](https://github.com/playgroundlogic/aarchbio/issues/68) | [bioconda-recipes#70035](https://github.com/bioconda/bioconda-recipes/issues/70035) | `r-saige` | constrain `tbb` (or rebuild against oneTBB); broken on linux-64 too |
 | [#59](https://github.com/playgroundlogic/aarchbio/issues/59) | [bioconda-recipes#69397](https://github.com/bioconda/bioconda-recipes/issues/69397) → **PR [#69869](https://github.com/bioconda/bioconda-recipes/pull/69869)** | `pyseq-align` | add `linux-aarch64`; sole blocker for `kb-python` at every version |
 
 Two are **questions, not bug reports** — `pplacer` and `h5py` exact pins may be
