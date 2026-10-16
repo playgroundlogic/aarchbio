@@ -66,13 +66,13 @@ fi
 # JSON is still being written, and under `pipefail` that broken-pipe poisons the
 # command (observed on big solves like metaphlan in CI).
 JSON_TMP="$(mktemp)"; printf '%s' "$json" > "$JSON_TMP"
-read -r SUBDIR BUILD CHANNEL <<<"$("${PY[@]}" -c '
+read -r SUBDIR BUILD CHANNEL SOLVED_VER <<<"$("${PY[@]}" -c '
 import json,sys
 try:
     d=json.load(open(sys.argv[2]))
 except Exception:
     sys.exit()
-out=("","","bioconda")
+out=("","","bioconda","")
 for a in d.get("actions",{}).get("LINK",[]):
     if a.get("name")==sys.argv[1]:
         # "channel" is a URL or name; keep just the channel name (last non-subdir
@@ -82,9 +82,9 @@ for a in d.get("actions",{}).get("LINK",[]):
         if parts and (parts[-1]=="noarch" or parts[-1].split("-")[0] in ("linux","osx","win")):
             parts=parts[:-1]
         out=(a.get("subdir",""), a.get("build_string") or a.get("build",""),
-             parts[-1] if parts else "bioconda")
+             parts[-1] if parts else "bioconda", a.get("version",""))
         break
-print(out[0], out[1], out[2])
+print(out[0], out[1], out[2], out[3])
 ' "$PKG" "$JSON_TMP" 2>/dev/null)"
 rm -f "$JSON_TMP"
 
@@ -106,13 +106,27 @@ fi
 
 if [ "$SUBDIR" = "noarch" ]; then NOARCH=1; PLATFORMS="linux/amd64,linux/arm64"; else NOARCH=0; PLATFORMS="linux/arm64"; fi
 
+# Tag with the version the solver RESOLVED, never the one that was requested.
+#
+# conda treats `pkg=11.6` as a prefix match. This used to emit "${VER}--${BUILD}" -
+# the requested version glued to the solved build - so asking for control-freec=11.6
+# produced the tag 11.6--hdc89528_3 for an image containing 11.6b. That is how a
+# published image came to contain a different version than its tag, breaking the
+# project's central promise (D6). The tag must describe what gets installed.
+: "${SOLVED_VER:=$VER}"
+if [ "$SOLVED_VER" != "$VER" ]; then
+  echo "[classify] note: requested ${PKG}=${VER} resolves to ${SOLVED_VER} (conda prefix match);" >&2
+  echo "[classify]       tagging and installing ${SOLVED_VER} so the tag tells the truth" >&2
+fi
+
 emit tool      "$PKG"
-emit version   "$VER"
+emit version   "$SOLVED_VER"
+emit requested "$VER"
 emit subdir    "$SUBDIR"
 emit build     "$BUILD"
 emit noarch    "$NOARCH"
-emit tag       "${VER}--${BUILD}"
+emit tag       "${SOLVED_VER}--${BUILD}"
 emit platforms "$PLATFORMS"
 emit channel   "${CHANNEL:-bioconda}"
 emit ok        1
-echo "[classify] ${PKG}=${VER}: subdir=${SUBDIR} build=${BUILD} channel=${CHANNEL:-bioconda} -> $([ "$NOARCH" = 1 ] && echo 'NOARCH/multi-arch' || echo 'arch-specific/arm64-only')"
+echo "[classify] ${PKG}=${SOLVED_VER}: subdir=${SUBDIR} build=${BUILD} channel=${CHANNEL:-bioconda} -> $([ "$NOARCH" = 1 ] && echo 'NOARCH/multi-arch' || echo 'arch-specific/arm64-only')"

@@ -105,6 +105,43 @@ if printf '%s' "$ARCH_OUT" | grep -q '^ARCH_SKIP'; then
 fi
 echo "[smoke] arch checked: $(printf '%s' "$ARCH_OUT" | sed -n 's/^ARCH_CHECKED //p') ELF files for ${PLATFORM}"
 
+# --- level 0b: tag honesty (MANDATORY) ---------------------------------------
+# The tag <version>--<build> must describe what conda actually installed. That is
+# the project's central promise (D6), and it was broken without anyone knowing:
+# control-freec:11.6--hdc89528_3 contains 11.6b, because conda treats `=11.6` as a
+# prefix match and the tag recorded the request instead of the result. Its OCI
+# version label says 11.6 too, so only the installed conda record tells the truth.
+#
+# Checked only when the ref carries a tag. A digest-only ref (a noarch build leg,
+# before merge assigns the tag) has nothing to compare against; that path is
+# covered at the source instead, because classify.sh now derives the tag from the
+# solved version rather than the requested one.
+case "$IMAGE" in
+  *@sha256:*) echo "[smoke] tag honesty: digest ref, no tag to check (covered by classify)" ;;
+  *)
+    REF_TAG="${IMAGE##*:}"
+    case "$REF_TAG" in
+      *--*)
+        TAG_VER="${REF_TAG%%--*}"; TAG_BUILD="${REF_TAG#*--}"
+        TAG_OUT="$(docker run --rm -i --platform "$PLATFORM" "$IMAGE" sh -s -- "$PKG" "$TAG_VER" "$TAG_BUILD" \
+                   < "${HERE_SMOKE}/tag-check.sh" 2>&1 | grep '^TAG_' | tail -1)"
+        case "$TAG_OUT" in
+          TAG_OK*)
+            echo "[smoke] tag honesty: OK (installed ${TAG_OUT#TAG_OK })" ;;
+          TAG_MISMATCH*)
+            set -- $TAG_OUT
+            echo "[smoke] FAIL — TAG MISMATCH: tag claims ${2} but the image contains ${PKG} ${3}." >&2
+            echo "[smoke] A pulled image must contain exactly what its tag claims. Not publishing." >&2
+            exit 3 ;;
+          *)
+            # Could not determine (no record, or ambiguous). Say so rather than
+            # silently pass; the remaining levels still have to prove the image.
+            echo "[smoke] tag honesty: could not verify — ${TAG_OUT#TAG_UNKNOWN }" ;;
+        esac ;;
+      *) echo "[smoke] tag honesty: tag '${REF_TAG}' is not <version>--<build>; skipped" ;;
+    esac ;;
+esac
+
 HAS_PY=0
 if run sh -c 'command -v python >/dev/null 2>&1' >/dev/null 2>&1; then HAS_PY=1; fi
 

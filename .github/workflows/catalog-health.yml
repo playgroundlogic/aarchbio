@@ -145,6 +145,7 @@ jobs:
               # listing 20 identical-looking rows.
               level=other
               grep -q 'WRONG-ARCHITECTURE' "$err" && level=arch
+              grep -q 'TAG MISMATCH' "$err" && level=tag
               grep -q 'do not import' "$err" && level=import
               grep -q 'R libraries that do not load' "$err" && level=rlib
               grep -q 'NONE of them execute' "$err" && level=entrypoint

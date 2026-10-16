@@ -84,6 +84,14 @@ jobs:
               gaps+=("{\"tool\":\"$pkg\",\"version\":\"$ver\"}"); continue
             fi
             tag="$(grep '^tag=' "$out" | cut -d= -f2-)"
+            # Build what classify RESOLVED, not what was requested. A prefix request
+            # (control-freec=11.6) resolves to a different version (11.6b); carrying
+            # the requested string forward is what once produced a tag that lied
+            # about its contents. Taking classify's version keeps the tag, the
+            # install pin and build.sh's integrity check all describing the same
+            # thing.
+            solved="$(grep '^version=' "$out" | cut -d= -f2-)"
+            [ -n "$solved" ] && ver="$solved"
             noarch="$(grep '^noarch=' "$out" | cut -d= -f2-)"
             # Which channel actually provides the package. A few BioContainers
             # tools live in conda-forge, not bioconda; the provenance labels must
