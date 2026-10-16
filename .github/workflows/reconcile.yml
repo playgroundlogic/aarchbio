@@ -118,30 +118,51 @@ jobs:
               return tuple(out)
 
           def newest_version(info):
-              # The channel's GENUINELY newest version, by upload date.
+              # Which version should the reconciler target?
               #
-              # NOT info["latest_version"]: anaconda.org orders version strings
-              # lexically, so it is wrong whenever a version embeds letters or
-              # changes format. Three real cases, each of which made this
-              # reconciler chase an old x86-only build daily and re-file a bogus
-              # arm64-gap for a tool we ALREADY publish at the true newest:
-              #   p7zip   reports 15.09        (we publish 16.02, conda-forge)
-              #   plink   reports 1.90b6.21    newest is 1.90b7.7  (has aarch64)
-              #   plink2  reports 2.00a5.10    newest is 2.0.0a.7.8 (has aarch64)
-              # The first two were patched with skip-list entries; the third proved
-              # that patching instances only waits for the next one.
+              # Neither ordering available to us is reliable on its own:
+              #  - info["latest_version"] orders version strings LEXICALLY: it calls
+              #    plink2 2.00a5.10 "latest" over 2.0.0a.7.8, plink 1.90b6.21 over
+              #    1.90b7.7, and foldseek 8.ef4e960 over 10.941cd33.
+              #  - upload date is WORSE in a different way: versions get backfilled
+              #    out of order. A first attempt at this function used it, and on its
+              #    very first run sent the reconciler BACKWARDS - annotsv 3.5.9 over
+              #    the 3.5.10 we publish, crabs 0.1.7 over 1.14.0, qualimap 2.2.2c over
+              #    2.3 - and filed a bogus gap for gawk 4.1.3, which latest_version
+              #    had (correctly) left alone as None.
               #
-              # Ordering is (upload DAY, version) rather than raw timestamp: a
-              # same-day backfill of an older version (phispy uploaded 5.0.9 a few
-              # seconds after 5.0.10) must not outrank the real release.
-              when = {}
+              # The harm only ever occurs in ONE situation: latest_version names a
+              # build that cannot run on arm64, while a later-uploaded one can. Then
+              # the reconciler builds nothing useful, files a bogus arm64-gap against
+              # a tool we may already publish, and re-comments on it daily (#74).
+              #
+              # So: keep latest_version unless THAT is the case. Minimal blast radius
+              # by construction - for every tool where it was harmless before, the
+              # answer is unchanged. The cost is that a stale-but-buildable
+              # latest_version (foldseek) still is not chased; that is pre-existing
+              # behaviour, not a regression, and it never files anything false.
+              latest = info.get("latest_version")
+              subs, first = {}, {}
               for f in info.get("files", []):
-                  v = f.get("version"); ts = (f.get("upload_time") or "")[:10]
-                  if v and ts > when.get(v, ""):
-                      when[v] = ts
-              if not when:
-                  return info.get("latest_version")
-              return max(when, key=lambda v: (when[v], vkey(v)))
+                  v = f.get("version")
+                  if not v:
+                      continue
+                  subs.setdefault(v, set()).add((f.get("attrs") or {}).get("subdir"))
+                  ts = (f.get("upload_time") or "")[:10]
+                  if ts and (v not in first or ts < first[v]):
+                      first[v] = ts
+              def arm_ok(v):
+                  return bool(subs.get(v, set()) & {"linux-aarch64", "noarch"})
+              if not latest or arm_ok(latest):
+                  return latest
+              later = [v for v in subs
+                       if arm_ok(v) and first.get(v, "") > first.get(latest, "")]
+              if not later:
+                  return latest          # genuinely no arm64 build: a real gap
+              # Among buildable versions that appeared after latest_version, take the
+              # one that appeared most recently (FIRST upload, so a rebuild of an old
+              # version does not count as new).
+              return max(later, key=lambda v: (first[v], vkey(v)))
 
           delta=[]; skipped_n=0
           for tool in sorted(tracked):
@@ -263,21 +284,34 @@ jobs:
                       if not t["name"].endswith((".sig", ".att")) and not t["name"].startswith("sha256-")}
 
           def bioconda_latest(tool):
-              # Same rule as the delta's newest_version(): see the comment there.
+              # Same rule as the delta's newest_version() - see the comment there.
               try:
                   u = "https://api.anaconda.org/package/bioconda/%s" % tool
                   info = json.load(urllib.request.urlopen(u, timeout=20))
               except Exception:
                   return None
-              when = {}
+              latest = info.get("latest_version")
+              subs, first = {}, {}
               for f in info.get("files", []):
-                  v = f.get("version"); ts = (f.get("upload_time") or "")[:10]
-                  if v and ts > when.get(v, ""):
-                      when[v] = ts
-              if not when:
-                  return info.get("latest_version")
-              return max(when, key=lambda v: (when[v], vkey(v)))
-
+                  v = f.get("version")
+                  if not v:
+                      continue
+                  subs.setdefault(v, set()).add((f.get("attrs") or {}).get("subdir"))
+                  ts = (f.get("upload_time") or "")[:10]
+                  if ts and (v not in first or ts < first[v]):
+                      first[v] = ts
+              def arm_ok(v):
+                  return bool(subs.get(v, set()) & {"linux-aarch64", "noarch"})
+              if not latest or arm_ok(latest):
+                  return latest
+              later = [v for v in subs
+                       if arm_ok(v) and first.get(v, "") > first.get(latest, "")]
+              if not later:
+                  return latest          # genuinely no arm64 build: a real gap
+              # Among buildable versions that appeared after latest_version, take the
+              # one that appeared most recently (FIRST upload, so a rebuild of an old
+              # version does not count as new).
+              return max(later, key=lambda v: (first[v], vkey(v)))
           def vkey(v):
               # Order-safe mixed version key: ints sort before strings, no TypeError.
               out = []
