@@ -14,7 +14,7 @@ Filed 2026-09-03. Each was checked for an existing duplicate before filing
 | aarchbio | Upstream | Tool | Ask |
 |---|---|---|---|
 | [#40](https://github.com/playgroundlogic/aarchbio/issues/40) | [bioconda-recipes#68788](https://github.com/bioconda/bioconda-recipes/issues/68788) → **PR [#69532](https://github.com/bioconda/bioconda-recipes/pull/69532)** | `galah` | restore `linux-aarch64`, dropped in the 0.5.0 bump (#66700) |
-| [#39](https://github.com/playgroundlogic/aarchbio/issues/39) | [bioconda-recipes#68789](https://github.com/bioconda/bioconda-recipes/issues/68789) | `myloasm` | un-comment `linux-aarch64`, commented out in the 0.6.0 bump (#66876) |
+| [#39](https://github.com/playgroundlogic/aarchbio/issues/39) | [bioconda-recipes#68789](https://github.com/bioconda/bioconda-recipes/issues/68789) ✅ **fixed 2026-10-11** | `myloasm` | un-comment `linux-aarch64`, commented out in the 0.6.0 bump (#66876) |
 | [#26](https://github.com/playgroundlogic/aarchbio/issues/26) | [bioconda-recipes#68790](https://github.com/bioconda/bioconda-recipes/issues/68790) | `metamdbg` | restore the `additional-platforms` block deleted at 1.3 (#62241) |
 | [#44](https://github.com/playgroundlogic/aarchbio/issues/44) | [bioconda-recipes#68791](https://github.com/bioconda/bioconda-recipes/issues/68791) | `gatk4` | declare `noarch: generic` per output (the split dropped it) |
 | [#25](https://github.com/playgroundlogic/aarchbio/issues/25), [#4](https://github.com/playgroundlogic/aarchbio/issues/4) | [bioconda-recipes#68792](https://github.com/bioconda/bioconda-recipes/issues/68792) | `gtdbtk`, `comebin` | relax `pplacer =1.1.alpha19` (only recent pplacer without arm64) |
