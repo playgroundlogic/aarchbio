@@ -64,7 +64,7 @@ jobs:
         run: |
           set -uo pipefail
           python3 - "$MAX_DELTA" <<'PY' > /tmp/delta.txt
-          import json, sys, os, urllib.request, datetime
+          import json, sys, os, re, urllib.request, datetime
 
           MAX=int(sys.argv[1])
           # Monthly revisit: include 'stuck' entries on the 1st of the month or on
@@ -110,12 +110,45 @@ jobs:
               tracked+=[r["name"] for r in d["repositories"]]; page=d.get("next_page")
               if not page: break
 
+          def vkey(v):
+              # Order-safe mixed version key: ints sort before strings, no TypeError.
+              out = []
+              for part in re.split(r"[._-]", v):
+                  out.append((0, int(part), "") if part.isdigit() else (1, 0, part))
+              return tuple(out)
+
+          def newest_version(info):
+              # The channel's GENUINELY newest version, by upload date.
+              #
+              # NOT info["latest_version"]: anaconda.org orders version strings
+              # lexically, so it is wrong whenever a version embeds letters or
+              # changes format. Three real cases, each of which made this
+              # reconciler chase an old x86-only build daily and re-file a bogus
+              # arm64-gap for a tool we ALREADY publish at the true newest:
+              #   p7zip   reports 15.09        (we publish 16.02, conda-forge)
+              #   plink   reports 1.90b6.21    newest is 1.90b7.7  (has aarch64)
+              #   plink2  reports 2.00a5.10    newest is 2.0.0a.7.8 (has aarch64)
+              # The first two were patched with skip-list entries; the third proved
+              # that patching instances only waits for the next one.
+              #
+              # Ordering is (upload DAY, version) rather than raw timestamp: a
+              # same-day backfill of an older version (phispy uploaded 5.0.9 a few
+              # seconds after 5.0.10) must not outrank the real release.
+              when = {}
+              for f in info.get("files", []):
+                  v = f.get("version"); ts = (f.get("upload_time") or "")[:10]
+                  if v and ts > when.get(v, ""):
+                      when[v] = ts
+              if not when:
+                  return info.get("latest_version")
+              return max(when, key=lambda v: (when[v], vkey(v)))
+
           delta=[]; skipped_n=0
           for tool in sorted(tracked):
               if skipped(tool): skipped_n+=1; continue   # known dead-end / stuck
               info=anaconda(tool)
               if not info: continue
-              latest=info.get("latest_version")
+              latest=newest_version(info)
               if not latest: continue
               # what tags do we already have for this tool?
               try:
@@ -230,11 +263,20 @@ jobs:
                       if not t["name"].endswith((".sig", ".att")) and not t["name"].startswith("sha256-")}
 
           def bioconda_latest(tool):
+              # Same rule as the delta's newest_version(): see the comment there.
               try:
                   u = "https://api.anaconda.org/package/bioconda/%s" % tool
-                  return json.load(urllib.request.urlopen(u, timeout=20)).get("latest_version")
+                  info = json.load(urllib.request.urlopen(u, timeout=20))
               except Exception:
                   return None
+              when = {}
+              for f in info.get("files", []):
+                  v = f.get("version"); ts = (f.get("upload_time") or "")[:10]
+                  if v and ts > when.get(v, ""):
+                      when[v] = ts
+              if not when:
+                  return info.get("latest_version")
+              return max(when, key=lambda v: (when[v], vkey(v)))
 
           def vkey(v):
               # Order-safe mixed version key: ints sort before strings, no TypeError.
@@ -259,7 +301,15 @@ jobs:
               # the gap filer would just re-file it -- a close/re-file churn loop.
               # (Caught by p7zip: bioconda latest is 15.09 with no arm64, yet we
               # publish 16.02, so a naive version compare looked "superseded".)
-              if ver == bioconda_latest(tool):
+              newest = bioconda_latest(tool)
+              if ver == newest:
+                  continue
+              # We already publish the channel's genuinely newest version, so a gap
+              # filed against an older one is moot. Checked BEFORE the vkey
+              # comparison below, because vkey cannot order these strings either:
+              # it ranks plink2 2.0.0a.7.8 BELOW 2.00a5.10.
+              if newest and newest in have:
+                  print("%d|%s|%s|superseded|%s" % (issue["number"], tool, ver, newest))
                   continue
               try:
                   newer = [v for v in have if vkey(v) > vkey(ver)]
