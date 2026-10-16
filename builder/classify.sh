@@ -19,6 +19,13 @@ set -uo pipefail
 PKG="${1:?usage: classify.sh <pkg> <version>}"
 VER="${2:?usage: classify.sh <pkg> <version>}"
 MAMBA_IMAGE="${MAMBA_IMAGE:-mambaorg/micromamba:1.5.8}"
+# Extra specs installed alongside the package (space-separated "name=version").
+# They MUST be part of this solve, because they can change which build of PKG is
+# selected - and the tag is taken from this solve. tmb was published as
+# 1.6.0--pyhdfd78af_1 because classify solved tmb alone, while the image installed
+# tmb + mosdepth=0.3.14, which selects build _0. The tag described a solve that was
+# never installed.
+EXTRA_PACKAGES="${EXTRA_PACKAGES:-}"
 
 # Pick a Python interpreter portably: `uv run python` locally (project standard),
 # plain python3 on CI runners that don't have uv. PY is an array so it expands
@@ -41,7 +48,7 @@ emit() { echo "$1=$2"; [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1=$2" >> "$GITHUB_O
 # Anything else is an infra error, which exits 3 and must not be read as a gap.
 ERR_TMP="$(mktemp)"
 json="$(docker run --rm --platform linux/arm64 "$MAMBA_IMAGE" \
-        micromamba create -n _c --dry-run --json -c bioconda -c conda-forge "${PKG}=${VER}" 2>"$ERR_TMP")"
+        micromamba create -n _c --dry-run --json -c bioconda -c conda-forge "${PKG}=${VER}" ${EXTRA_PACKAGES:-} 2>"$ERR_TMP")"
 RC=$?
 err="$(cat "$ERR_TMP")"; rm -f "$ERR_TMP"
 

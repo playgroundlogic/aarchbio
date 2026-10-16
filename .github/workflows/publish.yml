@@ -70,7 +70,9 @@ jobs:
             # A command on the left of `||` is exempt from -e; the original code was
             # safe only because it sat inside `if ! ...; then`.
             crc=0
-            GITHUB_OUTPUT="$out" ./builder/classify.sh "$pkg" "$ver" || crc=$?
+            # Pass the extras so classify solves EXACTLY what the image will install;
+            # extras can change the selected build, and the tag comes from this solve.
+            EXTRA_PACKAGES="$extra" GITHUB_OUTPUT="$out" ./builder/classify.sh "$pkg" "$ver" || crc=$?
             # exit 2 = the solver ran and found no arm64 solution -> a real gap.
             # exit 3 = the solver could not run (disk, network, image pull). That
             #   is OURS, not upstream's, and must never reach the D10 gap filer --

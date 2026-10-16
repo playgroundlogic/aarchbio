@@ -181,6 +181,9 @@ jobs:
     if: always()
     runs-on: ubuntu-24.04-arm
     steps:
+      # Needed for audit/known-broken.tsv. Without it the known list was silently
+      # empty, and together with the awk bug below the alarm could never fire.
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           pattern: health-*
@@ -200,11 +203,15 @@ jobs:
           # NEW ones drive the issue: an alarm that permanently lists understood
           # conditions gets ignored, and then a real regression hides inside it.
           : > known.txt
+          if [ ! -f audit/known-broken.tsv ]; then
+            echo "::error::audit/known-broken.tsv not found - refusing to classify failures without it"
+            exit 1
+          fi
           [ -f audit/known-broken.tsv ] && \
             awk -F'\t' '!/^#/ && NF>=3 {print $1"\t"$2}' audit/known-broken.tsv > known.txt
-          awk -F'\t' 'NR==FNR{k[$1"\t"$2]=1; next} $3=="FAIL" && (($1"\t"$2) in k)' \
+          awk -F'\t' 'FILENAME==ARGV[1]{k[$1"\t"$2]=1; next} $3=="FAIL" && (($1"\t"$2) in k)' \
             known.txt combined.tsv > accepted.tsv
-          awk -F'\t' 'NR==FNR{k[$1"\t"$2]=1; next} $3=="FAIL" && !(($1"\t"$2) in k)' \
+          awk -F'\t' 'FILENAME==ARGV[1]{k[$1"\t"$2]=1; next} $3=="FAIL" && !(($1"\t"$2) in k)' \
             known.txt combined.tsv > new-fails.tsv
           fails="$(grep -c . new-fails.tsv || true)"
           accepted="$(grep -c . accepted.tsv || true)"
