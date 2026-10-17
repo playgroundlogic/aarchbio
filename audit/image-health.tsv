@@ -26,6 +26,7 @@ angsd	0.940--h63bafd0_4	PASS
 anndata	0.13.4--pyhd8ed1ab_0	PASS		
 anndata	0.6.22.post1--py_0	FAIL	import	[smoke] FAIL — anndata installs python modules that do not import on linux/arm64:
 annotsv	3.5.10--hdfd78af_0	PASS		
+annotsv	3.5.9--hdfd78af_0	PASS		
 antismash	8.0.4--pyhdfd78af_1	PASS		
 any2fasta	0.8.1--hdfd78af_0	PASS		
 argnorm	1.1.0--pyhdfd78af_0	PASS		
@@ -57,6 +58,7 @@ bbmap	39.81--heff9fa3_1	PASS
 bbmap	39.91--h7683cbd_0	PASS		
 bbmap	40.00--h7683cbd_0	PASS		
 bbmap	40.02--h7683cbd_0	PASS		
+bbmap	40.04--h7683cbd_0	PASS		
 bcftools	1.23.1--h89c24a7_0	PASS		
 bcftools	1.24--hd65497c_0	PASS		
 beagle	5.4_22Jul22.46e--hdfd78af_0	PASS		
@@ -70,8 +72,10 @@ bioawk	1.0--h0cbc5ad_13	PASS
 biobambam	2.0.185--h9ca79bb_0	PASS		
 bioconductor-dada2	1.38.0--r45h663ae34_0	PASS		
 bioconductor-deseq2	1.50.2--r45h663ae34_0	PASS		
+bioconductor-edger	4.10.5--r45h3c8180c_0	PASS		
 bioconductor-edger	4.8.2--r45h3c8180c_1	PASS		
 bioconductor-limma	3.66.0--r45hbd662d2_0	PASS		
+bioconductor-limma	3.68.5--r45h3c8180c_0	PASS		
 bioconductor-minfidata	0.56.0--r45hdfd78af_0	PASS		
 bioconductor-sesame	1.28.1--r45hdfd78af_0	PASS		
 bioconductor-summarizedexperiment	1.32.0--r43hdfd78af_0	PASS		
@@ -145,13 +149,13 @@ cobs	0.3.1--h7f4e536_1	PASS
 comet-ms	2026011--h23ed54d_0	PASS		
 concoct	1.1.0--py312hc1ac19e_9	PASS		
 conifer	1.0.3--h0cbc5ad_0	PASS		
-control-freec	11.6--hdc89528_3	PASS		
 control-freec	11.6b--hdc89528_3	PASS		
 cooler	0.10.4--pyhdfd78af_0	PASS		
 cooltools	0.7.1--py312h6ad6c05_3	PASS		
 coptr	1.1.4--pyhdfd78af_1	PASS		
 coverm	0.7.0--h3ad02e1_4	PASS		
 coverm	0.8.0--hc2521f5_0	PASS		
+crabs	0.1.7--pyhdfd78af_1	PASS		
 crabs	1.14.0--pyhdfd78af_0	PASS		
 cramino	1.3.0--h30f2c0e_0	PASS		
 cramino	2.0.0--h7ab6e48_0	PASS		
@@ -195,6 +199,7 @@ dragonflye	1.2.1--hdfd78af_0	PASS
 drep	3.6.2--pyhdfd78af_0	PASS		
 drep	3.7.1--pyhdfd78af_0	PASS		
 drep	4.0.2--pyhdfd78af_0	PASS		
+drep	4.0.3--pyhdfd78af_0	PASS		
 dysgu	1.8.8--py313hd3ce107_0	PASS		
 dysgu	1.9.0--py313hd3ce107_0	PASS		
 ectyper	2.0.0--pyhdfd78af_4	PASS		
@@ -205,6 +210,7 @@ emboss	6.6.0--h4b5f196_14	PASS
 emu	3.6.2--hdfd78af_0	PASS		
 endorspy	1.4--hdfd78af_0	PASS		
 ensembl-vep	116.2--pl5321h2a3209d_0	PASS		
+ensembl-vep	116.3--pl5321h663502d_0	PASS		
 epic2	0.0.54--py312hc072545_0	PASS		
 evigene	23.7.15--hdfd78af_1	PASS		
 expansionhunter	5.0.0--he8b94f4_5	PASS		
@@ -256,6 +262,8 @@ finaletoolkit	1.1.0--pyhdfd78af_0	PASS
 flye	2.9.6--py313h30571f8_1	PASS		
 foldcomp	1.0.0--h94579f3_0	PASS		
 foldmason	2.7bd21ed--pl5321h3af90e8_0	PASS		
+foldmason	4.dd3c235--h3af90e8_0	PASS		
+foldseek	10.941cd33--h3af90e8_1	PASS		
 foldseek	8.ef4e960--pl5321hd5e968b_1	PASS		
 fq	0.12.0--h23ed54d_0	PASS		
 fqtk	0.3.1--h415ceb9_3	PASS		
@@ -266,6 +274,7 @@ freyja	2.0.1--pyhdfd78af_0	PASS
 freyja	2.0.3--pyhdfd78af_0	PASS		
 freyja	2.0.4--pyhdfd78af_0	PASS		
 freyja	2.0.5--pyhdfd78af_0	PASS		
+freyja	2.0.6--pyhdfd78af_0	PASS		
 galah	0.4.2--h3af2550_2	PASS		
 gangstr	2.5.0--h5756de4_10	PASS		
 ganon	2.1.0--py312h5a2988e_3	PASS		
@@ -366,7 +375,6 @@ kraken2	2.1.3--pl5321h1e84f2d_4	PASS
 kraken2	2.1.5--pl5321h1e84f2d_0	PASS		
 kraken2	2.17.1--pl5321h1e84f2d_0	PASS		
 kraken2	2.17.2--pl5321h84a7dbf_0	PASS		
-krakentools	1.2--pyh7e72e81_0	PASS		
 krakentools	1.2.1--pyh7e72e81_0	PASS		
 krakenuniq	1.0.4--pl5321h1268609_4	PASS		
 krona	2.8.1--pl5321hdfd78af_1	PASS		
@@ -379,6 +387,8 @@ liftoff	1.6.3--pyhdfd78af_0	PASS
 links	2.0.1--h4ba1498_8	PASS		
 lofreq	2.1.5--py312h134d72b_15	PASS		
 longphase	2.0.2--h02b7777_0	PASS		
+longphase	2.1--h02b7777_0	PASS		
+longphase	2.1.1--h02b7777_0	PASS		
 longstitch	1.0.5--hdfd78af_2	PASS		
 macs2	2.2.9.1--py311he810f1b_5	PASS		
 macs3	3.0.4--py313hf237484_0	PASS		
@@ -415,6 +425,7 @@ metabuli	1.2.0--pl5321hd0c913a_0	PASS
 metacache	2.5.0--h1e84f2d_0	PASS		
 metacache	2.6.0--h1e84f2d_0	PASS		
 metaeuk	6.a5d39d9--pl5321h76f4f2e_4	PASS		
+metaeuk	7.bba0d80--pl5321h7645e38_2	PASS		
 metamdbg	1.2--h1e84f2d_0	PASS		
 metaphlan	4.1.0--pyhca03a8a_0	PASS		
 metaphlan	4.1.1--pyhdfd78af_0	PASS		
@@ -446,6 +457,7 @@ mosdepth	0.3.14--h1e6e1f4_0	PASS
 motus	4.0.4--pyhdfd78af_0	PASS		
 motus	4.1.0--pyhdfd78af_0	PASS		
 mrbayes	3.2.8--h5fe948a_0	PASS		
+mrbayes	3.2.9--h5fe948a_0	PASS		
 msisensor	0.5--h54ec578_7	PASS		
 msisensor-pro	1.3.0--h61043a5_1	PASS		
 mtnucratio	0.7.1--hdfd78af_0	PASS		
@@ -459,6 +471,7 @@ muse	2.1.2--hd44150b_3	PASS
 mygene	3.2.2--pyh5e36f6f_0	PASS		
 mykrobe	0.13.0--py312h25ee9f3_5	PASS		
 myloasm	0.5.1--h6789a04_1	PASS		
+myloasm	0.7.0--ha2fee11_1	PASS		
 nail	0.5.0--hba26009_0	PASS		
 nail	0.7.1--hea25411_0	PASS		
 nanocomp	1.25.6--pyhdfd78af_0	PASS		
@@ -478,6 +491,7 @@ nextclade	3.21.2--h23ed54d_0	PASS
 nextclade	3.22.0--h23ed54d_0	PASS		
 nextclade	3.23.0--h23ed54d_0	PASS		
 nextclade	3.24.0--h23ed54d_0	PASS		
+nextclade	3.25.0--h23ed54d_0	PASS		
 ngmaster	2.0.0--pyhdfd78af_0	PASS		
 ngmaster	2.1.0--pyhdfd78af_0	PASS		
 ngmerge	0.5--hf0d9179_0	PASS		
@@ -492,6 +506,7 @@ octopusv	0.4.3--pyhdfd78af_0	PASS
 octopusv	1.0.0--pyhdfd78af_0	PASS		
 odgi	0.9.4--h1e84f2d_0	PASS		
 openms	3.5.0--h1ce2723_0	PASS		
+openms	3.6.0--h1b9dc22_0	PASS		
 opt	0.0.1--pyhdfd78af_0	PASS		
 optitype	1.5.0--pyhdfd78af_0	PASS		
 orfipy	0.0.4--py312h42fd94b_5	PASS		
@@ -530,6 +545,7 @@ piscem	0.23.0--h09c244b_0	PASS
 plasmidfinder	2.1.6--py314hdfd78af_2	PASS		
 plasmidfinder	3.0.3--pyhdfd78af_0	PASS		
 plasmidid	1.6.5--hdfd78af_0	FAIL	arch	[smoke]   /opt/conda/bin/real-tbl2asn x86-64
+plink	1.90--hfb9a7e0_0	PASS		
 plink	1.90b7.7--h0bcb338_1	PASS		
 plink2	2.0.0a.7.8--he764272_0	PASS		
 plotsr	1.1.1--pyh7cba7a3_0	PASS		
@@ -540,7 +556,6 @@ polypolish	0.7.1--h2013a2e_0	PASS
 poolsnp	1.0.1--py312h7e72e81_0	PASS		
 popscle	0.1--hfd3d8ae_1	PASS		
 porechop	0.2.4--py312h42fd94b_9	PASS		
-porechop_abi	0.5.0--py312h645634a_0	PASS		
 porechop_abi	0.5.0post1--py312h645634a_0	PASS		
 porechop_abi	0.5.1--py312h645634a_0	PASS		
 portcullis	1.2.4--py313h79e472c_5	PASS		
@@ -561,16 +576,18 @@ pypolca	0.4.0--pyhdfd78af_0	PASS
 pypolca	0.5.0--pyhdfd78af_0	PASS		
 pyrodigal	3.7.1--py313h7ebdf71_1	PASS		
 python	3.10.4--h5016f1d_0_cpython	PASS		
-python	3.12--h91f4b29_0_cpython	PASS		
 python	3.12.12--h91f4b29_2_cpython	PASS		
-python	3.9--h0819846_0_cpython	PASS		
 qcat	1.1.0--pyh864c0ab_1	PASS		
 qcatch	0.2.12--pyhdfd78af_0	PASS		
 qcatch	0.2.13--pyhdfd78af_0	PASS		
 qcatch	0.2.14--pyhdfd78af_0	PASS		
+qualimap	2.2.2c--hdfd78af_2	PASS		
 qualimap	2.3--hdfd78af_0	PASS		
 quast	5.3.0--py313pl5321h0aa3852_2	PASS		
+r-archr	1.0.3--r44h80f0ee0_4	PASS		
 r-saige	1.3.1--r44h0d415b9_4	PASS		
+r-signac	1.17.1--r45h5fecb44_1	PASS		
+r-wgcna	1.74--r45hd008ecc_1	PASS		
 racon	1.5.0--h1e84f2d_8	PASS		
 ragtag	2.1.0--pyhdfd78af_2	PASS		
 rapidnj	2.3.3--h4ba1498_0	PASS		
@@ -601,6 +618,7 @@ riker	0.2.0--h2013a2e_0	PASS
 riker	0.3.0--h2013a2e_0	PASS		
 riker	0.4.0--h2013a2e_0	PASS		
 riker	0.4.1--h2013a2e_0	PASS		
+riker	0.5.0--h2013a2e_0	PASS		
 rmats	4.3.0--py312h570e2b1_5	PASS		
 rmats	4.4.0--py313h2f662aa_0	PASS		
 rpbp	4.0.1--py313haca9121_1	PASS		
@@ -646,6 +664,7 @@ semibin	2.3.0--pyhdfd78af_0	PASS
 semibin	2.4.0--pyhdfd78af_0	PASS		
 semibin	2.4.1--pyhdfd78af_0	PASS		
 semibin	2.5.0--pyhdfd78af_0	PASS		
+semibin	2.6.0--pyhdfd78af_0	PASS		
 sentieon	202503.03--h9a91658_0	PASS		
 sentieon	202503.04--h07557cf_0	PASS		
 seqcluster	1.2.9--pyh5e36f6f_0	PASS		
@@ -654,6 +673,7 @@ seqfu	1.27.1--h0bbf5d2_0	PASS
 seqfu	1.28.0--h0bbf5d2_0	PASS		
 seqfu	1.29.0--h0bbf5d2_0	PASS		
 seqfu	1.30.0--h0bbf5d2_0	PASS		
+seqfu	1.30.3--ha474353_0	PASS		
 seqkit	2.11.0--h8865c2f_0	PASS		
 seqkit	2.13.0--h8865c2f_0	PASS		
 seqkit	2.14.0--h07adaa6_0	PASS		
@@ -679,6 +699,7 @@ simpleaf	0.29.0--h6789a04_0	PASS
 simpleaf	0.30.0--h6789a04_0	PASS		
 ska	1.0--h1e84f2d_7	PASS		
 skani	0.3.2--h60bb4c3_0	PASS		
+skani	0.4.0--h2013a2e_0	PASS		
 skesa	2.5.1--h1e84f2d_3	PASS		
 smncopynumbercaller	1.1.2--py312h7e72e81_1	PASS		
 smoothxg	0.8.2--h3cbedc2_1	PASS		
@@ -728,6 +749,7 @@ stringtie	2.2.3--hac7b671_1	PASS
 stringtie	3.0.3--hac7b671_0	PASS		
 strobealign	0.17.0--h0aa3852_0	PASS		
 strobealign	0.18.0--hea25411_0	PASS		
+strobealign	0.19.0--hea25411_0	PASS		
 strvctvre	1.10--pyh7e72e81_0	PASS		
 subread	2.0.6--h0cbc5ad_3	PASS		
 subread	2.1.1--h0cbc5ad_0	PASS		
@@ -761,7 +783,6 @@ tiddit	3.9.7--py313h1a40087_0	PASS
 tidk	0.2.65--h30f2c0e_0	PASS		
 tidk	0.3.0--h7ab6e48_0	PASS		
 tmalign	20240303--h4ba1498_0	PASS		
-tmb	1.6.0--pyhdfd78af_1	PASS		
 topas	1.0.1--hdfd78af_1	PASS		
 toulligqc	2.8.4--pyhdfd78af_1	PASS		
 toulligqc	2.9.1--pyhdfd78af_0	PASS		

@@ -13,16 +13,17 @@
 #               kept rather than deleted so anyone pinning it still resolves, but
 #               it is not what the catalog offers. Nothing to fix here.
 #   upstream    No fix available to us: the defect is in the upstream conda
-#               package. Tracked in UPSTREAM.md; the images stay published pending
-#               a decision on whether to withdraw them.
+#               package. Tracked in UPSTREAM.md. Kept DELIBERATELY: each tool works
+#               and only a sub-feature is unavailable. Images whose own binaries
+#               cannot run were withdrawn instead (audit/withdrawn.tsv).
 #
 # Withdrawn images are NOT listed here — once a repo is deleted there is nothing
 # left to verify, and a row for it would go permanently stale. See audit/withdrawn.tsv.
 #
-# NOTE this file is the explicit record of an inconsistency we have not resolved:
-# the README says "a broken image is worse than an absent one", and the `upstream`
-# rows below contradict that. Either withdraw them or accept them deliberately —
-# but do not let them sit here unexamined.
+# Decision (2026-10-08): the README's "a broken image is worse than an absent one"
+# is applied to the TOOL, not to every file in it. Where nothing works, the image is
+# withdrawn; where a working tool loses one feature, it is kept and the limitation is
+# listed in the README so users see it before pulling.
 #
 # Columns (tab-separated):  repo  tag  category  reason
 # Remove a row the moment its cause is fixed; the check will then enforce it again.
